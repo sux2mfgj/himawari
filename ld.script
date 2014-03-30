@@ -7,10 +7,11 @@ SECTIONS
         *(.entry);
         *(.text);
     }
-    .data :{
+    .data :{    /* 有意値で初期化されるstatic変数 */
         *(.data) 
     }
-    .bss :{
+    .bss :{     /* ゼロで初期化されるstatic変数 */
+
         *(.bss);
     }
 
