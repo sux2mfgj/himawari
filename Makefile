@@ -16,4 +16,5 @@ run:
 		$(QEMU) -kernel $(IMAGE)
 
 
-
+clean:
+		rm $(IMAGE) *.o
