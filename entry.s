@@ -1,3 +1,4 @@
+#grub でブートするために必要なデータ
 MULTIBOOT_HEADER_MAGIC = 0x1BADB002
 MULTIBOOT_HEADER_FLAGS = 0x0001
 CHECKSUM = -(MULTIBOOT_HEADER_MAGIC+MULTIBOOT_HEADER_FLAGS) 
@@ -14,6 +15,8 @@ multiboot_header:
     .long MULTIBOOT_HEADER_MAGIC
     .long MULTIBOOT_HEADER_FLAGS
     .long CHECKSUM
+
+.section .text
 
 .globl start_hlt
 start_hlt:
