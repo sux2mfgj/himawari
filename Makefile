@@ -1,34 +1,19 @@
 
-OBJS	= kernel.o multiboot.o
-IMAGE	= kernel 
+CC = gcc
+LD = ld
+QEMU = qemu-system-i386
+CFLAGS = -fno-builtin -nostdlib -mno-red-zone -ffreestanding -nostdinc -fno-stack-protector
 
-INCLUDE_DIR = ./include
-
-CC		= gcc
-LD		= ld
-RM		= rm
-MAKE	= make
-QEMU	= qemu-system-x86_64
-
-CFLAGS 	= -Wall -g -I$(INCLUDE_DIR)
-#  LDFLAGS	= -T linkerscript 
-LDFLAGS	= -Ttext=0x100000 
+IMAGE = entry.elf
 
 
-.c.o:
-	$(CC) -c $< -o $@
-
-.S.o:
-	$(CC) -c $< -o $@
-
-
-
-default: $(OBJS)
-	$(LD) $(LDFLAGS) $(OBJS) -o $(IMAGE)
-
+all:
+		as entry.s -o entry.o
+		$(CC) $(CFLAGS) -c main.c -o main.o
+		$(LD) -Tld.script entry.o main.o -o $(IMAGE)
 
 run:
-	$(QEMU) -kernel $(IMAGE) 
+		$(QEMU) -kernel $(IMAGE)
 
-clean:
-	rm -f $(OBJS) $(IMAGE)
+
+
