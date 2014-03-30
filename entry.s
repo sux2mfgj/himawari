@@ -15,6 +15,8 @@ multiboot_header:
     .long MULTIBOOT_HEADER_FLAGS
     .long CHECKSUM
 
+.section .text
+
 .globl start_hlt
 start_hlt:
     hlt
