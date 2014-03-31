@@ -9,8 +9,11 @@ IMAGE = entry.elf
 
 all:
 		as entry.s -o entry.o
+		as func.s -o func.o
 		$(CC) $(CFLAGS) -c main.c -o main.o
-		$(LD) -Tld.script entry.o main.o -o $(IMAGE)
+		$(CC) $(CFLAGS) -c graphic.c -o graphic.o
+		$(CC) $(CFLAGS) -c segment.c -o segment.o
+		$(LD) -Tld.script entry.o func.o graphic.o segment.o main.o -o $(IMAGE)
 
 run:
 		$(QEMU) -kernel $(IMAGE)
