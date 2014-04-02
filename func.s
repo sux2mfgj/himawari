@@ -21,7 +21,7 @@ io_hlt:
 io_cli:
     cli
     ret
-
+.align 4
 .globl io_sti
 io_sti:
     sti

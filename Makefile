@@ -3,9 +3,7 @@ CC = gcc
 LD = ld
 QEMU = qemu-system-i386
 CFLAGS = -fno-builtin -nostdlib -mno-red-zone -ffreestanding -nostdinc -fno-stack-protector
-
 IMAGE = entry.elf
-
 
 all:
 		as entry.s -o entry.o

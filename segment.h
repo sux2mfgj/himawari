@@ -21,6 +21,11 @@ void init_pic(void);
 extern void load_gdtr(int limit, int addr);
 extern void load_idtr(int limit, int addr);
 extern void io_out8(int port, int data);
+void io_hlt(void);
+
+void asm_inthandler21(int *esp);
+
+#define AR_INTGATE32 0x008e
 
 #define PIC_MASTER_CMD_STATE_PORT 0x20
 #define PIC_MASTER_DATA_PORT 0x21

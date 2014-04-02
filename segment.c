@@ -43,6 +43,7 @@
 /* #define PIC_IMR_MASK_IRQ7 0x80 */
 /* #define PIC_IMR_MASK_IRQ_ALL 0xff */
 
+
 void init_gdtidt(void)
 {
     struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)0x00270000;
@@ -62,6 +63,8 @@ void init_gdtidt(void)
         set_gatedesc(idt + i, 0, 0, 0);
     }
     load_gdtr(0x7ff, 0x0026f800);
+
+    set_gatedesc(idt + 0x21, (int)asm_inthandler21, 2*8, AR_INTGATE32);
 
     return;
 }

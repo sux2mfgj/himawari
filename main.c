@@ -10,16 +10,16 @@ void h_puts(char* text);
 
 void kernel_entry()
 {
-/*     io_cli(); */
+    io_cli();
     init_gdtidt();
     init_pic();
     io_sti();
     
     int now_line = 0;
-/*     h_puts("hello"); */
+    h_puts("hello");
 
     for(;;){
-        start_hlt();
+        io_hlt();
     }
 }
 
@@ -32,6 +32,7 @@ void h_puts(char* text)
 
 void inthandler21(int *esp)
 {
+    h_puts("hello");
     h_puts("interrupt success");
-    start_hlt();
+    io_hlt();
 }
