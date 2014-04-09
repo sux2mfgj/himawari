@@ -1,6 +1,7 @@
 #ifndef _INCLUDED_SEGMENT_H_
 #define _INCLUDED_SEGMENT_H_
 
+#include"func.h"
 
 struct SEGMENT_DESCRIPTOR{
     short limit_low, base_low;
@@ -18,12 +19,6 @@ void init_gdtidt(void);
 void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
 void set_gatedesc(struct GATE_DISCRIPTOR *gd, int offset, int selector, int ar);
 void init_pic(void);
-extern void load_gdtr(int limit, int addr);
-extern void load_idtr(int limit, int addr);
-extern void io_out8(int port, int data);
-void io_hlt(void);
-
-void asm_inthandler21(int *esp);
 
 #define AR_INTGATE32 0x008e
 

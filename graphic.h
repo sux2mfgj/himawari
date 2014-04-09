@@ -8,7 +8,7 @@ void display_textmode(char c, unsigned char fore_color
         , int x, int y);
 
 void textmode_puts(char* text, int y);
-
+void h_puts(char* text);
 
 
 #define BLACK 0x0

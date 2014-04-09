@@ -11,7 +11,9 @@ all:
 		$(CC) $(CFLAGS) -c main.c -o main.o
 		$(CC) $(CFLAGS) -c graphic.c -o graphic.o
 		$(CC) $(CFLAGS) -c segment.c -o segment.o
-		$(LD) -Tld.script entry.o func.o graphic.o segment.o main.o -o $(IMAGE)
+#          $(LD) -Tld.script entry.o segment.o func.o graphic.o  main.o -o $(IMAGE)
+		$(LD) -Tld.script  entry.o main.o segment.o func.o graphic.o -o $(IMAGE)
+
 
 run:
 		$(QEMU) -kernel $(IMAGE)
