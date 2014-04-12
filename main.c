@@ -32,7 +32,7 @@ void h_puts(char* text)
 
 void inthandler21(int *esp)
 {
-    h_puts("hello");
+/*     h_puts("hello"); */
     h_puts("interrupt success");
-    io_hlt();
+/*     io_hlt(); */
 }
