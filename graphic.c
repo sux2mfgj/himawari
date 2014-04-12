@@ -31,3 +31,11 @@ void textmode_puts(char* text, int y)
     }
 }
 
+void h_puts(char* text)
+{
+    static int now_line = 0;
+    textmode_puts(text, now_line++);
+    //TODO: add code about when now_line over 80
+}
+
+
