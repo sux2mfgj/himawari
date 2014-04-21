@@ -15,10 +15,10 @@ struct GATE_DISCRIPTOR{
     short offset_high;
 };
 
-void init_gdtidt(void);
-void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
-void set_gatedesc(struct GATE_DISCRIPTOR *gd, int offset, int selector, int ar);
-void init_pic(void);
+inline void init_gdtidt(void);
+static void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
+static void set_gatedesc(struct GATE_DISCRIPTOR *gd, int offset, int selector, int ar);
+inline void init_pic(void);
 
 #define AR_INTGATE32 0x008e
 

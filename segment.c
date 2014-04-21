@@ -1,10 +1,10 @@
 #include"segment.h"
 #include"graphic.h"
 
-void init_gdtidt(void)
+inline void init_gdtidt(void)
 {
     struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)0x00270000;
-    struct GATE_DISCRIPTOR *idt = (struct GATE_DISCRIPTOR *)0x00226f800;
+    struct GATE_DISCRIPTOR *idt = (struct GATE_DISCRIPTOR *)0x0026f800;
     int i;
 
     //init GDT
@@ -26,7 +26,7 @@ void init_gdtidt(void)
     return;
 }
 
-void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar)
+static void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar)
 {
     if(limit > 0xfffff){
         ar |= 0x80000; 
@@ -43,7 +43,7 @@ void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, i
     return;
 }
 
-void set_gatedesc(struct GATE_DISCRIPTOR *gd, int offset, int selector, int ar)
+static void set_gatedesc(struct GATE_DISCRIPTOR *gd, int offset, int selector, int ar)
 {
     gd->offset_low = offset & 0xffff;
     gd->selector = selector;
@@ -54,7 +54,7 @@ void set_gatedesc(struct GATE_DISCRIPTOR *gd, int offset, int selector, int ar)
     return;
 }
 
-void init_pic(void)
+inline void init_pic(void)
 {
     //Mask
     io_out8(PIC_MASTER_DATA_PORT, PIC_IMR_MASK_IRQ_ALL);
