@@ -17,4 +17,3 @@ void kernel_entry()
     }
 }
 
-
