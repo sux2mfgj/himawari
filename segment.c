@@ -13,13 +13,13 @@ inline void init_gdtidt(void)
     }
     set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, 0x4092);
     set_segmdesc(gdt + 2, 0x0007ffff, 0x00280000, 0x409a);
-    load_gdtr(0xffff, 0x00270000);
+    load_gdtr(0xffff, (int)gdt);
 
     //init IDT
     for(i = 0; i < 256; i++){
         set_gatedesc(idt + i, 0, 0, 0);
     }
-    load_gdtr(0x7ff, 0x0026f800);
+    load_idtr(0x7ff, (int)idt);
 
     set_gatedesc(idt + 0x21, (int)asm_inthandler21, 2*8, AR_INTGATE32);
 
@@ -29,7 +29,7 @@ inline void init_gdtidt(void)
 static void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar)
 {
     if(limit > 0xfffff){
-        ar |= 0x80000; 
+        ar |= 0x8000;
         limit /= 0x1000;
     }
 
