@@ -11,8 +11,8 @@ inline void init_gdtidt(void)
     for(i = 0; i < 8192; i++){
         set_segmdesc(gdt + i, 0, 0, 0);
     }
-    set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, 0x4092);
-    set_segmdesc(gdt + 2, 0x0007ffff, 0x00280000, 0x409a);
+    set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, 0x409a);
+    set_segmdesc(gdt + 2, 0xffffffff, 0x00000000, 0x409a);
     load_gdtr(0xffff, (int)gdt);
 
     //init IDT
@@ -21,7 +21,7 @@ inline void init_gdtidt(void)
     }
     load_idtr(0x7ff, (int)idt);
 
-    set_gatedesc(idt + 0x21, (int)asm_inthandler21, 2*8, AR_INTGATE32);
+    set_gatedesc(idt + 0x21, (int)asm_inthandler21, 1*8, AR_INTGATE32);
 
     return;
 }
@@ -72,7 +72,7 @@ inline void init_pic(void)
     io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW3);
     io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW4);
 
-    io_out8(PIC_MASTER_DATA_PORT, 0xfb);
+    io_out8(PIC_MASTER_DATA_PORT, 0xf9);
     io_out8(PIC_SLAVE_DATA_PORT, 0xff);
 
     return;
@@ -80,7 +80,8 @@ inline void init_pic(void)
 
 void inthandler21(int *esp)
 {
-    h_puts("hello");
+/*     h_puts("hello"); */
     h_puts("interrupt success");
-    io_hlt();
+    io_out8(0x0020, 0x61);
+    io_in8(0x0060);
 }
