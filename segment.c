@@ -3,41 +3,84 @@
 
 inline void init_gdtidt(void)
 {
-    struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)0x00270000;
-    struct GATE_DISCRIPTOR *idt = (struct GATE_DISCRIPTOR *)0x0026f800;
+    struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) GDT_ADDR;
+    struct GATE_DISCRIPTOR *idt = (struct GATE_DISCRIPTOR *) IDT_ADDR;
     int i;
 
     //init GDT
-    for(i = 0; i < 8192; i++){
-        set_segmdesc(gdt + i, 0, 0, 0);
+    for(i = 0; i < NUM_GDT; i++){
+        set_segmdesc(gdt + i, 0, 0, 0, 0, 0, 0, 0);
     }
-    set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, 0x409a);
-    set_segmdesc(gdt + 2, 0xffffffff, 0x00000000, 0x409a);
-    load_gdtr(0xffff, (int)gdt);
+    set_segmdesc(
+            gdt + 1, 
+            0xffffffff,
+            0x00000000, 
+            0,
+            SEG_TYPE_CODE_XRC,
+            DESC_TYPE_SEGMENT,
+            PRIVILEGE_LEVEL_OS,
+            PRESENT
+            );
+
+    set_segmdesc(
+            gdt + 2, 
+            0xffffffff,
+            0x00000000, 
+            0,
+            SEG_TYPE_DATE_REW,
+            DESC_TYPE_SEGMENT,
+            PRIVILEGE_LEVEL_OS,
+            PRESENT
+            );
+
+
+    load_gdtr(0xffff, GDT_ADDR);
 
     //init IDT
-    for(i = 0; i < 256; i++){
+    for(i = 0; i < NUM_IDT; i++){
         set_gatedesc(idt + i, 0, 0, 0);
     }
-    load_idtr(0x7ff, (int)idt);
+    load_idtr(0x7ff, IDT_ADDR);
 
     set_gatedesc(idt + 0x21, (int)asm_inthandler21, 1*8, AR_INTGATE32);
 
     return;
+
 }
 
-static void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar)
+static void set_segmdesc(
+        struct SEGMENT_DESCRIPTOR *sd,
+        unsigned int limit,
+        unsigned int base,
+        unsigned char accessed,
+        unsigned char segment_type,
+        unsigned char descriptor_type,
+        unsigned char descriptor_privilege_level,
+        unsigned char present
+        )
 {
     if(limit > 0xfffff){
-        ar |= 0x8000;
         limit /= 0x1000;
     }
 
     sd->limit_low = limit & 0xffff;
     sd->base_low = base & 0xffff;
     sd->base_mid = (base >> 16) & 0xff;
-    sd->access_right = ar & 0xff;
-    sd->limit_high = ((limit >> 16) & 0x0f) | ((ar >> 8) & 0xf0);
+/*     sd->access_right = ar & 0xff; */
+    sd->accessed = accessed & 0x01;
+    sd->segment_type = segment_type & 0x07;
+    sd->descriptor_type = descriptor_type & 0x01;
+    sd->descriptor_privilege_level = descriptor_privilege_level & 0x03;
+    sd->present = present & 0x01;
+
+    sd->limit_high = ((limit >> 16) & 0x0f);
+
+    sd->available = 0;
+    sd->code_segment_for_64bit = 0;
+    sd->default_operand_size = 1;
+    sd->granularity = 0;
+
+
     sd->base_high = (base >> 24) & 0xff;
 
     return;
@@ -72,8 +115,8 @@ inline void init_pic(void)
     io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW3);
     io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW4);
 
-    io_out8(PIC_MASTER_DATA_PORT, 0xf9);
-    io_out8(PIC_SLAVE_DATA_PORT, 0xff);
+    io_out8(PIC_MASTER_DATA_PORT, 0xf9); //1111 1001
+    io_out8(PIC_SLAVE_DATA_PORT, 0xff);  //1111 1111
 
     return;
 }

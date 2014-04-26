@@ -4,9 +4,22 @@
 #include"func.h"
 
 struct SEGMENT_DESCRIPTOR{
-    short limit_low, base_low;
-    char base_mid, access_right;
-    char limit_high, base_high;
+    unsigned short limit_low, base_low;
+    unsigned char base_mid;
+    unsigned accessed                   :1;
+    unsigned segment_type               :3;
+    unsigned descriptor_type            :1;
+    unsigned descriptor_privilege_level :2;
+    unsigned present                    :1;
+
+    unsigned limit_high                 :4;
+
+    unsigned available                  :1;
+    unsigned code_segment_for_64bit     :1;
+    unsigned default_operand_size       :1;
+    unsigned granularity                :1;
+
+    unsigned char base_high;
 };
 
 struct GATE_DISCRIPTOR{
@@ -16,9 +29,50 @@ struct GATE_DISCRIPTOR{
 };
 
 inline void init_gdtidt(void);
-static void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
-static void set_gatedesc(struct GATE_DISCRIPTOR *gd, int offset, int selector, int ar);
+static void set_segmdesc(
+        struct SEGMENT_DESCRIPTOR *sd,
+        unsigned int limit,
+        unsigned int base,
+        unsigned char accessed,
+        unsigned char segment_type,
+        unsigned char descriptor_type,
+        unsigned char descriptor_privilege_level,
+        unsigned char present);
+
+
+static void set_gatedesc(
+        struct GATE_DISCRIPTOR *gd,
+        int offset,
+        int selector,
+        int ar);
+
 inline void init_pic(void);
+
+#define GDT_ADDR 0x00270000
+#define IDT_ADDR 0x0026f800
+
+#define NUM_IDT 256
+#define NUM_GDT 8192
+
+
+#define SEG_TYPE_DATE_R    0x00
+#define SEG_TYPE_DATE_RW   0x01
+#define SEG_TYPE_DATE_RE   0x02
+#define SEG_TYPE_DATE_REW  0x03
+
+#define SEG_TYPE_CODE_X    0x4
+#define SEG_TYPE_CODE_XR   0x5
+#define SEG_TYPE_CODE_XC   0x6
+#define SEG_TYPE_CODE_XRC  0x7
+
+#define DESC_TYPE_SYSTEM    0
+#define DESC_TYPE_SEGMENT   1
+
+#define PRIVILEGE_LEVEL_OS  0
+#define PRIVILEGE_LEVEL_APP 3
+
+#define PRESENT     1
+#define NOT_PRESENT 0
 
 #define AR_INTGATE32 0x008e
 

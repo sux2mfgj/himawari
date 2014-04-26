@@ -11,10 +11,9 @@ void kernel_entry()
 
 
     h_puts("hello");
-/*     h_puts("hello"); */
+
     for(;;){
         io_hlt();
-        h_puts("hello");
     }
 }
 

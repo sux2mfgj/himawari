@@ -16,7 +16,7 @@ all:
 		$(LD) -Map kernel.map -Tld.script  entry.o main.o segment.o func.o graphic.o -o $(IMAGE)
 
 
-run:
+run: all
 		$(QEMU) $(QEMUFLAGS) $(IMAGE)
 
 
