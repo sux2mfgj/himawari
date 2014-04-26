@@ -1,7 +1,7 @@
 
 CC = gcc
 LD = ld
-QEMU = qemu
+QEMU = qemu-system-i386
 QEMUFLAGS = -monitor stdio -kernel
 CFLAGS = -fno-builtin -nostdlib -mno-red-zone -ffreestanding -nostdinc -fno-stack-protector
 IMAGE = himawari
