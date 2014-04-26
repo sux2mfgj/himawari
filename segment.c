@@ -38,11 +38,19 @@ inline void init_gdtidt(void)
 
     //init IDT
     for(i = 0; i < NUM_IDT; i++){
-        set_gatedesc(idt + i, 0, 0, 0);
+        set_gatedesc(idt + i, 0, 0, 0, 0, 0, 0);
     }
     load_idtr(0x7ff, IDT_ADDR);
 
-    set_gatedesc(idt + 0x21, (int)asm_inthandler21, 1*8, AR_INTGATE32);
+    set_gatedesc(
+            idt + 0x21,
+            (int)asm_inthandler21, 
+            1*8,
+            GATE_TYPE_32BIT_INT,
+            0,
+            PRIVILEGE_LEVEL_OS,
+            PRESENT
+            );
 
     return;
 
@@ -86,15 +94,22 @@ static void set_segmdesc(
     return;
 }
 
-static void set_gatedesc(struct GATE_DISCRIPTOR *gd, int offset, int selector, int ar)
+static void set_gatedesc(
+        struct GATE_DISCRIPTOR *gd,
+        unsigned offset,
+        unsigned selector,
+        unsigned char gate_type,
+        unsigned char storage_segment,
+        unsigned char descriptor_privilege_level,
+        unsigned char present)
 {
-    gd->offset_low = offset & 0xffff;
-    gd->selector = selector;
-    gd->dw_count = (ar >> 8) & 0xff;
-    gd->access_right = ar & 0xff;
-    gd->offset_high = (offset >> 16) & 0xffff;
-
-    return;
+        gd->offset_low = offset & 0xffff;
+        gd->selector = selector;
+        gd->gate_type = gate_type & 0xf;
+        gd->storage_segment = storage_segment & 0x1;
+        gd->descriptor_privilege_level = descriptor_privilege_level & 0x3;
+        gd->present = present & 0x1; 
+        gd->offset_high = (offset >> 16) & 0xffff;
 }
 
 inline void init_pic(void)

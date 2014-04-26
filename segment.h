@@ -3,7 +3,8 @@
 
 #include"func.h"
 
-struct SEGMENT_DESCRIPTOR{
+struct SEGMENT_DESCRIPTOR
+{
     unsigned short limit_low, base_low;
     unsigned char base_mid;
     unsigned accessed                   :1;
@@ -22,10 +23,24 @@ struct SEGMENT_DESCRIPTOR{
     unsigned char base_high;
 };
 
-struct GATE_DISCRIPTOR{
-    short offset_low, selector;
-    char dw_count, access_right;
-    short offset_high;
+// struct GATE_DISCRIPTOR{
+//     short offset_low, selector;
+//     char dw_count, access_right;
+//     short offset_high;
+// };
+struct GATE_DISCRIPTOR
+{
+    unsigned short offset_low;
+    unsigned short selector;
+
+    unsigned char unused;
+
+    unsigned gate_type                  :4;
+    unsigned storage_segment            :1;
+    unsigned descriptor_privilege_level :2;
+    unsigned present                    :1;
+
+    unsigned short offset_high;
 };
 
 inline void init_gdtidt(void);
@@ -42,9 +57,12 @@ static void set_segmdesc(
 
 static void set_gatedesc(
         struct GATE_DISCRIPTOR *gd,
-        int offset,
-        int selector,
-        int ar);
+        unsigned offset,
+        unsigned selector,
+        unsigned char gate_type,
+        unsigned char storage_segment,
+        unsigned char descriptor_privilege_level,
+        unsigned char present);
 
 inline void init_pic(void);
 
@@ -74,7 +92,12 @@ inline void init_pic(void);
 #define PRESENT     1
 #define NOT_PRESENT 0
 
-#define AR_INTGATE32 0x008e
+
+#define GATE_TYPE_32BIT_TASK    0x5
+#define GATE_TYPE_16BIT_INT     0x6
+#define GATE_TYPE_16BIT_TRAP    0x7
+#define GATE_TYPE_32BIT_INT     0xe
+#define GATE_TYPE_32BIT_TRAP    0xf
 
 #define PIC_MASTER_CMD_STATE_PORT 0x20
 #define PIC_MASTER_DATA_PORT 0x21
