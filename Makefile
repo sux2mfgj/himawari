@@ -2,7 +2,7 @@
 CC = gcc
 LD = ld
 QEMU = qemu-system-i386
-CFLAGS = -fno-builtin -nostdlib -mno-red-zone -ffreestanding -nostdinc -fno-stack-protector
+CFLAGS = -fno-builtin -nostdlib -mno-red-zone -ffreestanding -nostdinc -fno-stack-protector -m32
 IMAGE = entry.elf
 
 all:
@@ -11,8 +11,7 @@ all:
 		$(CC) $(CFLAGS) -c main.c -o main.o
 		$(CC) $(CFLAGS) -c graphic.c -o graphic.o
 		$(CC) $(CFLAGS) -c segment.c -o segment.o
-#          $(LD) -Tld.script entry.o segment.o func.o graphic.o  main.o -o $(IMAGE)
-		$(LD) -Tld.script  entry.o main.o segment.o func.o graphic.o -o $(IMAGE)
+		$(LD) -Tld.script entry.o segment.o func.o graphic.o  main.o -o $(IMAGE)
 
 
 run:
