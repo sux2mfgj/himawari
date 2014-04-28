@@ -5,7 +5,6 @@ QEMU = qemu-system-i386
 QEMUFLAGS = -monitor stdio -kernel
 CFLAGS = -fno-builtin -nostdlib -mno-red-zone -ffreestanding -nostdinc -fno-stack-protector
 IMAGE = himawari
->>>>>>> c945b3ea2b046f955312861e0402bc0359804895
 
 all:
 		as entry.s -o entry.o
