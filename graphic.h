@@ -12,6 +12,6 @@ void h_puts(char* text);
 
 
 #define BLACK 0x0
-#define WHITE 0xf 
+#define WHITE 0xf
 
 #endif

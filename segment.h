@@ -3,24 +3,101 @@
 
 #include"func.h"
 
-struct SEGMENT_DESCRIPTOR{
-    short limit_low, base_low;
-    char base_mid, access_right;
-    char limit_high, base_high;
+struct SEGMENT_DESCRIPTOR
+{
+    unsigned short limit_low, base_low;
+    unsigned char base_mid;
+    unsigned accessed                   :1;
+    unsigned segment_type               :3;
+    unsigned descriptor_type            :1;
+    unsigned descriptor_privilege_level :2;
+    unsigned present                    :1;
+
+    unsigned limit_high                 :4;
+
+    unsigned available                  :1;
+    unsigned code_segment_for_64bit     :1;
+    unsigned default_operand_size       :1;
+    unsigned granularity                :1;
+
+    unsigned char base_high;
 };
 
-struct GATE_DISCRIPTOR{
-    short offset_low, selector;
-    char dw_count, access_right;
-    short offset_high;
+// struct GATE_DISCRIPTOR{
+//     short offset_low, selector;
+//     char dw_count, access_right;
+//     short offset_high;
+// };
+struct GATE_DISCRIPTOR
+{
+    unsigned short offset_low;
+    unsigned short selector;
+
+    unsigned char unused;
+
+    unsigned gate_type                  :4;
+    unsigned storage_segment            :1;
+    unsigned descriptor_privilege_level :2;
+    unsigned present                    :1;
+
+    unsigned short offset_high;
 };
 
 inline void init_gdtidt(void);
-static void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
-static void set_gatedesc(struct GATE_DISCRIPTOR *gd, int offset, int selector, int ar);
+static void set_segmdesc(
+        struct SEGMENT_DESCRIPTOR *sd,
+        unsigned int limit,
+        unsigned int base,
+        unsigned char accessed,
+        unsigned char segment_type,
+        unsigned char descriptor_type,
+        unsigned char descriptor_privilege_level,
+        unsigned char present);
+
+
+static void set_gatedesc(
+        struct GATE_DISCRIPTOR *gd,
+        unsigned offset,
+        unsigned selector,
+        unsigned char gate_type,
+        unsigned char storage_segment,
+        unsigned char descriptor_privilege_level,
+        unsigned char present);
+
 inline void init_pic(void);
 
-#define AR_INTGATE32 0x008e
+#define GDT_ADDR 0x00270000
+#define IDT_ADDR 0x0026f800
+
+#define NUM_IDT 256
+#define NUM_GDT 8192
+
+
+#define SEG_TYPE_DATE_R    0x00
+#define SEG_TYPE_DATE_RW   0x01
+#define SEG_TYPE_DATE_RE   0x02
+#define SEG_TYPE_DATE_REW  0x03
+
+#define SEG_TYPE_CODE_X    0x4
+#define SEG_TYPE_CODE_XR   0x5
+#define SEG_TYPE_CODE_XC   0x6
+#define SEG_TYPE_CODE_XRC  0x7
+
+#define DESC_TYPE_SYSTEM    0
+#define DESC_TYPE_SEGMENT   1
+
+#define PRIVILEGE_LEVEL_OS  0
+#define PRIVILEGE_LEVEL_APP 3
+
+#define PRESENT     1
+#define NOT_PRESENT 0
+
+
+#define GATE_TYPE_32BIT_TASK    0x5
+#define GATE_TYPE_16BIT_INT     0x6
+#define GATE_TYPE_16BIT_TRAP    0x7
+#define GATE_TYPE_32BIT_INT     0xe
+#define GATE_TYPE_32BIT_TRAP    0xf
 
 #define PIC_MASTER_CMD_STATE_PORT 0x20
 #define PIC_MASTER_DATA_PORT 0x21

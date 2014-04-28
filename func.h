@@ -19,9 +19,9 @@ extern inline void io_out32(int port, int data);
 extern inline int io_load_eflags(void);
 extern inline void io_store_eflags(int eflags);
 
-extern inline void load_gdtr(int a, int b);
-extern inline void load_idtr(int a, int b);
+extern void load_gdtr(int a, int b);
+extern void load_idtr(int a, int b);
 
 extern void asm_inthandler21(int *esp);
 
-#endif 
+#endif

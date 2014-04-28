@@ -1,2 +1,4 @@
 *.elf
 *.o
+himawari
+kernel.map

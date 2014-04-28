@@ -2,8 +2,10 @@
 CC = gcc
 LD = ld
 QEMU = qemu-system-i386
-CFLAGS = -fno-builtin -nostdlib -mno-red-zone -ffreestanding -nostdinc -fno-stack-protector -m32
-IMAGE = entry.elf
+QEMUFLAGS = -monitor stdio -kernel
+CFLAGS = -fno-builtin -nostdlib -mno-red-zone -ffreestanding -nostdinc -fno-stack-protector
+IMAGE = himawari
+>>>>>>> c945b3ea2b046f955312861e0402bc0359804895
 
 all:
 		as entry.s -o entry.o
@@ -11,12 +13,13 @@ all:
 		$(CC) $(CFLAGS) -c main.c -o main.o
 		$(CC) $(CFLAGS) -c graphic.c -o graphic.o
 		$(CC) $(CFLAGS) -c segment.c -o segment.o
-		$(LD) -Tld.script entry.o segment.o func.o graphic.o  main.o -o $(IMAGE)
+#          $(LD) -Tld.script entry.o segment.o func.o graphic.o  main.o -o $(IMAGE)
+		$(LD) -Map kernel.map -Tld.script  entry.o main.o segment.o func.o graphic.o -o $(IMAGE)
 
 
-run:
-		$(QEMU) -kernel $(IMAGE)
+run: all
+		$(QEMU) $(QEMUFLAGS) $(IMAGE)
 
 
 clean:
-		rm $(IMAGE) *.o
+		rm $(IMAGE) *.o *.map
