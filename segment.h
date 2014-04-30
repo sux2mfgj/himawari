@@ -3,69 +3,6 @@
 
 #include"func.h"
 
-struct SEGMENT_DESCRIPTOR
-{
-    unsigned short limit_low, base_low;
-    unsigned char base_mid;
-    unsigned accessed                   :1;
-    unsigned segment_type               :3;
-    unsigned descriptor_type            :1;
-    unsigned descriptor_privilege_level :2;
-    unsigned present                    :1;
-
-    unsigned limit_high                 :4;
-
-    unsigned available                  :1;
-    unsigned code_segment_for_64bit     :1;
-    unsigned default_operand_size       :1;
-    unsigned granularity                :1;
-
-    unsigned char base_high;
-};
-
-// struct GATE_DISCRIPTOR{
-//     short offset_low, selector;
-//     char dw_count, access_right;
-//     short offset_high;
-// };
-struct GATE_DISCRIPTOR
-{
-    unsigned short offset_low;
-    unsigned short selector;
-
-    unsigned char unused;
-
-    unsigned gate_type                  :4;
-    unsigned storage_segment            :1;
-    unsigned descriptor_privilege_level :2;
-    unsigned present                    :1;
-
-    unsigned short offset_high;
-};
-
-inline void init_gdtidt(void);
-static void set_segmdesc(
-        struct SEGMENT_DESCRIPTOR *sd,
-        unsigned int limit,
-        unsigned int base,
-        unsigned char accessed,
-        unsigned char segment_type,
-        unsigned char descriptor_type,
-        unsigned char descriptor_privilege_level,
-        unsigned char present);
-
-
-static void set_gatedesc(
-        struct GATE_DISCRIPTOR *gd,
-        unsigned offset,
-        unsigned selector,
-        unsigned char gate_type,
-        unsigned char storage_segment,
-        unsigned char descriptor_privilege_level,
-        unsigned char present);
-
-inline void init_pic(void);
-
 #define GDT_ADDR 0x00270000
 #define IDT_ADDR 0x0026f800
 
@@ -124,5 +61,95 @@ inline void init_pic(void);
 #define PIC_IMR_MASK_IRQ7 0x80
 #define PIC_IMR_MASK_IRQ_ALL 0xff
 
+#define PIT_PORT_COUNTER0       0x40
+#define PIT_PORT_COUNTER1       0x41
+#define PIT_PORT_COUNTER2       0x41
+#define PIT_PORT_CONTROL_WORD   0x43
+
+#define PIT_CONTROL_WORD_BCD_BINARY 0
+#define PIT_CONTROL_WORD_BCD_BCD    1
+
+#define PIT_CONTROL_WORD_MODE_TIMER         0x0
+#define PIT_CONTROL_WORD_MODE_ONESHOT_TIMER 0x1
+#define PIT_CONTROL_WORD_MODE_PULSE         0x2
+#define PIT_CONTROL_WORD_MODE_SQARE         0x3
+#define PIT_CONTROL_WORD_MODE_SOFTWARE      0x4
+#define PIT_CONTROL_WORD_MODE_HARDWARE      0x5
+
+#define PIT_CONTROL_WORD_RL_LOAD    0x0
+#define PIT_CONTROL_WORD_RL_LSB     0x1  // write: LSB( Least Significant Byte )
+#define PIT_CONTROL_WORD_RL_MSB     0x2  // write: MSB( Most Significant Byte )
+#define PIT_CONTROL_WORD_RL_LSB_MSB 0x3  // write: LSB and MSB
+
+#define PIT_CONTROL_WORD_SC_COUNTER0    0x0
+#define PIT_CONTROL_WORD_SC_COUNTER1    0x1
+#define PIT_CONTROL_WORD_SC_COUNTER2    0x2
+#define PIT_CONTROL_WORD_SC_DISABLE     0x3
+
+#define PIT_CH0_CLK     1193181.67
+
+struct SEGMENT_DESCRIPTOR
+{
+    unsigned short limit_low, base_low;
+    unsigned char base_mid;
+    unsigned accessed                   :1;
+    unsigned segment_type               :3;
+    unsigned descriptor_type            :1;
+    unsigned descriptor_privilege_level :2;
+    unsigned present                    :1;
+
+    unsigned limit_high                 :4;
+
+    unsigned available                  :1;
+    unsigned code_segment_for_64bit     :1;
+    unsigned default_operand_size       :1;
+    unsigned granularity                :1;
+
+    unsigned char base_high;
+};
+
+
+struct GATE_DISCRIPTOR
+{
+    unsigned short offset_low;
+    unsigned short selector;
+
+    unsigned char unused;
+
+    unsigned gate_type                  :4;
+    unsigned storage_segment            :1;
+    unsigned descriptor_privilege_level :2;
+    unsigned present                    :1;
+
+    unsigned short offset_high;
+};
+
+inline void init_gdtidt(void);
+void set_segmdesc(
+        struct SEGMENT_DESCRIPTOR *sd,
+        unsigned int limit,
+        unsigned int base,
+        unsigned char accessed,
+        unsigned char segment_type,
+        unsigned char descriptor_type,
+        unsigned char descriptor_privilege_level,
+        unsigned char present);
+
+
+void set_gatedesc(
+        struct GATE_DISCRIPTOR *gd,
+        unsigned offset,
+        unsigned selector,
+        unsigned char gate_type,
+        unsigned char storage_segment,
+        unsigned char descriptor_privilege_level,
+        unsigned char present);
+
+inline void init_pic(void);
+
+inline void init_pit(void);
+void set_pit_count(int freq, unsigned char counter, unsigned char mode);
+
+void timer_interrupt(void);
 
 #endif

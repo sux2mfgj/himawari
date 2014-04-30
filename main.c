@@ -10,7 +10,7 @@ void kernel_entry(unsigned int magic, MULTIBOOT_INFO *multiboot_info)
     init_gdtidt();
     init_pic();
     io_sti();
-
+    init_pit();
 
     h_puts("hello");
 /*     integer_puts(addr, 20); */
@@ -20,6 +20,7 @@ void kernel_entry(unsigned int magic, MULTIBOOT_INFO *multiboot_info)
 
     for(;;){
         io_hlt();
+
     }
 }
 

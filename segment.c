@@ -12,9 +12,9 @@ inline void init_gdtidt(void)
         set_segmdesc(gdt + i, 0, 0, 0, 0, 0, 0, 0);
     }
     set_segmdesc(
-            gdt + 1, 
+            gdt + 1,
             0xffffffff,
-            0x00000000, 
+            0x00000000,
             0,
             SEG_TYPE_CODE_XRC,
             DESC_TYPE_SEGMENT,
@@ -23,9 +23,9 @@ inline void init_gdtidt(void)
             );
 
     set_segmdesc(
-            gdt + 2, 
+            gdt + 2,
             0xffffffff,
-            0x00000000, 
+            0x00000000,
             0,
             SEG_TYPE_DATE_REW,
             DESC_TYPE_SEGMENT,
@@ -44,7 +44,7 @@ inline void init_gdtidt(void)
 
     set_gatedesc(
             idt + 0x21,
-            (int)asm_inthandler21, 
+            (int)asm_inthandler21,
             1*8,
             GATE_TYPE_32BIT_INT,
             0,
@@ -56,7 +56,7 @@ inline void init_gdtidt(void)
 
 }
 
-static void set_segmdesc(
+void set_segmdesc(
         struct SEGMENT_DESCRIPTOR *sd,
         unsigned int limit,
         unsigned int base,
@@ -94,7 +94,7 @@ static void set_segmdesc(
     return;
 }
 
-static void set_gatedesc(
+void set_gatedesc(
         struct GATE_DISCRIPTOR *gd,
         unsigned offset,
         unsigned selector,
@@ -108,7 +108,7 @@ static void set_gatedesc(
         gd->gate_type = gate_type & 0xf;
         gd->storage_segment = storage_segment & 0x1;
         gd->descriptor_privilege_level = descriptor_privilege_level & 0x3;
-        gd->present = present & 0x1; 
+        gd->present = present & 0x1;
         gd->offset_high = (offset >> 16) & 0xffff;
 }
 
@@ -136,6 +136,37 @@ inline void init_pic(void)
     return;
 }
 
+inline void init_pit(void)
+{
+    set_pit_count(100, PIT_CONTROL_WORD_SC_COUNTER0, PIT_CONTROL_WORD_MODE_SQARE);
+
+}
+
+void set_pit_count(int freq, unsigned char counter, unsigned char mode)
+{
+    unsigned short count;
+    unsigned char command;
+
+    count = (unsigned short)(PIT_CH0_CLK / freq);
+
+    command = mode | PIT_CONTROL_WORD_RL_LSB_MSB | counter;
+
+    io_out8(PIT_PORT_CONTROL_WORD, command);
+
+    io_out8(PIT_PORT_COUNTER0, (unsigned char)(count & 0xff));
+    io_out8(PIT_PORT_COUNTER0, (unsigned char)((count >> 8) & 0xff));
+
+    return;
+}
+
+void timer_interrupt(void)
+{
+    static int timer_tick = 0;
+    io_out8(0x20, 0x20);
+    io_out8(0xa0, 0x20);
+    timer_tick++;
+}
+
 void inthandler21(int *esp)
 {
 /*     h_puts("hello"); */
@@ -143,3 +174,4 @@ void inthandler21(int *esp)
     io_out8(0x0020, 0x61);
     io_in8(0x0060);
 }
+
