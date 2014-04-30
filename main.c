@@ -8,12 +8,13 @@ void kernel_entry()
     init_gdtidt();
     init_pic();
     io_sti();
-
+    init_pit();
 
     h_puts("hello");
 
     for(;;){
         io_hlt();
+
     }
 }
 

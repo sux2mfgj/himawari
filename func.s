@@ -4,6 +4,7 @@
 .code32
 
 .extern inthandler21
+.extern timer_interrupt
 
 .globl io_hlt, io_cli, io_sti
 .globl io_in8, io_in16, io_in32, io_out8, io_out16, io_out32
@@ -61,7 +62,7 @@ io_out16:
 io_out32:
     movl 4(%esp), %edx
     movl 8(%esp), %eax
-    outl %eax, %dx 
+    outl %eax, %dx
     ret
 
 io_load_eflags:
@@ -85,7 +86,7 @@ load_idtr:
     movw 4(%esp), %ax
     movw %ax, 6(%esp)
     lidt 6(%esp)
-    ret 
+    ret
 
 
 asm_inthandler21:
@@ -97,9 +98,27 @@ asm_inthandler21:
     movw %ss, %ax
     movw %ax, %ds
     movw %ax, %es
-    call inthandler21 
+    call inthandler21
     popl %eax
     popa
     popw %ds
     popw %es
     iret
+
+asm_timer_inthandler:
+     pushw %es
+    pushw %ds
+    pusha
+    movl %esp, %eax
+    pushl %eax
+    movw %ss, %ax
+    movw %ax, %ds
+    movw %ax, %es
+    call timer_interrupt
+    popl %eax
+    popa
+    popw %ds
+    popw %es
+    iret
+
+

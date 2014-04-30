@@ -61,6 +61,32 @@
 #define PIC_IMR_MASK_IRQ7 0x80
 #define PIC_IMR_MASK_IRQ_ALL 0xff
 
+#define PIT_PORT_COUNTER0       0x40
+#define PIT_PORT_COUNTER1       0x41
+#define PIT_PORT_COUNTER2       0x41
+#define PIT_PORT_CONTROL_WORD   0x43
+
+#define PIT_CONTROL_WORD_BCD_BINARY 0
+#define PIT_CONTROL_WORD_BCD_BCD    1
+
+#define PIT_CONTROL_WORD_MODE_TIMER         0x0
+#define PIT_CONTROL_WORD_MODE_ONESHOT_TIMER 0x1
+#define PIT_CONTROL_WORD_MODE_PULSE         0x2
+#define PIT_CONTROL_WORD_MODE_SQARE         0x3
+#define PIT_CONTROL_WORD_MODE_SOFTWARE      0x4
+#define PIT_CONTROL_WORD_MODE_HARDWARE      0x5
+
+#define PIT_CONTROL_WORD_RL_LOAD    0x0
+#define PIT_CONTROL_WORD_RL_LSB     0x1  // write: LSB( Least Significant Byte )
+#define PIT_CONTROL_WORD_RL_MSB     0x2  // write: MSB( Most Significant Byte )
+#define PIT_CONTROL_WORD_RL_LSB_MSB 0x3  // write: LSB and MSB
+
+#define PIT_CONTROL_WORD_SC_COUNTER0    0x0
+#define PIT_CONTROL_WORD_SC_COUNTER1    0x1
+#define PIT_CONTROL_WORD_SC_COUNTER2    0x2
+#define PIT_CONTROL_WORD_SC_DISABLE     0x3
+
+#define PIT_CH0_CLK     1193181.67
 
 struct SEGMENT_DESCRIPTOR
 {
@@ -99,7 +125,7 @@ struct GATE_DISCRIPTOR
 };
 
 inline void init_gdtidt(void);
-static void set_segmdesc(
+void set_segmdesc(
         struct SEGMENT_DESCRIPTOR *sd,
         unsigned int limit,
         unsigned int base,
@@ -110,7 +136,7 @@ static void set_segmdesc(
         unsigned char present);
 
 
-static void set_gatedesc(
+void set_gatedesc(
         struct GATE_DISCRIPTOR *gd,
         unsigned offset,
         unsigned selector,
@@ -121,5 +147,9 @@ static void set_gatedesc(
 
 inline void init_pic(void);
 
+inline void init_pit(void);
+void set_pit_count(int freq, unsigned char counter, unsigned char mode);
+
+void timer_interrupt(void);
 
 #endif
