@@ -9,7 +9,7 @@
 .globl io_hlt, io_cli, io_sti
 .globl io_in8, io_in16, io_in32, io_out8, io_out16, io_out32
 .globl io_load_eflags, io_store_eflags, write_mem8
-.globl load_gdtr, load_idtr, asm_inthandler21
+.globl load_gdtr, load_idtr, asm_inthandler21, asm_timer_inthandler
 
 io_hlt:
     hlt

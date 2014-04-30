@@ -52,6 +52,17 @@ inline void init_gdtidt(void)
             PRESENT
             );
 
+    set_gatedesc(
+            idt + 0x20,
+            (int)asm_timer_inthandler,
+            1*8,
+            GATE_TYPE_32BIT_INT,
+            0,
+            PRIVILEGE_LEVEL_OS,
+            PRESENT
+            );
+
+
     return;
 
 }
@@ -130,7 +141,7 @@ inline void init_pic(void)
     io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW3);
     io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW4);
 
-    io_out8(PIC_MASTER_DATA_PORT, 0xf9); //1111 1001
+    io_out8(PIC_MASTER_DATA_PORT, 0xf8); //1111 1000
     io_out8(PIC_SLAVE_DATA_PORT, 0xff);  //1111 1111
 
     return;
@@ -161,10 +172,12 @@ void set_pit_count(int freq, unsigned char counter, unsigned char mode)
 
 void timer_interrupt(void)
 {
-    static int timer_tick = 0;
+    static unsigned int timer_tick = 0;
     io_out8(0x20, 0x20);
     io_out8(0xa0, 0x20);
     timer_tick++;
+    integer_puts(timer_tick, 24);
+
 }
 
 void inthandler21(int *esp)
