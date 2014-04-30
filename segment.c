@@ -12,9 +12,9 @@ inline void init_gdtidt(void)
         set_segmdesc(gdt + i, 0, 0, 0, 0, 0, 0, 0);
     }
     set_segmdesc(
-            gdt + 1, 
+            gdt + 1,
             0xffffffff,
-            0x00000000, 
+            0x00000000,
             0,
             SEG_TYPE_CODE_XRC,
             DESC_TYPE_SEGMENT,
@@ -23,9 +23,9 @@ inline void init_gdtidt(void)
             );
 
     set_segmdesc(
-            gdt + 2, 
+            gdt + 2,
             0xffffffff,
-            0x00000000, 
+            0x00000000,
             0,
             SEG_TYPE_DATE_REW,
             DESC_TYPE_SEGMENT,
@@ -44,7 +44,7 @@ inline void init_gdtidt(void)
 
     set_gatedesc(
             idt + 0x21,
-            (int)asm_inthandler21, 
+            (int)asm_inthandler21,
             1*8,
             GATE_TYPE_32BIT_INT,
             0,
@@ -108,7 +108,7 @@ static void set_gatedesc(
         gd->gate_type = gate_type & 0xf;
         gd->storage_segment = storage_segment & 0x1;
         gd->descriptor_privilege_level = descriptor_privilege_level & 0x3;
-        gd->present = present & 0x1; 
+        gd->present = present & 0x1;
         gd->offset_high = (offset >> 16) & 0xffff;
 }
 
