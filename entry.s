@@ -2,7 +2,7 @@
 
 #grub でブートするために必要なデータ
 MULTIBOOT_HEADER_MAGIC = 0x1BADB002
-MULTIBOOT_HEADER_FLAGS = 0x0001
+MULTIBOOT_HEADER_FLAGS = 0x0002
 CHECKSUM = -(MULTIBOOT_HEADER_MAGIC+MULTIBOOT_HEADER_FLAGS)
 
 .code32
@@ -18,8 +18,15 @@ multiboot_header:
 .align 2
 .globl entry
 entry:
+
+   pushl %ebx 
+   pushl %eax
+
     jmp kernel_entry
 
+loop:
+    hlt
+    jmp loop
 
 .globl start_hlt
 start_hlt:

@@ -10,6 +10,7 @@ void display_textmode(char c, unsigned char fore_color
 void textmode_puts(char* text, int y);
 void h_puts(char* text);
 
+void integer_puts(unsigned number, int y);
 
 #define BLACK 0x0
 #define WHITE 0xf

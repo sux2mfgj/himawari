@@ -31,6 +31,41 @@ void textmode_puts(char* text, int y)
     }
 }
 
+void integer_puts(unsigned number, int y)
+{
+    int n, i = 0, j;
+    char buf[20];
+    for(i=0;i<20; i++){
+        buf[i] = '\0'; 
+    }
+    i=0;
+
+    while(number != 0){
+        n = number%10+48;
+/*         display_textmode( */
+/*                 n, */
+/*                 WHITE, */
+/*                 BLACK, */
+/*                 i,  */
+/*                 y);   */
+        buf[i] = n;
+        i++;
+        number /= 10;
+    }
+
+    for(j=0; j<i; j++){
+        display_textmode(
+                buf[i-j-1],
+                WHITE,
+                BLACK,
+                j,
+                y);
+    } 
+
+
+    return;
+}
+
 void h_puts(char* text)
 {
     static int now_line = 0;
