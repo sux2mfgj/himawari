@@ -2,3 +2,5 @@
 *.o
 himawari
 kernel.map
+*.iso
+test

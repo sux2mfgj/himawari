@@ -52,11 +52,22 @@ inline void init_gdtidt(void)
             PRESENT
             );
 
+    set_gatedesc(
+            idt + 0x20,
+            (int)asm_timer_inthandler,
+            1*8,
+            GATE_TYPE_32BIT_INT,
+            0,
+            PRIVILEGE_LEVEL_OS,
+            PRESENT
+            );
+
+
     return;
 
 }
 
-static void set_segmdesc(
+void set_segmdesc(
         struct SEGMENT_DESCRIPTOR *sd,
         unsigned int limit,
         unsigned int base,
@@ -94,7 +105,7 @@ static void set_segmdesc(
     return;
 }
 
-static void set_gatedesc(
+void set_gatedesc(
         struct GATE_DISCRIPTOR *gd,
         unsigned offset,
         unsigned selector,
@@ -130,10 +141,43 @@ inline void init_pic(void)
     io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW3);
     io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW4);
 
-    io_out8(PIC_MASTER_DATA_PORT, 0xf9); //1111 1001
+    io_out8(PIC_MASTER_DATA_PORT, 0xf8); //1111 1000
     io_out8(PIC_SLAVE_DATA_PORT, 0xff);  //1111 1111
 
     return;
+}
+
+inline void init_pit(void)
+{
+    set_pit_count(100, PIT_CONTROL_WORD_SC_COUNTER0, PIT_CONTROL_WORD_MODE_SQARE);
+
+}
+
+void set_pit_count(int freq, unsigned char counter, unsigned char mode)
+{
+    unsigned short count;
+    unsigned char command;
+
+    count = (unsigned short)(PIT_CH0_CLK / freq);
+
+    command = mode | PIT_CONTROL_WORD_RL_LSB_MSB | counter;
+
+    io_out8(PIT_PORT_CONTROL_WORD, command);
+
+    io_out8(PIT_PORT_COUNTER0, (unsigned char)(count & 0xff));
+    io_out8(PIT_PORT_COUNTER0, (unsigned char)((count >> 8) & 0xff));
+
+    return;
+}
+
+void timer_interrupt(void)
+{
+    static unsigned int timer_tick = 0;
+    io_out8(0x20, 0x20);
+    io_out8(0xa0, 0x20);
+    timer_tick++;
+    integer_puts(timer_tick, 24);
+
 }
 
 void inthandler21(int *esp)
@@ -143,3 +187,4 @@ void inthandler21(int *esp)
     io_out8(0x0020, 0x61);
     io_in8(0x0060);
 }
+

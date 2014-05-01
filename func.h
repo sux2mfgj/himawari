@@ -23,5 +23,6 @@ extern void load_gdtr(int a, int b);
 extern void load_idtr(int a, int b);
 
 extern void asm_inthandler21(int *esp);
+extern void asm_timer_inthandler(int *esp);
 
 #endif
