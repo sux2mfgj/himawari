@@ -25,4 +25,9 @@ extern void load_idtr(int a, int b);
 extern void asm_inthandler21(int *esp);
 extern void asm_timer_inthandler(int *esp);
 
+extern int load_cr0(void);
+extern void store_cr0(int cr0);
+
+extern int memtest_sub(unsigned int start, unsigned int end);
+
 #endif

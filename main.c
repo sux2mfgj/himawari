@@ -2,6 +2,7 @@
 #include"segment.h"
 #include"func.h"
 #include"multiboot.h"
+#include"memory.h"
 
 void kernel_entry(unsigned int magic, MULTIBOOT_INFO *multiboot_info)
 {
@@ -10,6 +11,7 @@ void kernel_entry(unsigned int magic, MULTIBOOT_INFO *multiboot_info)
     init_gdtidt();
     init_pit();
     init_pic();
+    init_memory();
     io_sti();
 
     h_puts("hello");
