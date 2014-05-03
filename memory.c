@@ -69,5 +69,14 @@ unsigned int memtest(
 void init_memory(void)
 {
     integer_puts(memtest(0x00400000, 0xbfffffff) / (1024 * 1024), 20);
+    integer_puts(get_size_of_kernel(), 19);
+    integer_puts((unsigned int)&_bss_end, 18);
+    integer_puts((unsigned int)&_text_start, 17);
+}
+
+unsigned int get_size_of_kernel()
+{
+/*     return (); */
+    return (&_bss_end - &_text_start);
 }
 

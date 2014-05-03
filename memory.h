@@ -9,5 +9,9 @@ unsigned int memtest(unsigned int start, unsigned int end);
 
 void init_memory(void);
 
+extern char _bss_end, _text_start;
+
+unsigned int get_size_of_kernel(void);
+
 #endif
 
