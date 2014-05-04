@@ -4,15 +4,20 @@ SECTIONS
 {
     . = 0x100000;
     .text :{
+        _text_start = .;
         *(.entry);
         *(.text);
+        _text_end = .;
     }
     .data :{    /* 有意値で初期化されるstatic変数 */
-        *(.data) 
+        _data_start = .;
+        *(.data);
+        _data_end = .;
     }
     .bss :{     /* ゼロで初期化されるstatic変数 */
-
+        _bss_start = .;
         *(.bss);
+        _bss_end = .;
     }
 
     end = .;
