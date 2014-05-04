@@ -124,7 +124,7 @@ struct GATE_DISCRIPTOR
     unsigned short offset_high;
 };
 
-inline void init_gdtidt(void);
+void init_gdtidt(void);
 void set_segmdesc(
         struct SEGMENT_DESCRIPTOR *sd,
         unsigned int limit,
@@ -145,9 +145,9 @@ void set_gatedesc(
         unsigned char descriptor_privilege_level,
         unsigned char present);
 
-inline void init_pic(void);
+void init_pic(void);
 
-inline void init_pit(void);
+void init_pit(void);
 void set_pit_count(int freq, unsigned char counter, unsigned char mode);
 
 void timer_interrupt(void);

@@ -1,6 +1,6 @@
 .file "entry.s"
 
-#grub でブートするために必要なデータ
+# need data for boot by grub
 MULTIBOOT_HEADER_MAGIC = 0x1BADB002
 MULTIBOOT_HEADER_FLAGS = 0x0003
 CHECKSUM = -(MULTIBOOT_HEADER_MAGIC+MULTIBOOT_HEADER_FLAGS)

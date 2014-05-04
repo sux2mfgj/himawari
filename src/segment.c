@@ -1,7 +1,7 @@
 #include"segment.h"
 #include"graphic.h"
 
-inline void init_gdtidt(void)
+void init_gdtidt(void)
 {
     struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) GDT_ADDR;
     struct GATE_DISCRIPTOR *idt = (struct GATE_DISCRIPTOR *) IDT_ADDR;
@@ -123,7 +123,7 @@ void set_gatedesc(
         gd->offset_high = (offset >> 16) & 0xffff;
 }
 
-inline void init_pic(void)
+void init_pic(void)
 {
     //Mask
     io_out8(PIC_MASTER_DATA_PORT, PIC_IMR_MASK_IRQ_ALL);
@@ -147,7 +147,7 @@ inline void init_pic(void)
     return;
 }
 
-inline void init_pit(void)
+void init_pit(void)
 {
     set_pit_count(100, PIT_CONTROL_WORD_SC_COUNTER0, PIT_CONTROL_WORD_MODE_SQARE);
 
