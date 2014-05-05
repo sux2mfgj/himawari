@@ -17,17 +17,20 @@ all:
 	#          $(LD) -Tld.script entry.o segment.o func.o graphic.o  main.o -o $(IMAGE)
 	$(LD) $(LDFLAGS) -Map kernel.map -Tld.script  entry.o main.o segment.o func.o graphic.o memory.o -o $(IMAGE)
 
+
 himawari.iso: all
 	cp $(IMAGE) ../boot
 	grub-mkrescue -o ../himawari.iso ../
 
 
-
 run: all
 	$(QEMU) $(QEMUFLAGS) $(IMAGE)
 
+
+# TODO: This does not work now
 run_cdrom: himawari.iso
 	$(QEMU) -monitor stdio -m 32 -cdrom ../himawari.iso
+
 
 clean:
 	rm $(IMAGE) *.o *.map
