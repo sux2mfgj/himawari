@@ -68,15 +68,10 @@ void init_gdtidt(void)
 }
 
 void set_segmdesc(
-        struct SEGMENT_DESCRIPTOR *sd,
-        unsigned int limit,
-        unsigned int base,
-        unsigned char accessed,
-        unsigned char segment_type,
-        unsigned char descriptor_type,
-        unsigned char descriptor_privilege_level,
-        unsigned char present
-        )
+        struct SEGMENT_DESCRIPTOR *sd, unsigned int limit,
+        unsigned int base, unsigned char accessed,
+        unsigned char segment_type, unsigned char descriptor_type,
+        unsigned char descriptor_privilege_level, unsigned char present)
 {
     if(limit > 0xfffff){
         limit /= 0x1000;
@@ -105,13 +100,9 @@ void set_segmdesc(
     return;
 }
 
-void set_gatedesc(
-        struct GATE_DISCRIPTOR *gd,
-        unsigned offset,
-        unsigned selector,
-        unsigned char gate_type,
-        unsigned char storage_segment,
-        unsigned char descriptor_privilege_level,
+void set_gatedesc( struct GATE_DISCRIPTOR *gd, unsigned offset,
+        unsigned selector, unsigned char gate_type,
+        unsigned char storage_segment, unsigned char descriptor_privilege_level,
         unsigned char present)
 {
         gd->offset_low = offset & 0xffff;
@@ -141,7 +132,7 @@ void init_pic(void)
     io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW3);
     io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW4);
 
-    io_out8(PIC_MASTER_DATA_PORT, 0xf8); //1111 1000
+    io_out8(PIC_MASTER_DATA_PORT, 0xfc); //1111 1100
     io_out8(PIC_SLAVE_DATA_PORT, 0xff);  //1111 1111
 
     return;
@@ -149,16 +140,13 @@ void init_pic(void)
 
 void init_pit(void)
 {
-    set_pit_count(100, PIT_CONTROL_WORD_SC_COUNTER0, PIT_CONTROL_WORD_MODE_SQARE);
-
+    set_pit_count(PIT_CLK_10MS , PIT_CONTROL_WORD_SC_COUNTER0,
+            PIT_CONTROL_WORD_MODE_SQARE);
 }
 
-void set_pit_count(int freq, unsigned char counter, unsigned char mode)
+void set_pit_count(unsigned short count, unsigned char counter, unsigned char mode)
 {
-    unsigned short count;
     unsigned char command;
-
-    count = (unsigned short)(PIT_CH0_CLK / freq);
 
     command = mode | PIT_CONTROL_WORD_RL_LSB_MSB | counter;
 
@@ -182,7 +170,6 @@ void timer_interrupt(void)
 
 void inthandler21(int *esp)
 {
-/*     h_puts("hello"); */
     h_puts("interrupt success");
     io_out8(0x0020, 0x61);
     io_in8(0x0060);

@@ -87,6 +87,8 @@
 #define PIT_CONTROL_WORD_SC_DISABLE     0x3
 
 #define PIT_CH0_CLK     1193181.67
+#define PIT_CLK_1MS     PIT_CH0_CLK / 1000
+#define PIT_CLK_10MS    PIT_CH0_CLK / 100
 
 struct SEGMENT_DESCRIPTOR
 {
@@ -148,7 +150,7 @@ void set_gatedesc(
 void init_pic(void);
 
 void init_pit(void);
-void set_pit_count(int freq, unsigned char counter, unsigned char mode);
+void set_pit_count(unsigned short count, unsigned char counter, unsigned char mode);
 
 void timer_interrupt(void);
 

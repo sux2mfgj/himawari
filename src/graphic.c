@@ -10,9 +10,9 @@ void display_textmode(char c
     unsigned short color;
 
     vram_textmode = (unsigned short*)VRAM_TEXTMODE;
-    color = (back_color << 4) 
+    color = (back_color << 4)
                 | (fore_color & 0x0f);
-    
+
     vram_textmode += x + y * 80;
 
     *vram_textmode = (color << 8) | c;
@@ -22,11 +22,11 @@ void display_textmode(char c
 void textmode_puts(char* text, int y)
 {
     int i = 0;
-    char t; 
+    char t;
     while(text[i] != '\0'){
         display_textmode(text[i]
                 , WHITE, BLACK
-                , i, y);  
+                , i, y);
         i++;
     }
 }
@@ -36,18 +36,12 @@ void integer_puts(unsigned number, int y)
     int n, i = 0, j;
     char buf[20];
     for(i=0;i<20; i++){
-        buf[i] = '\0'; 
+        buf[i] = '\0';
     }
     i=0;
 
     while(number != 0){
         n = number%10+48;
-/*         display_textmode( */
-/*                 n, */
-/*                 WHITE, */
-/*                 BLACK, */
-/*                 i,  */
-/*                 y);   */
         buf[i] = n;
         i++;
         number /= 10;
@@ -60,7 +54,7 @@ void integer_puts(unsigned number, int y)
                 BLACK,
                 j,
                 y);
-    } 
+    }
 
 
     return;
