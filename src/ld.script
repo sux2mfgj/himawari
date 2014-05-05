@@ -3,6 +3,8 @@ ENTRY(entry)
 SECTIONS
 {
     . = 0x100000;
+    _kernel_start = .;
+
     .text :{
         _text_start = .;
         *(.entry);
@@ -20,5 +22,5 @@ SECTIONS
         _bss_end = .;
     }
 
-    end = .;
+    _kernel_end = .;
 }

@@ -12,26 +12,12 @@ void init_gdtidt(void)
         set_segmdesc(gdt + i, 0, 0, 0, 0, 0, 0, 0);
     }
     set_segmdesc(
-            gdt + 1,
-            0xffffffff,
-            0x00000000,
-            0,
-            SEG_TYPE_CODE_XRC,
-            DESC_TYPE_SEGMENT,
-            PRIVILEGE_LEVEL_OS,
-            PRESENT
-            );
+            gdt + 1, 0xffffffff, 0x00000000, 0, SEG_TYPE_CODE_XRC,
+            DESC_TYPE_SEGMENT, PRIVILEGE_LEVEL_OS, PRESENT);
 
     set_segmdesc(
-            gdt + 2,
-            0xffffffff,
-            0x00000000,
-            0,
-            SEG_TYPE_DATE_REW,
-            DESC_TYPE_SEGMENT,
-            PRIVILEGE_LEVEL_OS,
-            PRESENT
-            );
+            gdt + 2, 0xffffffff, 0x00000000, 0, SEG_TYPE_DATE_REW,
+            DESC_TYPE_SEGMENT, PRIVILEGE_LEVEL_OS, PRESENT);
 
 
     load_gdtr(0xffff, GDT_ADDR);
@@ -43,25 +29,12 @@ void init_gdtidt(void)
     load_idtr(0x7ff, IDT_ADDR);
 
     set_gatedesc(
-            idt + 0x21,
-            (int)asm_inthandler21,
-            1*8,
-            GATE_TYPE_32BIT_INT,
-            0,
-            PRIVILEGE_LEVEL_OS,
-            PRESENT
-            );
+            idt + 0x21, (int)asm_inthandler21, 1*8, GATE_TYPE_32BIT_INT, 0,
+            PRIVILEGE_LEVEL_OS, PRESENT);
 
     set_gatedesc(
-            idt + 0x20,
-            (int)asm_timer_inthandler,
-            1*8,
-            GATE_TYPE_32BIT_INT,
-            0,
-            PRIVILEGE_LEVEL_OS,
-            PRESENT
-            );
-
+            idt + 0x20, (int)asm_timer_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0,
+            PRIVILEGE_LEVEL_OS, PRESENT);
 
     return;
 
