@@ -38,10 +38,10 @@ unsigned int memtest( unsigned int start, unsigned int end)
 
 void init_memory(memory_data* memory_data)
 {
-    integer_puts((unsigned int)&_text_start, 17);
-    integer_puts((unsigned int)&_kernel_end, 18);
-    integer_puts(get_size_of_kernel(), 19);
-    integer_puts(memtest(0x00400000, 0xbfffffff) / (1024 * 1024), 20);
+    integer_puts((unsigned int)&_text_start, 17, PUTS_RIGHT);
+    integer_puts((unsigned int)&_kernel_end, 18, PUTS_RIGHT);
+    integer_puts(get_size_of_kernel(), 19, PUTS_RIGHT);
+    integer_puts(memtest(0x00400000, 0xbfffffff) / (1024 * 1024), 20, PUTS_RIGHT);
 
 
     memory_management_init(memory_data);
@@ -61,7 +61,7 @@ void memory_management_init(memory_data* memory_data)
     for(i = 0; i < MEMORY_MANAGEMENT_DATA_SIZE; ++i){
         memory_data->data[i].base_addr = 0;
         memory_data->data[i].size = 0;
-        memory_data->data[i].status = MEMORY_INFO_STATUS_NODATA;
+        memory_data->data[i].status = MEMORY_INFO_STATUS_END;
     }
 
     memory_data->data[0].base_addr = &_kernel_end;
@@ -77,6 +77,7 @@ void* memory_allocate(memory_data* memory_data, unsigned int size)
     int i, j;
     for(i = 0; i < MEMORY_MANAGEMENT_DATA_SIZE; ++i){
         if (memory_data->data[i].status == MEMORY_INFO_STATUS_END){
+            puts("memory management array over", PUTS_RIGHT);
             return (void *)0;
         }
 
@@ -92,7 +93,7 @@ void* memory_allocate(memory_data* memory_data, unsigned int size)
 
             if (memory_data->data[i].size >= size) {
 
-                if (memory_data->end_point >= MEMORY_MANAGEMENT_DATA_SIZE) {
+                if (memory_data->end_point <= MEMORY_MANAGEMENT_DATA_SIZE) {
                     // slide data
                     for(j = memory_data->end_point; j > i; --j){
                         memory_data->data[j + 1] = memory_data->data[j];
@@ -107,20 +108,25 @@ void* memory_allocate(memory_data* memory_data, unsigned int size)
                     memory_data->data[i].size = size;
                     memory_data->data[i].status = MEMORY_INFO_STATUS_USED;
 
+                    memory_data->end_point++;
+
                     return memory_data->data[i].base_addr;
                 }
                 // memory management count size over
                 else {
+                    puts("memory management count size over", PUTS_RIGHT);
                     return (void *)0;
                 }
             }
             // memory size is not enough
             else {
+                puts("memory size is not enough", PUTS_RIGHT);
                 return (void *)0;
             }
         }
 
     }
+
     return (void *)0;
 }
 
@@ -206,5 +212,5 @@ unsigned int memory_free(memory_data* memory_data, void *address)
 }
 
 // TODO: memory_data->data array commpaction
-// void memory_management_array_compaction(void){
+// static void memory_management_array_compaction(void){
 // }

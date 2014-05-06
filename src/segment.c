@@ -29,11 +29,11 @@ void init_gdtidt(void)
     load_idtr(0x7ff, IDT_ADDR);
 
     set_gatedesc(
-            idt + 0x21, (int)asm_inthandler21, 1*8, GATE_TYPE_32BIT_INT, 0,
+            idt + 0x21, (unsigned int)asm_inthandler21, 1*8, GATE_TYPE_32BIT_INT, 0,
             PRIVILEGE_LEVEL_OS, PRESENT);
 
     set_gatedesc(
-            idt + 0x20, (int)asm_timer_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0,
+            idt + 0x20, (unsigned int)asm_timer_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0,
             PRIVILEGE_LEVEL_OS, PRESENT);
 
     return;
@@ -137,13 +137,13 @@ void timer_interrupt(void)
     io_out8(0x20, 0x20);
     io_out8(0xa0, 0x20);
     timer_tick++;
-    integer_puts(timer_tick, 24);
+    integer_puts(timer_tick, 24, PUTS_RIGHT);
 
 }
 
 void inthandler21(int *esp)
 {
-    h_puts("interrupt success");
+    puts("interrupt success", PUTS_LEFT);
     io_out8(0x0020, 0x61);
     io_in8(0x0060);
 }
