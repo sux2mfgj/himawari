@@ -3,6 +3,7 @@
 #include"func.h"
 #include"multiboot.h"
 #include"memory.h"
+#include"lib.h"
 
 
 void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
@@ -19,7 +20,7 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 /*     integer_puts(multiboot_info->mem_upper, 21); */
 /*     integer_puts(multiboot_info->mmap_addr, 22); */
 /*     integer_puts(multiboot_info->mmap_length, 23); */
-    alloc_free_test();
+    list_test();
 
     for(;;){
         io_hlt();

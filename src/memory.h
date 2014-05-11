@@ -42,6 +42,7 @@ uint32_t get_size_of_kernel(void);
 
 
 void alloc_free_test(void);
+void print_array_status(void);
 
 #endif
 

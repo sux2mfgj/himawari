@@ -108,7 +108,7 @@ void slide_screen(uint32_t place)
     uint16_t *read_addr, *write_addr;
 
     for (i = 0; i <= TEXT_MODE_HEIGHT; i++) {
-        for (j = 0; j < (TEXT_MODE_HEIGHT / 2); j++) {
+        for (j = 0; j < (TEXT_MODE_WIDTH / 2); j++) {
             read_addr = vram_textmode + i * TEXT_MODE_WIDTH + j + place;
             tmp = (char)*read_addr;
             write_addr = read_addr - TEXT_MODE_WIDTH;
@@ -139,6 +139,13 @@ void printf(uint32_t place, char* format, ...)
         y = &right_line_num;
     }
 
+    if (*y == 25) {
+        slide_screen(place);
+    }
+    else {
+        (*y)++;
+    }
+
     for (f = format; *f != '\0'; ++f){
         if (*f == '%') {
             f++;
@@ -163,12 +170,6 @@ void printf(uint32_t place, char* format, ...)
 
     }
 
-    if (*y == 25) {
-        slide_screen(place);
-    }
-    else {
-        (*y)++;
-    }
 
     va_end(args);
     return;

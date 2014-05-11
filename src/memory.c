@@ -197,6 +197,7 @@ find:
         // h - c - u
         if (next_info->status  == MEMORY_INFO_STATUS_USED) {
             current_info->status = MEMORY_INFO_STATUS_FREE;
+            printf(TEXT_MODE_SCREEN_RIGHT, "h - c - u");
             return true;
         }
         // h - c - f
@@ -208,12 +209,13 @@ find:
             next_info->size = 0;
             next_info->status = MEMORY_INFO_STATUS_NODATA;
             mem_data->nodata_elements_count++;
+            printf(TEXT_MODE_SCREEN_RIGHT, "h - c - f");
             return true;
         }
     }
     else {
 
-        if (previous_info->status == MEMORY_INFO_STATUS_USED) {
+        if (previous_info->status == MEMORY_INFO_STATUS_FREE) {
 
             // f - c - f
             if (next_info->status == MEMORY_INFO_STATUS_FREE) {
@@ -226,6 +228,7 @@ find:
                 *next_info = *current_info;
 
                 mem_data->nodata_elements_count += 2;
+                printf(TEXT_MODE_SCREEN_RIGHT, "f - c - f");
                 return true;
             }
             // f - c - u
@@ -237,6 +240,7 @@ find:
                 current_info->status = MEMORY_INFO_STATUS_NODATA;
 
                 mem_data->nodata_elements_count++;
+                printf(TEXT_MODE_SCREEN_RIGHT, "f - c - u");
                 return true;
             }
 
@@ -252,11 +256,13 @@ find:
                 next_info->status = MEMORY_INFO_STATUS_NODATA;
 
                 mem_data->nodata_elements_count++;
+                printf(TEXT_MODE_SCREEN_RIGHT, "u - c - f");
                 return true;
             }
             // u - c - u
             else {
-                current_info->status = MEMORY_INFO_STATUS_NODATA;
+                current_info->status = MEMORY_INFO_STATUS_FREE;
+                printf(TEXT_MODE_SCREEN_RIGHT, "u - c - u");
                 return true;
             }
 
@@ -265,7 +271,7 @@ find:
    return false;
 }
 
-static void print_array_status(void)
+void print_array_status(void)
 {
     int i;
     for (i = 0; i < mem_data->end_point; i++) {

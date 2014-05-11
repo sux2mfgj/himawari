@@ -12,7 +12,7 @@
 #define BLACK 0x0
 #define WHITE 0xf
 
-#define TEXT_MODE_WIDTH     0x0128 //80
+#define TEXT_MODE_WIDTH     0x0050 //80
 #define TEXT_MODE_HEIGHT    0x0019 //25
 
 #define TEXT_MODE_SCREEN_LEFT   0x00000000
