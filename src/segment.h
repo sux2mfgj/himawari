@@ -1,6 +1,10 @@
 #ifndef _INCLUDED_SEGMENT_H_
 #define _INCLUDED_SEGMENT_H_
 
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
+
 #include"func.h"
 
 #define GDT_ADDR 0x00270000
@@ -69,22 +73,22 @@
 #define PIT_CONTROL_WORD_BCD_BINARY 0
 #define PIT_CONTROL_WORD_BCD_BCD    1
 
-#define PIT_CONTROL_WORD_MODE_TIMER         0x0
-#define PIT_CONTROL_WORD_MODE_ONESHOT_TIMER 0x1
-#define PIT_CONTROL_WORD_MODE_PULSE         0x2
-#define PIT_CONTROL_WORD_MODE_SQARE         0x3
-#define PIT_CONTROL_WORD_MODE_SOFTWARE      0x4
-#define PIT_CONTROL_WORD_MODE_HARDWARE      0x5
+#define PIT_CONTROL_WORD_MODE_TIMER         0x00
+#define PIT_CONTROL_WORD_MODE_ONESHOT_TIMER 0x01
+#define PIT_CONTROL_WORD_MODE_PULSE         0x02
+#define PIT_CONTROL_WORD_MODE_SQARE         0x03
+#define PIT_CONTROL_WORD_MODE_SOFTWARE      0x04
+#define PIT_CONTROL_WORD_MODE_HARDWARE      0x05
 
 #define PIT_CONTROL_WORD_RL_LOAD    0x0
 #define PIT_CONTROL_WORD_RL_LSB     0x1  // write: LSB( Least Significant Byte )
 #define PIT_CONTROL_WORD_RL_MSB     0x2  // write: MSB( Most Significant Byte )
 #define PIT_CONTROL_WORD_RL_LSB_MSB 0x3  // write: LSB and MSB
 
-#define PIT_CONTROL_WORD_SC_COUNTER0    0x0
-#define PIT_CONTROL_WORD_SC_COUNTER1    0x1
-#define PIT_CONTROL_WORD_SC_COUNTER2    0x2
-#define PIT_CONTROL_WORD_SC_DISABLE     0x3
+#define PIT_CONTROL_WORD_SC_COUNTER0    0x00
+#define PIT_CONTROL_WORD_SC_COUNTER1    0x01
+#define PIT_CONTROL_WORD_SC_COUNTER2    0x02
+#define PIT_CONTROL_WORD_SC_DISABLE     0x03
 
 #define PIT_CH0_CLK     1193181.67
 #define PIT_CLK_1MS     PIT_CH0_CLK / 1000
@@ -92,8 +96,8 @@
 
 struct SEGMENT_DESCRIPTOR
 {
-    unsigned short limit_low, base_low;
-    unsigned char base_mid;
+    uint16_t limit_low, base_low;
+    uint8_t base_mid;
     unsigned accessed                   :1;
     unsigned segment_type               :3;
     unsigned descriptor_type            :1;
@@ -107,50 +111,50 @@ struct SEGMENT_DESCRIPTOR
     unsigned default_operand_size       :1;
     unsigned granularity                :1;
 
-    unsigned char base_high;
+    uint8_t base_high;
 };
 
 
 struct GATE_DISCRIPTOR
 {
-    unsigned short offset_low;
-    unsigned short selector;
+    uint16_t offset_low;
+    uint16_t selector;
 
-    unsigned char unused;
+    uint8_t unused;
 
     unsigned gate_type                  :4;
     unsigned storage_segment            :1;
     unsigned descriptor_privilege_level :2;
     unsigned present                    :1;
 
-    unsigned short offset_high;
+    uint16_t offset_high;
 };
 
 void init_gdtidt(void);
 void set_segmdesc(
         struct SEGMENT_DESCRIPTOR *sd,
-        unsigned int limit,
-        unsigned int base,
-        unsigned char accessed,
-        unsigned char segment_type,
-        unsigned char descriptor_type,
-        unsigned char descriptor_privilege_level,
-        unsigned char present);
+        uint32_t limit,
+        uint32_t base,
+        uint8_t accessed,
+        uint8_t segment_type,
+        uint8_t descriptor_type,
+        uint8_t descriptor_privilege_level,
+        uint8_t present);
 
 
 void set_gatedesc(
         struct GATE_DISCRIPTOR *gd,
-        unsigned offset,
-        unsigned selector,
-        unsigned char gate_type,
-        unsigned char storage_segment,
-        unsigned char descriptor_privilege_level,
-        unsigned char present);
+        uint32_t offset,
+        uint32_t selector,
+        uint8_t gate_type,
+        uint8_t storage_segment,
+        uint8_t descriptor_privilege_level,
+        uint8_t present);
 
 void init_pic(void);
 
 void init_pit(void);
-void set_pit_count(unsigned short count, unsigned char counter, unsigned char mode);
+void set_pit_count(uint16_t count, uint8_t counter, uint8_t mode);
 
 void timer_interrupt(void);
 

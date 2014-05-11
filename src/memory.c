@@ -3,10 +3,10 @@
 #include"graphic.h"
 
 
-unsigned int memtest( unsigned int start, unsigned int end)
+uint32_t memtest( uint32_t start, uint32_t end)
 {
     char flg486 = 0;
-    unsigned int eflg, cr0, i;
+    uint32_t eflg, cr0, i;
 
     eflg = io_load_eflags();
     eflg |= EFLAGS_AC_BIT;
@@ -33,21 +33,23 @@ unsigned int memtest( unsigned int start, unsigned int end)
     }
 
     return i;
-
 }
 
 void init_memory(memory_data* memory_data)
 {
-    integer_puts((unsigned int)&_text_start, 17, PUTS_RIGHT);
-    integer_puts((unsigned int)&_kernel_end, 18, PUTS_RIGHT);
-    integer_puts(get_size_of_kernel(), 19, PUTS_RIGHT);
-    integer_puts(memtest(0x00400000, 0xbfffffff) / (1024 * 1024), 20, PUTS_RIGHT);
+
+/*     integer_puts((uint32_t)&_text_start, 17, PUTS_RIGHT); */
+/*     integer_puts((uint32_t)&_kernel_end, 18, PUTS_RIGHT); */
+/*     integer_puts(get_size_of_kernel(), 19, PUTS_RIGHT); */
+/*     integer_puts(memtest(0x00400000, 0xbfffffff) / (1024 * 1024), 20, PUTS_RIGHT); */
 
 
     memory_management_init(memory_data);
+
+    return;
 }
 
-unsigned int get_size_of_kernel()
+uint32_t get_size_of_kernel()
 {
 /*     return (); */
     return (&_kernel_end- &_kernel_start);
@@ -70,15 +72,16 @@ void memory_management_init(memory_data* memory_data)
 
     memory_data->end_point = 1;
 
+    return;
 }
 
-void* memory_allocate(memory_data* memory_data, unsigned int size)
+void* memory_allocate(memory_data* memory_data, uint32_t size)
 {
     int i, j;
     for(i = 0; i < MEMORY_MANAGEMENT_DATA_SIZE; ++i){
         if (memory_data->data[i].status == MEMORY_INFO_STATUS_END){
-            puts("memory management array over", PUTS_RIGHT);
-            return (void *)0;
+            printf(TEXT_MODE_SCREEN_RIGHT, "memory management array over");
+            return NULL;
         }
 
         if (memory_data->data[i].status == MEMORY_INFO_STATUS_NODATA) {
@@ -114,20 +117,20 @@ void* memory_allocate(memory_data* memory_data, unsigned int size)
                 }
                 // memory management count size over
                 else {
-                    puts("memory management count size over", PUTS_RIGHT);
-                    return (void *)0;
+                    printf(TEXT_MODE_SCREEN_RIGHT, "memory management count size over");
+                    return NULL;
                 }
             }
             // memory size is not enough
             else {
-                puts("memory size is not enough", PUTS_RIGHT);
-                return (void *)0;
+                printf(TEXT_MODE_SCREEN_RIGHT, "memory size is not enough");
+                return NULL;
             }
         }
 
     }
 
-    return (void *)0;
+    return NULL;
 }
 
 /*
@@ -137,7 +140,7 @@ void* memory_allocate(memory_data* memory_data, unsigned int size)
  * h : head
  * t : tail
  */
-unsigned int memory_free(memory_data* memory_data, void *address)
+bool memory_free(memory_data* memory_data, void *address)
 {
     int i;
     for (i = 0; i < memory_data->end_point; i++) {
@@ -160,13 +163,13 @@ unsigned int memory_free(memory_data* memory_data, void *address)
                     memory_data->data[0].base_addr = 0;
                     memory_data->data[0].size = 0;
                 }
-                return 0;
+                return true;
             }
 
             // current data is array last
             if (i == MEMORY_MANAGEMENT_DATA_SIZE) {
                 //TODO: write current data is array last
-                return 0;
+                return true;
             }
 
             if (memory_data->data[i - 1].status == MEMORY_INFO_STATUS_FREE) {
@@ -203,12 +206,12 @@ unsigned int memory_free(memory_data* memory_data, void *address)
                 }
             }
 
-            return 0;
+            return true;
 
         }
     }
 
-    return -1;
+    return false;
 }
 
 // TODO: memory_data->data array commpaction

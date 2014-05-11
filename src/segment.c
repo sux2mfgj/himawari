@@ -29,11 +29,11 @@ void init_gdtidt(void)
     load_idtr(0x7ff, IDT_ADDR);
 
     set_gatedesc(
-            idt + 0x21, (unsigned int)asm_inthandler21, 1*8, GATE_TYPE_32BIT_INT, 0,
+            idt + 0x21, (uintptr_t)asm_inthandler21, 1*8, GATE_TYPE_32BIT_INT, 0,
             PRIVILEGE_LEVEL_OS, PRESENT);
 
     set_gatedesc(
-            idt + 0x20, (unsigned int)asm_timer_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0,
+            idt + 0x20, (uintptr_t)asm_timer_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0,
             PRIVILEGE_LEVEL_OS, PRESENT);
 
     return;
@@ -41,10 +41,10 @@ void init_gdtidt(void)
 }
 
 void set_segmdesc(
-        struct SEGMENT_DESCRIPTOR *sd, unsigned int limit,
-        unsigned int base, unsigned char accessed,
-        unsigned char segment_type, unsigned char descriptor_type,
-        unsigned char descriptor_privilege_level, unsigned char present)
+        struct SEGMENT_DESCRIPTOR *sd, uint32_t limit,
+        uint32_t base, uint8_t accessed,
+        uint8_t segment_type, uint8_t descriptor_type,
+        uint8_t descriptor_privilege_level, uint8_t present)
 {
     if(limit > 0xfffff){
         limit /= 0x1000;
@@ -73,10 +73,10 @@ void set_segmdesc(
     return;
 }
 
-void set_gatedesc( struct GATE_DISCRIPTOR *gd, unsigned offset,
-        unsigned selector, unsigned char gate_type,
-        unsigned char storage_segment, unsigned char descriptor_privilege_level,
-        unsigned char present)
+void set_gatedesc( struct GATE_DISCRIPTOR *gd, uint32_t offset,
+        uint32_t selector, uint8_t gate_type,
+        uint8_t storage_segment, uint8_t descriptor_privilege_level,
+        uint8_t present)
 {
         gd->offset_low = offset & 0xffff;
         gd->selector = selector;
@@ -85,6 +85,8 @@ void set_gatedesc( struct GATE_DISCRIPTOR *gd, unsigned offset,
         gd->descriptor_privilege_level = descriptor_privilege_level & 0x3;
         gd->present = present & 0x1;
         gd->offset_high = (offset >> 16) & 0xffff;
+
+        return;
 }
 
 void init_pic(void)
@@ -115,36 +117,41 @@ void init_pit(void)
 {
     set_pit_count(PIT_CLK_10MS , PIT_CONTROL_WORD_SC_COUNTER0,
             PIT_CONTROL_WORD_MODE_SQARE);
+
+    return;
 }
 
-void set_pit_count(unsigned short count, unsigned char counter, unsigned char mode)
+void set_pit_count(uint16_t count, uint8_t counter, uint8_t mode)
 {
-    unsigned char command;
+    uint8_t command;
 
     command = mode | PIT_CONTROL_WORD_RL_LSB_MSB | counter;
 
     io_out8(PIT_PORT_CONTROL_WORD, command);
 
-    io_out8(PIT_PORT_COUNTER0, (unsigned char)(count & 0xff));
-    io_out8(PIT_PORT_COUNTER0, (unsigned char)((count >> 8) & 0xff));
+    io_out8(PIT_PORT_COUNTER0, (uint8_t)(count & 0xff));
+    io_out8(PIT_PORT_COUNTER0, (uint8_t)((count >> 8) & 0xff));
 
     return;
 }
 
 void timer_interrupt(void)
 {
-    static unsigned int timer_tick = 0;
+    static uint32_t timer_tick = 0;
     io_out8(0x20, 0x20);
     io_out8(0xa0, 0x20);
     timer_tick++;
-    integer_puts(timer_tick, 24, PUTS_RIGHT);
+/*     printf(TEXT_MODE_SCREEN_RIGHT, "timer: %d", timer_tick); */
 
+    return;
 }
 
 void inthandler21(int *esp)
 {
-    puts("interrupt success", PUTS_LEFT);
+    printf(TEXT_MODE_SCREEN_RIGHT, "interrupt success");
     io_out8(0x0020, 0x61);
     io_in8(0x0060);
+
+    return;
 }
 

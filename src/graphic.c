@@ -1,36 +1,62 @@
 #include"graphic.h"
 
-void display_textmode(char c
-        , unsigned char fore_color
-        , unsigned char back_color
-        , int x
-        , int y)
-{
-    unsigned short *vram_textmode;
-    unsigned short color;
 
-    vram_textmode = (unsigned short*)VRAM_TEXTMODE;
+static uint32_t left_line_num = 0;
+static uint32_t right_line_num = 0;
+
+void init_screen()
+{
+#ifdef TEXT_MODE
+    int i, j;
+    for (i = 0; i < TEXT_MODE_WIDTH; ++i) {
+        for (j = 0; j < TEXT_MODE_HEIGHT; j++) {
+            display_textmode(' ', WHITE, BLACK, i, j);
+        }
+    }
+
+#elif GRAPHIC_MODE
+
+#endif
+    return;
+}
+
+void display_textmode(char c, uint8_t fore_color , uint8_t back_color
+        , uint32_t x, uint32_t y)
+{
+    uint16_t *vram_textmode;
+    uint16_t color;
+
+    vram_textmode = (uint16_t*)VRAM_TEXTMODE;
     color = (back_color << 4) | (fore_color & 0x0f);
 
     vram_textmode += x + y * 80;
 
     *vram_textmode = (color << 8) | c;
 
+    return;
 }
 
-void textmode_puts(char* text, int y, unsigned int place)
+void textmode_putc(char c, uint32_t x, uint32_t y, uint32_t place)
+{
+    display_textmode(c, WHITE, BLACK, place + x, y);
+}
+
+
+uint32_t textmode_puts(char* text, uint32_t x, uint32_t y, uint32_t place)
 {
     int i = 0;
     char t;
     while(text[i] != '\0'){
-        display_textmode(text[i] , WHITE, BLACK , i + place, y);
+        display_textmode(text[i] , WHITE, BLACK , i + place + x, y);
         i++;
     }
+
+    return i;
 }
 
-void integer_puts(unsigned number, int y, unsigned int place)
+uint32_t integer_puts(uint32_t number, uint32_t x, uint32_t y, uint32_t place)
 {
-    int n, i = 0, j;
+    int n, i, j;
     char buf[20];
     for(i=0;i<20; i++){
         buf[i] = '\0';
@@ -45,27 +71,100 @@ void integer_puts(unsigned number, int y, unsigned int place)
     }
 
     for(j=0; j<i; j++){
-        display_textmode( buf[i-j-1], WHITE, BLACK, j + place, y);
+        display_textmode(buf[i-j-1], WHITE, BLACK, j + place + x, y);
+    }
+
+    return i;
+}
+
+/* void puts(char* text, uint32_t place) */
+/* { */
+/*     static int left_line_num = 0; */
+/*     static int right_line_num = 0; */
+/*     //TODO: add code about when now_line over 80 */
+/* #ifdef TEXT_MODE */
+/*     if (place == TEXT_MODE_SCREEN_LEFT) { */
+/*         textmode_puts(text, right_line_num++, place); */
+/*     } */
+/*     else { */
+/*         textmode_puts(text, left_line_num++, place); */
+/*     } */
+/* #elif GRAPHIC_MODE */
+
+/* #endif */
+/* } */
+
+
+void slide_screen(uint32_t place)
+{
+    uint16_t *vram_textmode = (uint16_t *)VRAM_TEXTMODE;
+    int i, j;
+    char tmp;
+    uint16_t *read_addr, *write_addr;
+
+    for (i = 0; i <= TEXT_MODE_HEIGHT; i++) {
+        for (j = 0; j < (TEXT_MODE_HEIGHT / 2); j++) {
+            read_addr = vram_textmode + i * TEXT_MODE_WIDTH + j + place;
+            tmp = (char)*read_addr;
+            write_addr = read_addr - TEXT_MODE_WIDTH;
+            *write_addr = (WHITE << 8) | tmp;
+        }
+    }
+
+    for (i = 0; i < (TEXT_MODE_WIDTH / 2); i++) {
+        display_textmode(' ', WHITE, BLACK, i + place, TEXT_MODE_HEIGHT);
     }
 
     return;
 }
 
-void puts(char* text, unsigned int place)
+void printf(uint32_t place, char* format, ...)
 {
-    static int left_line_num = 0;
-    static int right_line_num = 0;
-    //TODO: add code about when now_line over 80
-#ifdef TEXT_MODE
-    if (place == PUTS_RIGHT) {
-        textmode_puts(text, right_line_num++, place);
+    char* f;
+    va_list args;
+    va_start(args, format);
+    uint32_t x = 0;
+    uint32_t *y;
+
+    if (place == TEXT_MODE_SCREEN_LEFT) {
+        y = &left_line_num;
     }
     else {
-        textmode_puts(text, left_line_num++, place);
+        y = &right_line_num;
     }
-#elif GRAPHIC_MODE
 
-#endif
+    for (f = format; *f != '\0'; ++f){
+        if (*f == '%') {
+            f++;
+
+            switch (*f) {
+                case 'c':
+                    textmode_putc((uint8_t)va_arg(args, char), x++, *y, place);
+                    break;
+                case 's':
+                    x += textmode_puts((char *)va_arg(args, char*), x, *y, place);
+                    break;
+
+                case 'd':
+                    x += integer_puts((uint32_t)va_arg(args, int), x, *y, place);
+                    break;
+            }
+
+        }
+        else {
+            textmode_putc((uint8_t)*f, x++, *y, place);
+        }
+
+    }
+
+    if (*y == 25) {
+        slide_screen(place);
+    }
+    else {
+        (*y)++;
+    }
+
+    va_end(args);
+    return;
 }
-
 
