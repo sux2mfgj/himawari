@@ -3,8 +3,8 @@
 .text
 .code32
 
-.extern inthandler21
-.extern timer_interrupt
+.extern timer_inthandler
+.extern keyboard_inthandler
 
 .globl io_hlt, io_cli, io_sti
 .globl io_in8, io_in16, io_in32, io_out8, io_out16, io_out32
@@ -143,7 +143,7 @@ asm_inthandler21:
     movw %ss, %ax
     movw %ax, %ds
     movw %ax, %es
-    call inthandler21
+    call keyboard_inthandler
     popl %eax
     popa
     popw %ds
@@ -159,7 +159,7 @@ asm_timer_inthandler:
     movw %ss, %ax
     movw %ax, %ds
     movw %ax, %es
-    call timer_interrupt
+    call timer_inthandler
     popl %eax
     popa
     popw %ds

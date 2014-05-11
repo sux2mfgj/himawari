@@ -128,7 +128,6 @@ void* memory_allocate(uint32_t size)
             // memory size is not enough
             else {
                 printf(TEXT_MODE_SCREEN_RIGHT, "memory size is not enough");
-                return NULL;
             }
         }
 
@@ -173,7 +172,7 @@ bool memory_free(void *address)
             previous_index = i;
         }
     }
-
+    printf(TEXT_MODE_SCREEN_LEFT, "not found");
     return false;
 
 find:
@@ -184,8 +183,8 @@ find:
         }
     }
 
-/*     printf(TEXT_MODE_SCREEN_RIGHT, "previous: %d, current: %d, next: %d", */
-/*             previous_index, current_index, next_index); */
+    printf(TEXT_MODE_SCREEN_RIGHT, "previous: %d, current: %d, next: %d",
+            previous_index, current_index, next_index);
 
 
     current_info = &mem_data->data[current_index];
@@ -197,7 +196,7 @@ find:
         // h - c - u
         if (next_info->status  == MEMORY_INFO_STATUS_USED) {
             current_info->status = MEMORY_INFO_STATUS_FREE;
-            printf(TEXT_MODE_SCREEN_RIGHT, "h - c - u");
+            printf(TEXT_MODE_SCREEN_LEFT, "h - c - u");
             return true;
         }
         // h - c - f
@@ -209,7 +208,7 @@ find:
             next_info->size = 0;
             next_info->status = MEMORY_INFO_STATUS_NODATA;
             mem_data->nodata_elements_count++;
-            printf(TEXT_MODE_SCREEN_RIGHT, "h - c - f");
+            printf(TEXT_MODE_SCREEN_LEFT, "h - c - f");
             return true;
         }
     }
@@ -228,7 +227,7 @@ find:
                 *next_info = *current_info;
 
                 mem_data->nodata_elements_count += 2;
-                printf(TEXT_MODE_SCREEN_RIGHT, "f - c - f");
+                printf(TEXT_MODE_SCREEN_LEFT, "f - c - f");
                 return true;
             }
             // f - c - u
@@ -240,7 +239,7 @@ find:
                 current_info->status = MEMORY_INFO_STATUS_NODATA;
 
                 mem_data->nodata_elements_count++;
-                printf(TEXT_MODE_SCREEN_RIGHT, "f - c - u");
+                printf(TEXT_MODE_SCREEN_LEFT, "f - c - u");
                 return true;
             }
 
@@ -256,13 +255,13 @@ find:
                 next_info->status = MEMORY_INFO_STATUS_NODATA;
 
                 mem_data->nodata_elements_count++;
-                printf(TEXT_MODE_SCREEN_RIGHT, "u - c - f");
+                printf(TEXT_MODE_SCREEN_LEFT, "u - c - f");
                 return true;
             }
             // u - c - u
             else {
                 current_info->status = MEMORY_INFO_STATUS_FREE;
-                printf(TEXT_MODE_SCREEN_RIGHT, "u - c - u");
+                printf(TEXT_MODE_SCREEN_LEFT, "u - c - u");
                 return true;
             }
 

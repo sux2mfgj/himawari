@@ -135,23 +135,4 @@ void set_pit_count(uint16_t count, uint8_t counter, uint8_t mode)
     return;
 }
 
-void timer_interrupt(void)
-{
-    static uint32_t timer_tick = 0;
-    io_out8(0x20, 0x20);
-    io_out8(0xa0, 0x20);
-    timer_tick++;
-/*     printf(TEXT_MODE_SCREEN_RIGHT, "timer: %d", timer_tick); */
-
-    return;
-}
-
-void inthandler21(int *esp)
-{
-    printf(TEXT_MODE_SCREEN_RIGHT, "interrupt success");
-    io_out8(0x0020, 0x61);
-    io_in8(0x0060);
-
-    return;
-}
 
