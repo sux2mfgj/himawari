@@ -14,7 +14,7 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     init_gdtidt();
     init_pit();
     init_pic();
-    init_memory(&memory_data);
+/*     init_memory(&memory_data); */
     io_sti();
 
     printf(TEXT_MODE_SCREEN_LEFT, "hello");
