@@ -16,31 +16,32 @@
 #define MEMORY_MANAGEMENT_DATA_SIZE 1024
 
 typedef struct {
-    void *base_addr;
+    uintptr_t base_addr;
     uint32_t size;
     uint32_t status;
 }memory_info;
 
 typedef struct  {
     uint32_t end_point;
+    uint32_t nodata_elements_count;
     memory_info data[MEMORY_MANAGEMENT_DATA_SIZE];
 }memory_data;
 
-void memory_management_init(memory_data* memory_data);
-void* memory_allocate(memory_data* memory_data, uint32_t size);
-bool memory_free(memory_data* memory_data, void *address);
+void memory_management_init();
+void* memory_allocate(uint32_t size);
+bool memory_free(void *address);
 
 uint32_t memtest(uint32_t start, uint32_t end);
 // uint32_t memtest_sub(uint32_t start, uint32_t end);
 
-void init_memory(memory_data* memory_data);
+void init_memory(void);
 
 extern char _bss_end, _text_start, _kernel_start, _kernel_end;
 
 uint32_t get_size_of_kernel(void);
 
 
-
+void alloc_free_test(void);
 
 #endif
 

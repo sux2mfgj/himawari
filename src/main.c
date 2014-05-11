@@ -8,19 +8,18 @@
 void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 {
 
-    memory_data memory_data;
-
     io_cli();
     init_gdtidt();
     init_pit();
     init_pic();
-/*     init_memory(&memory_data); */
+    init_memory();
     io_sti();
 
     printf(TEXT_MODE_SCREEN_LEFT, "hello");
 /*     integer_puts(multiboot_info->mem_upper, 21); */
 /*     integer_puts(multiboot_info->mmap_addr, 22); */
 /*     integer_puts(multiboot_info->mmap_length, 23); */
+    alloc_free_test();
 
     for(;;){
         io_hlt();

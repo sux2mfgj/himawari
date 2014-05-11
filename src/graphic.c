@@ -58,10 +58,15 @@ uint32_t integer_puts(uint32_t number, uint32_t x, uint32_t y, uint32_t place)
 {
     int n, i, j;
     char buf[20];
-    for(i=0;i<20; i++){
+    for(i = 0; i < 20; i++){
         buf[i] = '\0';
     }
-    i=0;
+    i = 0;
+
+    if (number == 0) {
+        buf[0] = '0';
+        ++i;
+    }
 
     while(number != 0){
         n = number%10+48;
@@ -118,6 +123,7 @@ void slide_screen(uint32_t place)
     return;
 }
 
+//FIXME:  when write over 80 chars
 void printf(uint32_t place, char* format, ...)
 {
     char* f;
