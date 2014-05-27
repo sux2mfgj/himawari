@@ -151,7 +151,7 @@ asm_inthandler21:
     iret
 
 asm_timer_inthandler:
-     pushw %es
+    pushw %es
     pushw %ds
     pusha
     movl %esp, %eax
@@ -165,5 +165,52 @@ asm_timer_inthandler:
     popw %ds
     popw %es
     iret
+
+.extern switch_to
+
+.globl task_switch
+task_switch: #void task_switch(TASK_MANAGEMENT_DATA *prev, TASK_MANAGEMENT_DATA *next)
+
+#     pusha
+    pushf
+    pushl %ebp
+
+#store
+    movl 12(%esp), %ebp
+    movl %esp, 0(%ebp) # prev->esp = %esp
+#     movl restore, %eax
+    movl $1f, 4(%ebp) #prev->eip = $restore
+
+#load
+    movl 16(%esp), %ebp
+    movl 0(%ebp), %esp     # %esp = next->esp
+#    pushl $1f
+    pushl 4(%ebp)       #push next->eip
+
+#   test
+#     pushl %eax
+#     pushl %eax
+    jmp switch_to
+1:
+#     jmp switch_to
+    popl %ebp
+    popf
+#     popa
+    ret
+# jmp task_switch
+
+
+
+.globl _set_task
+_set_task: # void _set_task(int *task_eip);
+    pushl %eax
+
+    movl 8(%esp), %eax
+    movl $1b, 0(%eax)
+
+    ret
+
+
+
 
 

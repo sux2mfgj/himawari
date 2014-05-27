@@ -1,5 +1,7 @@
 #include"interrupt_handler.h"
 
+#include "tss.h"
+
 static uint32_t timer_tick = 0;
 static interrupt_queue keyboard_data_queue;
 
@@ -8,21 +10,48 @@ void timer_inthandler(void)
     io_out8(0x20, 0x20);
     io_out8(0xa0, 0x20);
     timer_tick++;
+/*     if (timer_tick == 100) { */
+/*        task_switch_c(0, 1); */
+/*     } */
+/*     else if (timer_tick == 200) { */
+/*         task_switch_c(1, 2); */
+/*     } */
+
 /*     printf(TEXT_MODE_SCREEN_RIGHT, "timer: %d", timer_tick); */
+
+
+
+
 
     return;
 }
+
+static int n = 0;
+
 
 void keyboard_inthandler(int *esp)
 {
     unsigned char data;
     node* tmp;
-/*     printf(TEXT_MODE_SCREEN_RIGHT, "interrupt success"); */
+    printf(TEXT_MODE_SCREEN_RIGHT, "interrupt success");
     io_out8(0x0020, 0x61);
     data = io_in8(0x0060);
 
 
+/*     if (a == 1) { */
+/*         a = 0; */
+/*         b = 1; */
+/*     } */
+/*     else { */
+/*         a = 1; */
+/*         b = 0; */
+/*     } */
     if (data <= 81) {
+
+/*         task_switch_c(n, n+1); */
+/*         ++n; */
+
+
         tmp = new_node(sizeof(char));
         *(char *)(tmp->data) = key_table[data];
         if (keyboard_data_queue.size == 0) {
@@ -43,7 +72,6 @@ void init_inthandler(void)
     keyboard_data_queue.size = 0;
     keyboard_data_queue.queue = NULL;
 }
-
 
 bool keyboard_data_queue_check(void)
 {

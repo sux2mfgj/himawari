@@ -5,7 +5,36 @@
 #include"memory.h"
 #include"lib.h"
 #include "interrupt_handler.h"
+#include "tss.h"
 
+
+uint8_t stack[3][1024];
+
+void task1(void)
+{
+    int i = 0;
+    for (i = 0; i < 100000; i++) {
+        printf(TEXT_MODE_SCREEN_LEFT, "task1: %d", i);
+    }
+
+    while(true){
+        io_hlt();
+    }
+}
+
+void task2(void)
+{
+    int i = 0;
+    for (i = 0; i < 100000; i++) {
+        printf(TEXT_MODE_SCREEN_LEFT, "task2: %d", i);
+    }
+
+    while(true){
+        io_hlt();
+    }
+}
+
+void main_loop(void);
 
 void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 {
@@ -24,16 +53,30 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 /*     integer_puts(multiboot_info->mmap_length, 23); */
 /*     list_test(); */
 
+    set_task(0, NULL, NULL);
+/*     set_task(1, task1, stack[0]+1024); */
+/*     set_task(2, task2, stack[1]+1024); */
+
+
+    main_loop();
+}
+
+
+void main_loop(){
     for(;;){
 /*         io_hlt(); */
-        io_cli();
+/*         io_cli(); */
         if (keyboard_data_queue_check()) {
             io_sti();
         }
         else {
-            print_array_status();
+/*             task_switch_c(0, 1); */
+/*             printf(TEXT_MODE_SCREEN_RIGHT, "test"); */
+/*             print_array_status(); */
         }
     }
 }
+
+
 
 

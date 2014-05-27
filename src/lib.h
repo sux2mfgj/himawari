@@ -8,6 +8,8 @@
 #include"memory.h"
 #include"graphic.h"
 
+
+// linked list
 typedef struct _node{
     struct _node *prev, *next;
     void *data;
@@ -20,6 +22,9 @@ node *delete_node(node *list_head, node* del_node);
 
 void list_test(void);
 
+
+// memset
+void *memset(void* str, int chr, uint32_t len);
 
 
 #endif

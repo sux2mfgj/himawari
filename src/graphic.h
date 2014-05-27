@@ -27,8 +27,11 @@ void display_textmode(char c, uint8_t fore_color , uint8_t back_color
         , uint32_t x, uint32_t y);
 
 void textmode_putc(char c, uint32_t x, uint32_t y, uint32_t place);
+
 uint32_t textmode_puts(char* text, uint32_t x, uint32_t y, uint32_t place);
 uint32_t integer_puts(uint32_t number, uint32_t x, uint32_t y, uint32_t place);
+uint32_t hexadecimal_put(uint32_t number, uint32_t x, uint32_t y, uint32_t place);
+
 void printf(uint32_t place, char* format, ...);
 
 void slide_screen(uint32_t place);

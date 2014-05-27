@@ -1,6 +1,7 @@
 #include"lib.h"
 
 
+// linked list
 node *new_node(uint32_t data_size)
 {
     node *ret = memory_allocate(sizeof(node));
@@ -11,9 +12,6 @@ node *new_node(uint32_t data_size)
 
     return ret;
 }
-
-
-
 
 bool append_node(node *list_head, node* append_node)
 {
@@ -64,7 +62,6 @@ node *delete_node(node *list_head, node* del_node)
     }
 }
 
-
 void list_test(void)
 {
     node *head;
@@ -82,4 +79,13 @@ void list_test(void)
 
 }
 
+
+// memset
+void *memset(void* str, int chr, uint32_t len)
+{
+    char* pp = str;
+    for (int i = 0; i < len; ++i, ++pp){
+        *pp = chr;
+    }
+}
 

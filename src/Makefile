@@ -3,7 +3,7 @@ CC = clang
 LD = ld
 QEMU = qemu-system-i386
 QEMUFLAGS = -monitor stdio -m 32 -kernel
-CFLAGS = -fno-builtin -nostdlib -mno-red-zone -ffreestanding -nostdinc -fno-stack-protector --target=i686-elf -m32
+CFLAGS = -fno-builtin -nostdlib -mno-red-zone -ffreestanding -fno-stack-protector --target=i686-elf -m32
 LDFLAGS = -m elf_i386 --format elf32-i386 --oformat elf32-i386
 IMAGE = himawari
 
@@ -16,8 +16,9 @@ all:
 	$(CC) $(CFLAGS) -c memory.c -o memory.o
 	$(CC) $(CFLAGS) -c interrupt_handler.c -o interrupt_handler.o
 	$(CC) $(CFLAGS) -c lib.c -o lib.o
+	$(CC) $(CFLAGS) -c tss.c -o tss.o
 	#          $(LD) -Tld.script entry.o segment.o func.o graphic.o  main.o -o $(IMAGE)
-	$(LD) $(LDFLAGS) -Map kernel.map -Tld.script  entry.o main.o segment.o func.o interrupt_handler.o graphic.o memory.o lib.o -o $(IMAGE)
+	$(LD) $(LDFLAGS) -Map kernel.map -Tld.script  entry.o main.o segment.o func.o interrupt_handler.o graphic.o memory.o lib.o tss.o -o $(IMAGE)
 
 
 himawari.iso: all

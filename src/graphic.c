@@ -1,4 +1,5 @@
 #include"graphic.h"
+#include "lib.h"
 
 
 static uint32_t left_line_num = 0;
@@ -56,12 +57,10 @@ uint32_t textmode_puts(char* text, uint32_t x, uint32_t y, uint32_t place)
 
 uint32_t integer_puts(uint32_t number, uint32_t x, uint32_t y, uint32_t place)
 {
-    int n, i, j;
+    int n, i = 0, j;
     char buf[20];
-    for(i = 0; i < 20; i++){
-        buf[i] = '\0';
-    }
-    i = 0;
+
+    memset(buf, '\0', 20);
 
     if (number == 0) {
         buf[0] = '0';
@@ -76,6 +75,38 @@ uint32_t integer_puts(uint32_t number, uint32_t x, uint32_t y, uint32_t place)
     }
 
     for(j=0; j<i; j++){
+        display_textmode(buf[i-j-1], WHITE, BLACK, j + place + x, y);
+    }
+
+    return i;
+}
+
+
+
+uint32_t hexadecimal_put(uint32_t number, uint32_t x, uint32_t y, uint32_t place)
+{
+    //TODO: make function
+
+    int i = 0, n;
+    char buf[20];
+    char hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        'A', 'B', 'C', 'D', 'E','F'};
+
+    memset(buf, '\0', 20);
+
+    if (number == 0) {
+        buf[0] = '0';
+        ++i;
+    }
+
+    while (number != 0 ) {
+        n = number%16;
+        buf[i] = hex[n];
+        ++i;
+        number /= 16;
+    }
+
+    for (int j = 0; j < i; ++j) {
         display_textmode(buf[i-j-1], WHITE, BLACK, j + place + x, y);
     }
 
@@ -123,7 +154,6 @@ void slide_screen(uint32_t place)
     return;
 }
 
-//FIXME:  when write over 80 chars
 void printf(uint32_t place, char* format, ...)
 {
     char* f;
@@ -160,6 +190,10 @@ void printf(uint32_t place, char* format, ...)
 
                 case 'd':
                     x += integer_puts((uint32_t)va_arg(args, int), x, *y, place);
+                    break;
+
+                case 'x':
+                    x += hexadecimal_put((uint32_t)va_arg(args, int), x, *y, place);
                     break;
             }
 
