@@ -35,6 +35,4 @@ extern int memtest_sub(unsigned int start, unsigned int end);
 extern void task_switch(struct TASK_MANAGEMENT_DATA* prev_task,
         struct TASK_MANAGEMENT_DATA* next_task);
 
-extern void _set_task(uintptr_t*);
-
 #endif

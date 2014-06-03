@@ -16,9 +16,9 @@ all:
 	$(CC) $(CFLAGS) -c memory.c -o memory.o
 	$(CC) $(CFLAGS) -c interrupt_handler.c -o interrupt_handler.o
 	$(CC) $(CFLAGS) -c lib.c -o lib.o
-	$(CC) $(CFLAGS) -c tss.c -o tss.o
+	$(CC) $(CFLAGS) -c task.c -o task.o
 	#          $(LD) -Tld.script entry.o segment.o func.o graphic.o  main.o -o $(IMAGE)
-	$(LD) $(LDFLAGS) -Map kernel.map -Tld.script  entry.o main.o segment.o func.o interrupt_handler.o graphic.o memory.o lib.o tss.o -o $(IMAGE)
+	$(LD) $(LDFLAGS) -Map kernel.map -Tld.script  entry.o main.o segment.o func.o interrupt_handler.o graphic.o memory.o lib.o task.o -o $(IMAGE)
 
 
 himawari.iso: all
