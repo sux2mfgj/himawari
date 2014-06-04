@@ -2,7 +2,7 @@
 #ifndef _FUNC_H_
 #define _FUNC_H_
 
-#include "tss.h"
+#include "task.h"
 
 extern void io_hlt(void);
 extern void io_cli(void);

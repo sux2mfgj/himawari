@@ -43,8 +43,6 @@ void init_memory()
 /*     integer_puts((uint32_t)&_kernel_end, 18, PUTS_RIGHT); */
 /*     integer_puts(get_size_of_kernel(), 19, PUTS_RIGHT); */
 /*     integer_puts(memtest(0x00400000, 0xbfffffff) / (1024 * 1024), 20, PUTS_RIGHT); */
-
-
     memory_management_init();
 
     return;
@@ -294,8 +292,10 @@ void print_array_status(void)
 
 
 // TODO: memory_data->data array commpaction
-// static void memory_management_array_compaction(void){
-// }
+static void memory_management_array_compaction(void)
+{
+
+}
 
 
 void alloc_free_test()

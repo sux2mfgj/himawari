@@ -2,7 +2,7 @@
 CC = clang
 LD = ld
 QEMU = qemu-system-i386
-QEMUFLAGS = -monitor stdio -m 32 -kernel
+QEMUFLAGS = -monitor stdio -m 32 -display curses -kernel
 CFLAGS = -fno-builtin -nostdlib -mno-red-zone -ffreestanding -fno-stack-protector --target=i686-elf -m32
 LDFLAGS = -m elf_i386 --format elf32-i386 --oformat elf32-i386
 IMAGE = himawari
@@ -32,7 +32,7 @@ run: all
 
 # TODO: This does not work now
 run_cdrom: himawari.iso
-	$(QEMU) -monitor stdio -m 32 -cdrom ../himawari.iso
+	$(QEMU) -m 32 -cdrom ../himawari.iso -display curses
 
 
 clean:
