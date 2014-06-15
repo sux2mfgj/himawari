@@ -2,7 +2,7 @@
 #ifndef _FUNC_H_
 #define _FUNC_H_
 
-#include "tss.h"
+#include "task.h"
 
 extern void io_hlt(void);
 extern void io_cli(void);
@@ -34,7 +34,5 @@ extern int memtest_sub(unsigned int start, unsigned int end);
 
 extern void task_switch(struct TASK_MANAGEMENT_DATA* prev_task,
         struct TASK_MANAGEMENT_DATA* next_task);
-
-extern void _set_task(uintptr_t*);
 
 #endif

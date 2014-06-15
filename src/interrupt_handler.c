@@ -1,6 +1,6 @@
 #include"interrupt_handler.h"
 
-#include "tss.h"
+#include "task.h"
 
 static uint32_t timer_tick = 0;
 static interrupt_queue keyboard_data_queue;
@@ -22,14 +22,13 @@ void timer_inthandler(void)
     return;
 }
 
-static int n = 0;
 
 
 void keyboard_inthandler(int *esp)
 {
+    static int n = 0;
     unsigned char data;
     node* tmp;
-    printf(TEXT_MODE_SCREEN_RIGHT, "interrupt success");
     io_out8(0x0020, 0x61);
     data = io_in8(0x0060);
 
@@ -44,8 +43,21 @@ void keyboard_inthandler(int *esp)
 /*     } */
     if (data <= 81) {
 
-/*         task_switch_c(n, n+1); */
-/*         ++n; */
+        if (n == 0) {
+        ++n;
+    printf(TEXT_MODE_SCREEN_RIGHT, "interrupt success 1");
+            task_switch_c(0, 1);
+        }
+        else if((n%2)!=0){
+        ++n;
+    printf(TEXT_MODE_SCREEN_RIGHT, "interrupt success 2");
+            task_switch_c(1, 2);
+        }
+        else {
+        ++n;
+    printf(TEXT_MODE_SCREEN_RIGHT, "interrupt success 1");
+            task_switch_c(2,1);
+        }
 
         tmp = new_node(sizeof(char));
         *(char *)(tmp->data) = key_table[data];

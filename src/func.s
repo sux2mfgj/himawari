@@ -200,17 +200,3 @@ task_switch: #void task_switch(TASK_MANAGEMENT_DATA *prev, TASK_MANAGEMENT_DATA 
 # jmp task_switch
 
 
-
-.globl _set_task
-_set_task: # void _set_task(int *task_eip);
-    pushl %eax
-
-    movl 8(%esp), %eax
-    movl $1b, 0(%eax)
-
-    ret
-
-
-
-
-
