@@ -30,8 +30,9 @@ typedef struct  {
 void memory_management_init();
 void* memory_allocate(uint32_t size);
 bool memory_free(void *address);
+static void memory_management_array_compaction(void);
 
-uint32_t memtest(uint32_t start, uint32_t end);
+size_t memtest(uint32_t start, uint32_t end);
 // uint32_t memtest_sub(uint32_t start, uint32_t end);
 
 void init_memory(void);
@@ -40,9 +41,24 @@ extern char _bss_end, _text_start, _kernel_start, _kernel_end;
 
 uint32_t get_size_of_kernel(void);
 
-
 void alloc_free_test(void);
 void print_array_status(void);
+
+
+
+// phygical memory management
+struct physical_memory_management_info{
+    uintptr_t head_addr;
+    uint32_t number_of_free_pages;
+    bool* bitmap;
+};
+
+static struct physical_memory_management_info physical_mm_info;
+
+void init_physical_mm(void);
+void alloc_pages(uint32_t number_of_page);
+
+
 
 #endif
 

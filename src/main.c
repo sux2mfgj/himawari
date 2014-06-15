@@ -45,6 +45,8 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     init_pic();
     init_memory();
     init_inthandler();
+    init_physical_mm();
+
     io_sti();
 
     printf(TEXT_MODE_SCREEN_LEFT, "hello");
@@ -53,14 +55,15 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 /*     integer_puts(multiboot_info->mmap_length, 23); */
 /*     list_test(); */
 
-    set_task(0, NULL, NULL);
+/*     set_task(0, NULL, NULL); */
 /*     set_task(1, task1, stack[0]+1024); */
 /*     set_task(2, task2, stack[1]+1024); */
 
+    printf(TEXT_MODE_SCREEN_LEFT, "%x", &_kernel_end);
+    printf(TEXT_MODE_SCREEN_LEFT, "%x", &_kernel_start);
 
     main_loop();
 }
-
 
 void main_loop(){
     for(;;){

@@ -19,10 +19,6 @@ void timer_inthandler(void)
 
 /*     printf(TEXT_MODE_SCREEN_RIGHT, "timer: %d", timer_tick); */
 
-
-
-
-
     return;
 }
 
@@ -50,7 +46,6 @@ void keyboard_inthandler(int *esp)
 
 /*         task_switch_c(n, n+1); */
 /*         ++n; */
-
 
         tmp = new_node(sizeof(char));
         *(char *)(tmp->data) = key_table[data];
