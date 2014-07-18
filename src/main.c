@@ -57,6 +57,7 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     set_task(0, NULL, NULL);
     set_task(1, task1, stack[0]+1024);
     set_task(2, task2, stack[1]+1024);
+
     for(;;){
                 io_hlt();
 /*         *         io_cli(); +| */
