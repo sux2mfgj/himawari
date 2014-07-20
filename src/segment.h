@@ -9,10 +9,13 @@
 
 #define GDT_ADDR 0x00270000
 #define IDT_ADDR 0x0026f800
+// #define IDT_ADDR 0x00001000
 
 #define NUM_IDT 256
 #define NUM_GDT 8192
 
+#define IDT_LIMIT NUM_IDT*8-1
+// #define GDT_LIMIT
 
 #define SEG_TYPE_DATE_R    0x00
 #define SEG_TYPE_DATE_RW   0x01
@@ -64,6 +67,8 @@
 #define PIC_IMR_MASK_IRQ6 0x40
 #define PIC_IMR_MASK_IRQ7 0x80
 #define PIC_IMR_MASK_IRQ_ALL 0xff
+
+#define PIC_OCW2_EOI 0x20
 
 #define PIT_PORT_COUNTER0       0x40
 #define PIT_PORT_COUNTER1       0x41

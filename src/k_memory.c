@@ -1,8 +1,9 @@
-#include"memory.h"
+#include"k_memory.h"
 #include"func.h"
 #include"graphic.h"
 
 static memory_data* mem_data;
+static uint32_t kernel_end_include_allocable_memory;
 
 uint32_t memtest( uint32_t start, uint32_t end)
 {
@@ -67,6 +68,8 @@ void memory_management_init()
 
     mem_data->data[0].base_addr = (uintptr_t)&_kernel_end +
             sizeof(memory_info) * MEMORY_MANAGEMENT_DATA_SIZE;
+
+/*     kernel_end_include_allocable_memory = mem_data->data[0].base_addr +  */
 
     mem_data->data[0].size = 0x00100000;
     mem_data->data[0].status = MEMORY_INFO_STATUS_FREE;

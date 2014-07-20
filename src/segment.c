@@ -26,15 +26,15 @@ void init_gdtidt(void)
     for(i = 0; i < NUM_IDT; i++){
         set_gatedesc(idt + i, 0, 0, 0, 0, 0, 0);
     }
-    load_idtr(0x7ff, IDT_ADDR);
+    load_idtr(IDT_LIMIT, IDT_ADDR);
 
     set_gatedesc(
             idt + 0x21, (uintptr_t)asm_inthandler21, 1*8, GATE_TYPE_32BIT_INT, 0,
             PRIVILEGE_LEVEL_OS, PRESENT);
 
-    set_gatedesc(
-            idt + 0x20, (uintptr_t)asm_timer_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0,
-            PRIVILEGE_LEVEL_OS, PRESENT);
+/*     set_gatedesc( */
+/*             idt + 0x20, (uintptr_t)asm_timer_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0, */
+/*             PRIVILEGE_LEVEL_OS, PRESENT); */
 
     return;
 
@@ -107,7 +107,7 @@ void init_pic(void)
     io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW3);
     io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW4);
 
-    io_out8(PIC_MASTER_DATA_PORT, 0xfc); //1111 1100
+    io_out8(PIC_MASTER_DATA_PORT, 0xfe); //1111 1110
     io_out8(PIC_SLAVE_DATA_PORT, 0xff);  //1111 1111
 
     return;
