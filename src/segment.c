@@ -38,12 +38,12 @@ void init_gdtidt(void)
     }
 
 
-    for(int i = 0; i < 13; i++){
+    for(int i = 0; i < 14; i++){
         set_gatedesc(
             idt + i, (uintptr_t)asm_fault_inthandler2, 1*8, GATE_TYPE_32BIT_INT, 0,
             PRIVILEGE_LEVEL_OS, PRESENT);
     }
-    for(int i = 13; i < 20; i++){
+    for(int i = 14; i < 20; i++){
         set_gatedesc(
             idt + i, (uintptr_t)asm_fault_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0,
             PRIVILEGE_LEVEL_OS, PRESENT);
