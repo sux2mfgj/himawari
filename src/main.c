@@ -41,10 +41,11 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 {
 
     io_cli();
+    init_memory();
+
     init_gdtidt();
     init_pit();
     init_pic();
-    init_memory();
     init_inthandler();
     io_sti();
 
@@ -60,7 +61,7 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 
     for(;;){
         io_hlt();
-/*         *         io_cli(); +| */
+/*         io_cli(); */
         if (keyboard_data_queue_check()) {
 /*             io_sti(); */
         }

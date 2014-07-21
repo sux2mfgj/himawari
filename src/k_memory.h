@@ -27,9 +27,10 @@ typedef struct  {
     memory_info data[MEMORY_MANAGEMENT_DATA_SIZE];
 }memory_data;
 
-void memory_management_init();
+void memory_management_init(size_t size, uintptr_t base_addr);
 void* memory_allocate(uint32_t size);
 bool memory_free(void *address);
+static void memory_management_array_compaction(void);
 
 uint32_t memtest(uint32_t start, uint32_t end);
 // uint32_t memtest_sub(uint32_t start, uint32_t end);

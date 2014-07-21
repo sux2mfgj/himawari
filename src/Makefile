@@ -32,7 +32,7 @@ run: all
 
 # TODO: This does not work now
 run_cdrom: himawari.iso
-	$(QEMU) -m 128M -cdrom ../himawari.iso
+	$(QEMU) -m 128M -gdb tcp::10000 -cdrom ../himawari.iso
 
 
 clean:

@@ -5,6 +5,7 @@
 
 .extern timer_inthandler
 .extern keyboard_inthandler
+.extern fault_inthandler
 
 .globl io_hlt, io_cli, io_sti
 .globl io_in8, io_in16, io_in32, io_out8, io_out16, io_out32
@@ -133,41 +134,102 @@ mts_fin:
     popl %edi
     ret
 
+#.globl asm_fault_inthandler
+# asm_fault_inthandler:
+#    pushw %ds
+#    pushw %es
+#    pushw %fs
+#    pushw %gs
+#    pushf
+#    pusha
+#
+#    movl %esp, %eax
+#    call fault_inthandler
+#    popa
+#    pushf
+#    popw %gs
+#    popw %fs
+#    popw %es
+#    popw %ds
+#    iret
+
+
 
 asm_inthandler21:
-    pushw %es
-    pushw %ds
+    pushl %es
+    pushl %ds
+    pushl %fs
+    pushl %gs
+
+    pushf
     pusha
     movl %esp, %eax
-    pushl %eax
-    movw %ss, %ax
-    movw %ax, %ds
-    movw %ax, %es
+#    movw %ss, %ax
+#    movw %ax, %ds
+#     movw %ax, %es
     call keyboard_inthandler
-    popl %eax
+
     popa
-    popw %ds
-    popw %es
+    pushf
+    popl %gs
+    popl %fs
+    popl %ds
+    popl %es
+
     iret
 
 asm_timer_inthandler:
-    pushw %es
-    pushw %ds
+#     pushw %es
+#     pushw %ds
+    pushl %es
+    pushl %ds
+    pushl %fs
+    pushl %gs
+
+    pushf
     pusha
     movl %esp, %eax
-    pushl %eax
-    movw %ss, %ax
-    movw %ax, %ds
-    movw %ax, %es
+#    movw %ss, %ax
+#    movw %ax, %ds
+#    movw %ax, %es
     call timer_inthandler
-    popl %eax
     popa
-    popw %ds
-    popw %es
+    popf
+    popl %gs
+    popl %fs
+    popl %ds
+    popl %es
+
+#     popw %ds
+#     popw %es
     iret
 
-.extern switch_to
+.macro inthandler operand
+.globl asm_\operand
+.extern \operand
+asm_\operand:
+    pushl %es
+    pushl %ds
+    pushl %fs
+    pushl %gs
 
+    pushf
+    pusha
+        call \operand
+    popa
+    popf
+
+    popl %gs
+    popl %fs
+    popl %ds
+    popl %es
+    iret
+.endm
+
+inthandler fault_inthandler
+inthandler fault_inthandler2
+
+.extern switch_to
 .globl task_switch
 task_switch: #void task_switch(TASK_MANAGEMENT_DATA *prev, TASK_MANAGEMENT_DATA *next)
 
