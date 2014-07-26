@@ -61,15 +61,13 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 
     for(;;){
         io_hlt();
-/*         io_cli(); */
-        if (keyboard_data_queue_check()) {
-/*             io_sti(); */
-        }
-        else {
+/*         if (keyboard_data_queue_check()) { */
+/*         } */
+/*         else { */
             /*             task_switch_c(0, 1); */
             /*             printf(TEXT_MODE_SCREEN_RIGHT, "test"); */
             /*             print_array_status(); */
-        }
+/*         } */
     }
 
 }

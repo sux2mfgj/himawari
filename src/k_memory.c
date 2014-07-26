@@ -44,7 +44,7 @@ void init_memory()
 /*     integer_puts((uint32_t)&_kernel_end, 18, PUTS_RIGHT); */
 /*     integer_puts(get_size_of_kernel(), 19, PUTS_RIGHT); */
 /*     integer_puts(memtest(0x00400000, 0xbfffffff) / (1024 * 1024), 20, PUTS_RIGHT); */
-    memory_management_init(0x00100000, (uintptr_t)&_kernel_end);
+    memory_management_init(0x01000000, (uintptr_t)&_kernel_end);
 
     return;
 }

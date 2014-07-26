@@ -5,10 +5,14 @@
 
 void init_gdtidt(void)
 {
-    struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) GDT_ADDR;
+    struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)memory_allocate(
+            (sizeof(struct SEGMENT_DESCRIPTOR) * 2));
+/*     struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)GDT_ADDR; */
 /*     struct GATE_DISCRIPTOR *idt = (struct GATE_DISCRIPTOR *) IDT_ADDR; */
-    struct GATE_DISCRIPTOR *idt = (struct GATE_DISCRIPTOR*)memory_allocate((sizeof(struct GATE_DISCRIPTOR) * NUM_IDT));
-    printf(TEXT_MODE_SCREEN_RIGHT, "0x%x", idt);
+    struct GATE_DISCRIPTOR *idt = (struct GATE_DISCRIPTOR*)memory_allocate(
+            (sizeof(struct GATE_DISCRIPTOR) * NUM_IDT));
+    printf(TEXT_MODE_SCREEN_RIGHT, "idt: 0x%x", idt);
+    printf(TEXT_MODE_SCREEN_RIGHT, "gdt: 0x%x", gdt);
     if(idt == NULL){
         return;
     }
@@ -27,33 +31,39 @@ void init_gdtidt(void)
             DESC_TYPE_SEGMENT, PRIVILEGE_LEVEL_OS, PRESENT);
 
 
-    load_gdtr(0xffff, GDT_ADDR);
+/*     load_gdtr(0xffff, (uintptr_t)gdt); */
+    load_gdtr(sizeof(struct SEGMENT_DESCRIPTOR)*2, (uintptr_t)gdt);
 
     //init IDT
     for(int i = 0; i < NUM_IDT; i++){
-        set_gatedesc(idt + i, 0, 0, 0, 0, 0, 0);
+        set_gatedesc(idt + i, (uintptr_t)io_hlt, 0, 0, 0, 0, 0);
     /*         set_gatedesc( */
 /*             idt + 0x20, (uintptr_t)asm_timer_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0, */
 /*             PRIVILEGE_LEVEL_OS, PRESENT); */
     }
 
 
-    for(int i = 0; i < 14; i++){
-        set_gatedesc(
-            idt + i, (uintptr_t)asm_fault_inthandler2, 1*8, GATE_TYPE_32BIT_INT, 0,
-            PRIVILEGE_LEVEL_OS, PRESENT);
-    }
-    for(int i = 14; i < 20; i++){
-        set_gatedesc(
-            idt + i, (uintptr_t)asm_fault_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0,
-            PRIVILEGE_LEVEL_OS, PRESENT);
-    }
-
-/*     set_gatedesc( */
-/*             idt + 8, (uintptr_t)asm_fault_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0, */
+/*     for(int i = 0; i < 14; i++){ */
+/*         set_gatedesc( */
+/*             idt + i, (uintptr_t)asm_fault_inthandler2, 1*8, GATE_TYPE_32BIT_INT, 0, */
 /*             PRIVILEGE_LEVEL_OS, PRESENT); */
+/*     } */
+/*     for(int i = 14; i < 20; i++){ */
+/*         set_gatedesc( */
+/*             idt + i, (uintptr_t)asm_fault_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0, */
+/*             PRIVILEGE_LEVEL_OS, PRESENT); */
+/*     } */
 
-    load_idtr(IDT_LIMIT, (uintptr_t)idt);
+    set_gatedesc(
+            idt + 13, (uintptr_t)asm_fault_inthandler2, 1*8, GATE_TYPE_32BIT_INT, 0,
+            PRIVILEGE_LEVEL_OS, PRESENT);
+
+    set_gatedesc(
+            idt + 8, (uintptr_t)asm_fault_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0,
+            PRIVILEGE_LEVEL_OS, PRESENT);
+
+/*     load_idtr(IDT_LIMIT, (uintptr_t)idt); */
+    load_idtr(sizeof(struct GATE_DISCRIPTOR) * NUM_IDT, (uintptr_t)idt);
 
     set_gatedesc(
             idt + 0x20, (uintptr_t)asm_timer_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0,

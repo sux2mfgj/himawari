@@ -27,12 +27,12 @@ himawari.iso: all
 
 
 run: all
-	$(QEMU) $(QEMUFLAGS) $(IMAGE)
+	$(QEMU) -gdb tcp::10000 $(QEMUFLAGS) $(IMAGE)
 
 
 # TODO: This does not work now
 run_cdrom: himawari.iso
-	$(QEMU) -m 128M -gdb tcp::10000 -cdrom ../himawari.iso
+	$(QEMU) -m 128M -monitor stdio -gdb tcp::10000 -cdrom ../himawari.iso
 
 
 clean:

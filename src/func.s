@@ -156,26 +156,24 @@ mts_fin:
 
 
 asm_inthandler21:
-    pushl %es
-    pushl %ds
-    pushl %fs
-    pushl %gs
+#    pushw %es
+#    pushw %ds
 
-    pushf
+#    pushf
     pusha
-    movl %esp, %eax
+#    movl %esp, %eax
+
+#    pushl %eax
 #    movw %ss, %ax
 #    movw %ax, %ds
-#     movw %ax, %es
-    call keyboard_inthandler
+#    movw %ax, %es
 
+#    call keyboard_inthandler
+#    popl %eax
     popa
-    pushf
-    popl %gs
-    popl %fs
-    popl %ds
-    popl %es
-
+#    popf
+#    popw %ds
+#    popw %es
     iret
 
 asm_timer_inthandler:
@@ -208,21 +206,18 @@ asm_timer_inthandler:
 .globl asm_\operand
 .extern \operand
 asm_\operand:
-    pushl %es
-    pushl %ds
-    pushl %fs
-    pushl %gs
 
     pushf
     pusha
-        call \operand
+    movl %esp, %eax
+    pushl %eax
+
+    call \operand
+
+    popl %eax
     popa
     popf
 
-    popl %gs
-    popl %fs
-    popl %ds
-    popl %es
     iret
 .endm
 
