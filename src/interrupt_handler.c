@@ -29,7 +29,7 @@ void timer_inthandler(int *esp)
 /*         task_switch_c(1, 2); */
 /*     } */
 
-    printf(TEXT_MODE_SCREEN_RIGHT, "timer: %d", timer_tick);
+/*     printf(TEXT_MODE_SCREEN_RIGHT, "timer: %d", timer_tick); */
     return;
 }
 
@@ -41,7 +41,7 @@ void keyboard_inthandler(int *esp)
 /*     io_out8(PIC_MASTER_CMD_STATE_PORT, 0x61); */
     io_out8(PIC_MASTER_CMD_STATE_PORT, PIC_OCW2_EOI);
     data = io_in8(0x0060);
-    printf(TEXT_MODE_SCREEN_RIGHT, "%d", data);
+/*     printf(TEXT_MODE_SCREEN_RIGHT, "%d", data); */
 
 
 /*     if (a == 1) { */

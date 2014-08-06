@@ -3,13 +3,16 @@
 #include "k_memory.h"
 #include "func.h"
 
+static struct SEGMENT_DESCRIPTOR *gdt;
+static struct GATE_DISCRIPTOR *idt;
+
 void init_gdtidt(void)
 {
-    struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)memory_allocate(
-            (sizeof(struct SEGMENT_DESCRIPTOR) * 2));
+    gdt = (struct SEGMENT_DESCRIPTOR *)memory_allocate(
+            (sizeof(struct SEGMENT_DESCRIPTOR) * NUM_GDT));
 /*     struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)GDT_ADDR; */
 /*     struct GATE_DISCRIPTOR *idt = (struct GATE_DISCRIPTOR *) IDT_ADDR; */
-    struct GATE_DISCRIPTOR *idt = (struct GATE_DISCRIPTOR*)memory_allocate(
+    idt = (struct GATE_DISCRIPTOR*)memory_allocate(
             (sizeof(struct GATE_DISCRIPTOR) * NUM_IDT));
     printf(TEXT_MODE_SCREEN_RIGHT, "idt: 0x%x", idt);
     printf(TEXT_MODE_SCREEN_RIGHT, "gdt: 0x%x", gdt);
@@ -23,16 +26,16 @@ void init_gdtidt(void)
         set_segmdesc(gdt + i, 0, 0, 0, 0, 0, 0, 0);
     }
     set_segmdesc(
-            gdt + 1, 0xffffffff, 0x00000000, 0, SEG_TYPE_CODE_XRC,
+            gdt + 2, 0xffffffff, 0x00000000, 0, SEG_TYPE_CODE_XRC,
             DESC_TYPE_SEGMENT, PRIVILEGE_LEVEL_OS, PRESENT);
 
     set_segmdesc(
-            gdt + 2, 0xffffffff, 0x00000000, 0, SEG_TYPE_DATE_REW,
+            gdt + 3, 0xffffffff, 0x00000000, 0, SEG_TYPE_DATE_REW,
             DESC_TYPE_SEGMENT, PRIVILEGE_LEVEL_OS, PRESENT);
 
 
 /*     load_gdtr(0xffff, (uintptr_t)gdt); */
-    load_gdtr(sizeof(struct SEGMENT_DESCRIPTOR)*2, (uintptr_t)gdt);
+    load_gdtr(sizeof(struct SEGMENT_DESCRIPTOR)*4, (uintptr_t)gdt);
 
     //init IDT
     for(int i = 0; i < NUM_IDT; i++){
@@ -55,22 +58,22 @@ void init_gdtidt(void)
 /*     } */
 
     set_gatedesc(
-            idt + 13, (uintptr_t)asm_fault_inthandler2, 1*8, GATE_TYPE_32BIT_INT, 0,
+            idt + 13, (uintptr_t)asm_fault_inthandler2, 2*8, GATE_TYPE_32BIT_INT, 0,
             PRIVILEGE_LEVEL_OS, PRESENT);
 
     set_gatedesc(
-            idt + 8, (uintptr_t)asm_fault_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0,
+            idt + 8, (uintptr_t)asm_fault_inthandler, 2*8, GATE_TYPE_32BIT_INT, 0,
             PRIVILEGE_LEVEL_OS, PRESENT);
 
 /*     load_idtr(IDT_LIMIT, (uintptr_t)idt); */
     load_idtr(sizeof(struct GATE_DISCRIPTOR) * NUM_IDT, (uintptr_t)idt);
 
     set_gatedesc(
-            idt + 0x20, (uintptr_t)asm_timer_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0,
+            idt + 0x20, (uintptr_t)asm_timer_inthandler, 2*8, GATE_TYPE_32BIT_INT, 0,
             PRIVILEGE_LEVEL_OS, PRESENT);
 
     set_gatedesc(
-            idt + 0x21, (uintptr_t)asm_inthandler21, 1*8, GATE_TYPE_32BIT_INT, 0,
+            idt + 0x21, (uintptr_t)asm_inthandler21, 2*8, GATE_TYPE_32BIT_INT, 0,
             PRIVILEGE_LEVEL_OS, PRESENT);
 
     return;
@@ -144,7 +147,7 @@ void init_pic(void)
     io_out8(PIC_SLAVE_DATA_PORT,        PIC_SLAVE_ICW4);
 
     // setting enable
-    io_out8(PIC_MASTER_DATA_PORT, 0xfd); //1111 1101
+    io_out8(PIC_MASTER_DATA_PORT, 0xfc); //1111 1100
     io_out8(PIC_SLAVE_DATA_PORT, 0xff);  //1111 1111
 
     return;

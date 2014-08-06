@@ -161,15 +161,15 @@ asm_inthandler21:
 
 #    pushf
     pusha
-#    movl %esp, %eax
+    movl %esp, %eax
 
-#    pushl %eax
+    pushl %eax
 #    movw %ss, %ax
 #    movw %ax, %ds
 #    movw %ax, %es
 
-#    call keyboard_inthandler
-#    popl %eax
+    call keyboard_inthandler
+    popl %eax
     popa
 #    popf
 #    popw %ds
