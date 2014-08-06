@@ -1,10 +1,24 @@
 #include"segment.h"
 #include"graphic.h"
+#include "k_memory.h"
+#include "func.h"
+
+static struct SEGMENT_DESCRIPTOR *gdt;
+static struct GATE_DISCRIPTOR *idt;
 
 void init_gdtidt(void)
 {
-    struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) GDT_ADDR;
-    struct GATE_DISCRIPTOR *idt = (struct GATE_DISCRIPTOR *) IDT_ADDR;
+    gdt = (struct SEGMENT_DESCRIPTOR *)memory_allocate(
+            (sizeof(struct SEGMENT_DESCRIPTOR) * NUM_GDT));
+/*     struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)GDT_ADDR; */
+/*     struct GATE_DISCRIPTOR *idt = (struct GATE_DISCRIPTOR *) IDT_ADDR; */
+    idt = (struct GATE_DISCRIPTOR*)memory_allocate(
+            (sizeof(struct GATE_DISCRIPTOR) * NUM_IDT));
+    printf(TEXT_MODE_SCREEN_RIGHT, "idt: 0x%x", idt);
+    printf(TEXT_MODE_SCREEN_RIGHT, "gdt: 0x%x", gdt);
+    if(idt == NULL){
+        return;
+    }
     int i;
 
     //init GDT
@@ -12,32 +26,57 @@ void init_gdtidt(void)
         set_segmdesc(gdt + i, 0, 0, 0, 0, 0, 0, 0);
     }
     set_segmdesc(
-            gdt + 1, 0xffffffff, 0x00000000, 0, SEG_TYPE_CODE_XRC,
+            gdt + 2, 0xffffffff, 0x00000000, 0, SEG_TYPE_CODE_XRC,
             DESC_TYPE_SEGMENT, PRIVILEGE_LEVEL_OS, PRESENT);
 
     set_segmdesc(
-            gdt + 2, 0xffffffff, 0x00000000, 0, SEG_TYPE_DATE_REW,
+            gdt + 3, 0xffffffff, 0x00000000, 0, SEG_TYPE_DATE_REW,
             DESC_TYPE_SEGMENT, PRIVILEGE_LEVEL_OS, PRESENT);
 
 
-    load_gdtr(0xffff, GDT_ADDR);
+/*     load_gdtr(0xffff, (uintptr_t)gdt); */
+    load_gdtr(sizeof(struct SEGMENT_DESCRIPTOR)*4, (uintptr_t)gdt);
 
     //init IDT
-    for(i = 0; i < NUM_IDT; i++){
-        set_gatedesc(idt + i, 0, 0, 0, 0, 0, 0);
+    for(int i = 0; i < NUM_IDT; i++){
+        set_gatedesc(idt + i, (uintptr_t)io_hlt, 0, 0, 0, 0, 0);
+    /*         set_gatedesc( */
+/*             idt + 0x20, (uintptr_t)asm_timer_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0, */
+/*             PRIVILEGE_LEVEL_OS, PRESENT); */
     }
-    load_idtr(0x7ff, IDT_ADDR);
+
+
+/*     for(int i = 0; i < 14; i++){ */
+/*         set_gatedesc( */
+/*             idt + i, (uintptr_t)asm_fault_inthandler2, 1*8, GATE_TYPE_32BIT_INT, 0, */
+/*             PRIVILEGE_LEVEL_OS, PRESENT); */
+/*     } */
+/*     for(int i = 14; i < 20; i++){ */
+/*         set_gatedesc( */
+/*             idt + i, (uintptr_t)asm_fault_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0, */
+/*             PRIVILEGE_LEVEL_OS, PRESENT); */
+/*     } */
 
     set_gatedesc(
-            idt + 0x21, (uintptr_t)asm_inthandler21, 1*8, GATE_TYPE_32BIT_INT, 0,
+            idt + 13, (uintptr_t)asm_fault_inthandler2, 2*8, GATE_TYPE_32BIT_INT, 0,
             PRIVILEGE_LEVEL_OS, PRESENT);
 
     set_gatedesc(
-            idt + 0x20, (uintptr_t)asm_timer_inthandler, 1*8, GATE_TYPE_32BIT_INT, 0,
+            idt + 8, (uintptr_t)asm_fault_inthandler, 2*8, GATE_TYPE_32BIT_INT, 0,
+            PRIVILEGE_LEVEL_OS, PRESENT);
+
+/*     load_idtr(IDT_LIMIT, (uintptr_t)idt); */
+    load_idtr(sizeof(struct GATE_DISCRIPTOR) * NUM_IDT, (uintptr_t)idt);
+
+    set_gatedesc(
+            idt + 0x20, (uintptr_t)asm_timer_inthandler, 2*8, GATE_TYPE_32BIT_INT, 0,
+            PRIVILEGE_LEVEL_OS, PRESENT);
+
+    set_gatedesc(
+            idt + 0x21, (uintptr_t)asm_inthandler21, 2*8, GATE_TYPE_32BIT_INT, 0,
             PRIVILEGE_LEVEL_OS, PRESENT);
 
     return;
-
 }
 
 void set_segmdesc(
@@ -96,17 +135,18 @@ void init_pic(void)
     io_out8(PIC_SLAVE_DATA_PORT, PIC_IMR_MASK_IRQ_ALL);
 
     //Master
-    io_out8(PIC_MASTER_CMD_STATE_PORT, PIC_MASTER_ICW1);
-    io_out8(PIC_MASTER_DATA_PORT, PIC_MASTER_ICW2);
-    io_out8(PIC_MASTER_DATA_PORT, PIC_MASTER_ICW3);
-    io_out8(PIC_MASTER_DATA_PORT, PIC_MASTER_ICW4);
+    io_out8(PIC_MASTER_CMD_STATE_PORT,  PIC_MASTER_ICW1);
+    io_out8(PIC_MASTER_DATA_PORT,       PIC_MASTER_ICW2);
+    io_out8(PIC_MASTER_DATA_PORT,       PIC_MASTER_ICW3);
+    io_out8(PIC_MASTER_DATA_PORT,       PIC_MASTER_ICW4);
 
     //Slave
-    io_out8(PIC_SLAVE_CMD_STATE_PORT, PIC_SLAVE_ICW1);
-    io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW2);
-    io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW3);
-    io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW4);
+    io_out8(PIC_SLAVE_CMD_STATE_PORT,   PIC_SLAVE_ICW1);
+    io_out8(PIC_SLAVE_DATA_PORT,        PIC_SLAVE_ICW2);
+    io_out8(PIC_SLAVE_DATA_PORT,        PIC_SLAVE_ICW3);
+    io_out8(PIC_SLAVE_DATA_PORT,        PIC_SLAVE_ICW4);
 
+    // setting enable
     io_out8(PIC_MASTER_DATA_PORT, 0xfc); //1111 1100
     io_out8(PIC_SLAVE_DATA_PORT, 0xff);  //1111 1111
 

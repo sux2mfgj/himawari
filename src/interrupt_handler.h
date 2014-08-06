@@ -10,8 +10,11 @@ typedef struct {
 }interrupt_queue;
 
 
-void timer_inthandler(void);
+void timer_inthandler(int *esp);
 void keyboard_inthandler(int *esp);
+void fault_inthandler(int *esp);
+void fault_inthandler2(int *esp);
+
 void init_inthandler(void);
 bool keyboard_data_queue_check(void);
 

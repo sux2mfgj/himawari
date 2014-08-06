@@ -13,12 +13,12 @@ all:
 	$(CC) $(CFLAGS) -c main.c -o main.o
 	$(CC) $(CFLAGS) -c graphic.c -o graphic.o
 	$(CC) $(CFLAGS) -c segment.c -o segment.o
-	$(CC) $(CFLAGS) -c memory.c -o memory.o
+	$(CC) $(CFLAGS) -c k_memory.c -o k_memory.o
 	$(CC) $(CFLAGS) -c interrupt_handler.c -o interrupt_handler.o
 	$(CC) $(CFLAGS) -c lib.c -o lib.o
 	$(CC) $(CFLAGS) -c task.c -o task.o
 	#          $(LD) -Tld.script entry.o segment.o func.o graphic.o  main.o -o $(IMAGE)
-	$(LD) $(LDFLAGS) -Map kernel.map -Tld.script  entry.o main.o segment.o func.o interrupt_handler.o graphic.o memory.o lib.o task.o -o $(IMAGE)
+	$(LD) $(LDFLAGS) -Map kernel.map -Tld.script  entry.o main.o segment.o func.o interrupt_handler.o graphic.o k_memory.o lib.o task.o -o $(IMAGE)
 
 
 himawari.iso: all
@@ -27,12 +27,12 @@ himawari.iso: all
 
 
 run: all
-	$(QEMU) $(QEMUFLAGS) $(IMAGE)
+	$(QEMU) -gdb tcp::10000 $(QEMUFLAGS) $(IMAGE)
 
 
 # TODO: This does not work now
 run_cdrom: himawari.iso
-	$(QEMU) -m 32 -cdrom ../himawari.iso -display curses
+	$(QEMU) -m 128M -monitor stdio -gdb tcp::10000 -cdrom ../himawari.iso
 
 
 clean:

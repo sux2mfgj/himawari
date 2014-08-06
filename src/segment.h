@@ -5,14 +5,16 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#include"func.h"
+// #include"func.h"
 
 #define GDT_ADDR 0x00270000
-#define IDT_ADDR 0x0026f800
+// #define IDT_ADDR 0x0026f800
 
 #define NUM_IDT 256
 #define NUM_GDT 8192
 
+#define IDT_LIMIT NUM_IDT*8-1
+// #define GDT_LIMIT
 
 #define SEG_TYPE_DATE_R    0x00
 #define SEG_TYPE_DATE_RW   0x01
@@ -46,9 +48,10 @@
 #define PIC_SLAVE_DATA_PORT 0xA1
 
 #define PIC_MASTER_ICW1 0x11
-#define PIC_MASTER_ICW2 0x20
+#define PIC_MASTER_ICW2 0x20 // use after 0x20 number interrupt descriptor table
 #define PIC_MASTER_ICW3 0x04
-#define PIC_MASTER_ICW4 0x01
+// #define PIC_MASTER_ICW4 0x01
+#define PIC_MASTER_ICW4 0x00
 
 #define PIC_SLAVE_ICW1 PIC_MASTER_ICW1
 #define PIC_SLAVE_ICW2 0x28
@@ -64,6 +67,8 @@
 #define PIC_IMR_MASK_IRQ6 0x40
 #define PIC_IMR_MASK_IRQ7 0x80
 #define PIC_IMR_MASK_IRQ_ALL 0xff
+
+#define PIC_OCW2_EOI 0x20
 
 #define PIT_PORT_COUNTER0       0x40
 #define PIT_PORT_COUNTER1       0x41

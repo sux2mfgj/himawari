@@ -2,10 +2,10 @@
 #include"segment.h"
 #include"func.h"
 #include"multiboot.h"
-#include"memory.h"
+#include"k_memory.h"
 #include"lib.h"
-#include "interrupt_handler.h"
-#include "task.h"
+#include"interrupt_handler.h"
+#include"task.h"
 
 
 uint8_t stack[3][1024];
@@ -41,10 +41,11 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 {
 
     io_cli();
+    init_memory();
+
     init_gdtidt();
     init_pit();
     init_pic();
-    init_memory();
     init_inthandler();
     init_physical_mm();
 
@@ -80,5 +81,4 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 
 
 }
-
 

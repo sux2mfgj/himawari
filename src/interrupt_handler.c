@@ -1,14 +1,26 @@
 #include"interrupt_handler.h"
-
+#include "segment.h"
 #include "task.h"
+#include "graphic.h"
 
 static uint32_t timer_tick = 0;
 static interrupt_queue keyboard_data_queue;
 
-void timer_inthandler(void)
+void fault_inthandler(int *esp)
 {
-    io_out8(0x20, 0x20);
-    io_out8(0xa0, 0x20);
+    printf(TEXT_MODE_SCREEN_LEFT, "fault: %x", *esp);
+}
+
+void fault_inthandler2(int *esp)
+{
+    printf(TEXT_MODE_SCREEN_LEFT, "fault2: %x", *esp);
+}
+
+
+void timer_inthandler(int *esp)
+{
+    io_out8(PIC_MASTER_CMD_STATE_PORT, PIC_OCW2_EOI);
+/*     io_out8(0xa0, 0x20); */
     timer_tick++;
 /*     if (timer_tick == 100) { */
 /*        task_switch_c(0, 1); */
@@ -18,19 +30,18 @@ void timer_inthandler(void)
 /*     } */
 
 /*     printf(TEXT_MODE_SCREEN_RIGHT, "timer: %d", timer_tick); */
-
     return;
 }
-
-
 
 void keyboard_inthandler(int *esp)
 {
     static int n = 0;
     unsigned char data;
     node* tmp;
-    io_out8(0x0020, 0x61);
+/*     io_out8(PIC_MASTER_CMD_STATE_PORT, 0x61); */
+    io_out8(PIC_MASTER_CMD_STATE_PORT, PIC_OCW2_EOI);
     data = io_in8(0x0060);
+/*     printf(TEXT_MODE_SCREEN_RIGHT, "%d", data); */
 
 
 /*     if (a == 1) { */
@@ -43,21 +54,21 @@ void keyboard_inthandler(int *esp)
 /*     } */
     if (data <= 81) {
 
-        if (n == 0) {
-        ++n;
-    printf(TEXT_MODE_SCREEN_RIGHT, "interrupt success 1");
-            task_switch_c(0, 1);
-        }
-        else if((n%2)!=0){
-        ++n;
-    printf(TEXT_MODE_SCREEN_RIGHT, "interrupt success 2");
-            task_switch_c(1, 2);
-        }
-        else {
-        ++n;
-    printf(TEXT_MODE_SCREEN_RIGHT, "interrupt success 1");
-            task_switch_c(2,1);
-        }
+/*         if (n == 0) { */
+/*         ++n; */
+/*     printf(TEXT_MODE_SCREEN_RIGHT, "interrupt success 1"); */
+/*             task_switch_c(0, 1); */
+/*         } */
+/*         else if((n%2)!=0){ */
+/*         ++n; */
+/*     printf(TEXT_MODE_SCREEN_RIGHT, "interrupt success 2"); */
+/*             task_switch_c(1, 2); */
+/*         } */
+/*         else { */
+/*         ++n; */
+/*     printf(TEXT_MODE_SCREEN_RIGHT, "interrupt success 1"); */
+/*             task_switch_c(2,1); */
+/*         } */
 
         tmp = new_node(sizeof(char));
         *(char *)(tmp->data) = key_table[data];
@@ -66,7 +77,6 @@ void keyboard_inthandler(int *esp)
         }
         else {
             append_node(keyboard_data_queue.queue, tmp);
-/*             print_array_status(); */
         }
             keyboard_data_queue.size++;
     }
