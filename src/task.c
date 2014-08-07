@@ -20,44 +20,6 @@
 #include "graphic.h"
 
 
-
-
-
-
-
-/* void set_tss(struct TSS32* tss, */
-/*                 unsigned int cs, */
-/*                 unsigned int ds, */
-/*                 void (*f)(), */
-/*                 unsigned int eflags, */
-/*                 unsigned char* esp, */
-/*                 unsigned int ss, */
-/*                 unsigned char* esp0, */
-/*                 unsigned int ss0 ) */
-/* { */
-/*     memset(tss, 0, sizeof(struct TSS32)); */
-/*     tss->cs     = cs; */
-/*     tss->eip    = (uintptr_t) f; */
-/*     //printf_str( 80, 60, "%d", tss->eip ); */
-/*     tss->eflags = eflags; */
-/*     tss->esp    = (uintptr_t)esp; */
-/*     //printf_str( 40, 40, "%d", tss->esp ); */
-/*     tss->ds     = ds; */
-/*     tss->es     = ds; */
-/*     tss->fs     = ds; */
-/*     tss->gs     = ds; */
-/*     tss->ss     = ss; */
-/*     tss->esp0   = (uintptr_t) esp0; */
-/*     //printf_str( 100, 100, "%d", tss->esp0 ); */
-/*     tss->ss0    = ss0; */
-/*     tss->iomap  = 0x40000000; */
-/*     //tss->esp0 = tss->esp1 = tss->esp2 = tss->esp; */
-/*     //tss->ss0 = tss->ss1 = tss->ss2 = tss->ss; */
-/* } */
-
-
-// task
-
 static struct TASK_MANAGEMENT_DATA task_management_data[3];
 
 void task_switch_c(uint32_t task1_num, uint32_t task2_num)

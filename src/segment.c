@@ -14,8 +14,10 @@ void init_gdtidt(void)
 /*     struct GATE_DISCRIPTOR *idt = (struct GATE_DISCRIPTOR *) IDT_ADDR; */
     idt = (struct GATE_DISCRIPTOR*)memory_allocate(
             (sizeof(struct GATE_DISCRIPTOR) * NUM_IDT));
+
     printf(TEXT_MODE_SCREEN_RIGHT, "idt: 0x%x", idt);
     printf(TEXT_MODE_SCREEN_RIGHT, "gdt: 0x%x", gdt);
+
     if(idt == NULL){
         return;
     }
@@ -26,11 +28,11 @@ void init_gdtidt(void)
         set_segmdesc(gdt + i, 0, 0, 0, 0, 0, 0, 0);
     }
     set_segmdesc(
-            gdt + 2, 0xffffffff, 0x00000000, 0, SEG_TYPE_CODE_XRC,
+            gdt + CODE_SEGMENT_NUM, 0xffffffff, 0x00000000, 0, SEG_TYPE_CODE_XRC,
             DESC_TYPE_SEGMENT, PRIVILEGE_LEVEL_OS, PRESENT);
 
     set_segmdesc(
-            gdt + 3, 0xffffffff, 0x00000000, 0, SEG_TYPE_DATE_REW,
+            gdt + DATA_SEGMENT_NUM, 0xffffffff, 0x00000000, 0, SEG_TYPE_DATE_REW,
             DESC_TYPE_SEGMENT, PRIVILEGE_LEVEL_OS, PRESENT);
 
 
@@ -58,23 +60,23 @@ void init_gdtidt(void)
 /*     } */
 
     set_gatedesc(
-            idt + 13, (uintptr_t)asm_fault_inthandler2, 2*8, GATE_TYPE_32BIT_INT, 0,
-            PRIVILEGE_LEVEL_OS, PRESENT);
+            idt + 13, (uintptr_t)asm_fault_inthandler2, CODE_SEGMENT_NUM*8,
+            GATE_TYPE_32BIT_INT, 0, PRIVILEGE_LEVEL_OS, PRESENT);
 
     set_gatedesc(
-            idt + 8, (uintptr_t)asm_fault_inthandler, 2*8, GATE_TYPE_32BIT_INT, 0,
-            PRIVILEGE_LEVEL_OS, PRESENT);
+            idt + 8, (uintptr_t)asm_fault_inthandler, CODE_SEGMENT_NUM*8,
+            GATE_TYPE_32BIT_INT, 0, PRIVILEGE_LEVEL_OS, PRESENT);
 
 /*     load_idtr(IDT_LIMIT, (uintptr_t)idt); */
     load_idtr(sizeof(struct GATE_DISCRIPTOR) * NUM_IDT, (uintptr_t)idt);
 
     set_gatedesc(
-            idt + 0x20, (uintptr_t)asm_timer_inthandler, 2*8, GATE_TYPE_32BIT_INT, 0,
-            PRIVILEGE_LEVEL_OS, PRESENT);
+            idt + 0x20, (uintptr_t)asm_timer_inthandler, CODE_SEGMENT_NUM*8,
+            GATE_TYPE_32BIT_INT, 0, PRIVILEGE_LEVEL_OS, PRESENT);
 
     set_gatedesc(
-            idt + 0x21, (uintptr_t)asm_inthandler21, 2*8, GATE_TYPE_32BIT_INT, 0,
-            PRIVILEGE_LEVEL_OS, PRESENT);
+            idt + 0x21, (uintptr_t)asm_inthandler21, CODE_SEGMENT_NUM*8,
+            GATE_TYPE_32BIT_INT, 0, PRIVILEGE_LEVEL_OS, PRESENT);
 
     return;
 }

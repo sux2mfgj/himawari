@@ -35,6 +35,8 @@
 #define PRESENT     1
 #define NOT_PRESENT 0
 
+#define CODE_SEGMENT_NUM 2
+#define DATA_SEGMENT_NUM 3
 
 #define GATE_TYPE_32BIT_TASK    0x5
 #define GATE_TYPE_16BIT_INT     0x6
