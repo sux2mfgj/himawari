@@ -3,36 +3,36 @@
 
 typedef struct {
 //     version number
-    unsigned flags;
+    uint32_t flags;
 //     avvailable memory
-    unsigned mem_lower;
-    unsigned mem_upper;
-    unsigned boot_device;
-    unsigned cmdline;
+    uint32_t mem_lower;
+    uint32_t mem_upper;
+    uint32_t boot_device;
+    uint32_t cmdline;
 //     boot module list
-    unsigned mods_count;
-    unsigned mods_addr;
+    uint32_t mods_count;
+    uint32_t mods_addr;
 
-    unsigned syms1;
-    unsigned syms2;
-    unsigned syms3;
+    uint32_t syms1;
+    uint32_t syms2;
+    uint32_t syms3;
 //     memory mapping buffer
-    unsigned mmap_length;
-    unsigned mmap_addr;
+    uint32_t mmap_length;
+    uint32_t mmap_addr;
 //     drive info buffer
-    unsigned drives_length;
-    unsigned drives_addr;
+    uint32_t drives_length;
+    uint32_t drives_addr;
 //     ROM configuration table
-    unsigned config_table;
+    uint32_t config_table;
 //     bootloader name
-    unsigned boot_loader_name;
-//     video 
-    unsigned vbe_control_info;
-    unsigned vbe_mode_info;
-    unsigned vbe_mode;
-    unsigned vbe_interface_seg;
-    unsigned vbe_interface_off;
-    unsigned vbe_interface_len;
+    uint32_t boot_loader_name;
+//     video
+    uint32_t vbe_control_info;
+    uint32_t vbe_mode_info;
+    uint32_t vbe_mode;
+    uint32_t vbe_interface_seg;
+    uint32_t vbe_interface_off;
+    uint32_t vbe_interface_len;
 
 } MULTIBOOT_INFO;
 
