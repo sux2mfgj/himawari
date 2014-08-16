@@ -80,12 +80,4 @@ void list_test(void)
 }
 
 
-// memset
-void *memset(void* str, int chr, uint32_t len)
-{
-    char* pp = str;
-    for (int i = 0; i < len; ++i, ++pp){
-        *pp = chr;
-    }
-}
 

@@ -1,5 +1,5 @@
-#ifndef _INCLUDED_MEMORY_H_
-#define _INCLUDED_MEMORY_H_
+#ifndef _INCLUDED_K_MEMORY_H_
+#define _INCLUDED_K_MEMORY_H_
 
 #define EFLAGS_AC_BIT       0x00040000
 #define CR0_CACHE_DISABLE   0x60000000
@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include "p_memory.h"
 #include "multiboot.h"
 
 #define MEMORY_INFO_STATUS_FREE     0x00000000
@@ -47,22 +48,6 @@ uint32_t get_size_of_kernel(void);
 
 void alloc_free_test(void);
 void print_array_status(void);
-
-
-
-// phygical memory management
-struct physical_memory_management_info{
-    uintptr_t head_addr;
-    uint32_t number_of_free_pages;
-    bool* bitmap;
-};
-
-static struct physical_memory_management_info physical_mm_info;
-
-void init_physical_mm(void);
-void alloc_pages(uint32_t number_of_page);
-
-
 
 #endif
 

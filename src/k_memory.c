@@ -48,11 +48,19 @@ bool init_memory(MULTIBOOT_INFO* multiboot_info)
 
     mem_upper = multiboot_info->mem_upper * 1024;
     if(mem_upper > KERNEL_HEAP_SIZE){
-        return memory_management_init(KERNEL_HEAP_SIZE, (uintptr_t)&_kernel_end);
+        if(!memory_management_init(KERNEL_HEAP_SIZE, (uintptr_t)&_kernel_end)){
+            return false;
+        }
     }
     else {
         return false;
     }
+
+    if(!init_p_memory(kernel_end_include_heap, (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024)* 1024)){
+        return false;
+    }
+
+    return true;
 
 }
 
@@ -76,6 +84,8 @@ bool memory_management_init(size_t size, uintptr_t base_addr)
     mem_data.data[0].base_addr = base_addr;
 
     kernel_end_include_heap = base_addr + size;
+    printf(TEXT_MODE_SCREEN_LEFT, "kernel_end_include_heap: 0x%x", kernel_end_include_heap);
+
 
     mem_data.data[0].size = size;
     mem_data.data[0].status = MEMORY_INFO_STATUS_FREE;

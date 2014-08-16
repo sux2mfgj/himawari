@@ -53,9 +53,9 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     io_sti();
 
     printf(TEXT_MODE_SCREEN_LEFT, "hello");
-    printf(TEXT_MODE_SCREEN_LEFT, "mem_lower: 0x%x(KB)", multiboot_info->mem_lower);
-    printf(TEXT_MODE_SCREEN_LEFT, "mem_upper: 0x%x(KB)", multiboot_info->mem_upper);
-    printf(TEXT_MODE_SCREEN_LEFT, "mem_total: 0x%x(KB)", multiboot_info->mem_upper + multiboot_info->mem_lower + 1024);
+    printf(TEXT_MODE_SCREEN_LEFT, "mem_lower: %d(KB)", multiboot_info->mem_lower);
+    printf(TEXT_MODE_SCREEN_LEFT, "mem_upper: %d(KB)", multiboot_info->mem_upper);
+    printf(TEXT_MODE_SCREEN_LEFT, "mem_total: %d(KB)", (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024));
 /*     integer_puts(multiboot_info->mem_upper, 21); */
 /*     integer_puts(multiboot_info->mmap_addr, 22); */
 /*     integer_puts(multiboot_info->mmap_length, 23); */
