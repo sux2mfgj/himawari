@@ -36,7 +36,8 @@ bool init_p_memory(uintptr_t kernel_end_include_heap, uintptr_t memory_end)
     return true;
 }
 
-void *alloc_serial_pages(uint32_t number_of_pages)
+//TODO: fix to use struct page
+page* alloc_serial_pages(uint32_t number_of_pages)
 {
     if (p_mem_data.free_num < number_of_pages) {
         return NULL;
@@ -56,7 +57,10 @@ void *alloc_serial_pages(uint32_t number_of_pages)
                     for (int j = serial_num; j >= 0; --j) {
                         p_mem_data.bitmap[i - j] = true;
                     }
-                    return head_addr;
+                    page* alloc_page = (page*)memory_allocate(sizeof(page));
+                    alloc_page->number = number_of_pages;
+                    alloc_page->addr = head_addr;
+                    return alloc_page;
                 }
             } else {
                 serial_num = 0;
@@ -70,7 +74,7 @@ void *alloc_serial_pages(uint32_t number_of_pages)
 // TODO: alloc largest serial pages
 // void *alloc_lagest_serial_pages(uint32_t page_num);
 
-bool free_pages(void *head_addr, uint32_t number_of_pages)
+bool free_pages(page* free_page)
 {
     for (int i = 0; i < p_mem_data.page_num; i++) {
     }
