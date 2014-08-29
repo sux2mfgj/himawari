@@ -27,7 +27,7 @@ bool init_p_memory(uintptr_t kernel_end_include_heap, uintptr_t memory_end)
     /*     printf(TEXT_MODE_SCREEN_LEFT, "rest: %d", management_page_size %
      * PAGE_SIZE); */
 
-    p_mem_data.bitmap = (bool *)memory_allocate(sizeof(bool) * number_of_page);
+    p_mem_data.bitmap = (bool*)memory_allocate(sizeof(bool) * number_of_page);
     memset(p_mem_data.bitmap, false, number_of_page);
 
     p_mem_data.free_num = number_of_page;
@@ -47,8 +47,7 @@ page* alloc_serial_pages(uint32_t number_of_pages)
         for (int i = 0; i < p_mem_data.page_num; ++i) {
             if (!p_mem_data.bitmap[i]) {
                 if (serial_num == 0) {
-                    head_addr =
-                        (p_mem_data.head_addr + (PAGE_SIZE * i));
+                    head_addr = (p_mem_data.head_addr + (PAGE_SIZE * i));
                 }
 
                 serial_num++;
@@ -57,7 +56,7 @@ page* alloc_serial_pages(uint32_t number_of_pages)
                         p_mem_data.bitmap[i - j] = true;
                     }
                     page* ret = (page*)memory_allocate(sizeof(page));
-                    ret->head_addr= head_addr;
+                    ret->head_addr = head_addr;
                     ret->number = number_of_pages;
                     return ret;
                 }
@@ -77,14 +76,13 @@ bool free_pages(page* free_page)
 {
     uintptr_t addr = p_mem_data.head_addr;
     for (int i = 0; i < p_mem_data.page_num; i++) {
-        if((addr + (i * PAGE_SIZE)) == free_page->head_addr){
+        if ((addr + (i * PAGE_SIZE)) == free_page->head_addr) {
 
             for (int j = 0; j < free_page->number; j++) {
-                if(!p_mem_data.bitmap[i + j]){
+                if (!p_mem_data.bitmap[i + j]) {
                     p_mem_data.bitmap[i + j] = false;
-                }
-                else {
-                    //kernel panic: page allocater have bug
+                } else {
+                    // kernel panic: page allocater have bug
                     return false;
                 }
             }
