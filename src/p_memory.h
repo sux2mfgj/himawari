@@ -8,7 +8,7 @@
 #include "k_memory.h"
 #include "string.h"
 
-#define PAGE_SIZE 4096
+#define PAGE_SIZE 0x1000
 
 typedef struct {
     uintptr_t head_addr;

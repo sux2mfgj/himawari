@@ -10,7 +10,7 @@ CFLAGS = -fno-builtin -nostdlib -mno-red-zone -ffreestanding \
 ASFLAGS = --32
 LDFLAGS = -m elf_i386 --format elf32-i386 --oformat elf32-i386 -Map kernel.map -Tld.script
 
-C_OBJS = entry.o main.o segment.o interrupt_handler.o graphic.o k_memory.o p_memory.o lib.o task.o string.o
+C_OBJS = entry.o main.o segment.o interrupt_handler.o graphic.o k_memory.o p_memory.o v_memory.o lib.o task.o string.o
 C_SRC = ${C_OBJS: .o=.c}
 ASM_OBJS = func.o
 OBJS = $(ASM_OBJS) $(C_OBJS)

@@ -9,6 +9,9 @@
 #include <stdbool.h>
 #include "p_memory.h"
 #include "multiboot.h"
+#include "v_memory.h"
+
+
 
 #define MEMORY_INFO_STATUS_FREE 0x00000000
 #define MEMORY_INFO_STATUS_USED 0x00000001
@@ -16,8 +19,7 @@
 #define MEMORY_INFO_STATUS_END 0x00000003
 
 #define MEMORY_MANAGEMENT_DATA_SIZE 1024
-#define KERNEL_HEAP_SIZE 0x100000
-#define KERNEL_HEAP_END 0x500000
+#define KERNEL_HEAP_END 0x00a00000
 
 typedef struct {
     uintptr_t base_addr;

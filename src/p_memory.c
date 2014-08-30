@@ -12,17 +12,21 @@ bool init_p_memory(uintptr_t kernel_end_include_heap, uintptr_t memory_end)
 
     /*     uintptr_t memory_end = (mem_upper )* 1024; */
 
-    uintptr_t head = kernel_end_include_heap -
-                     (kernel_end_include_heap % PAGE_SIZE) + PAGE_SIZE;
+    uintptr_t head = kernel_end_include_heap;
+    if ((kernel_end_include_heap % PAGE_SIZE) != 0) {
+        uintptr_t head = kernel_end_include_heap -
+                         (kernel_end_include_heap % PAGE_SIZE) + PAGE_SIZE;
+    }
+
     uintptr_t memory_end_4k = memory_end - (memory_end % PAGE_SIZE);
     size_t management_page_size = memory_end_4k - head;
     uint32_t number_of_page = management_page_size / PAGE_SIZE;
 
-    printf(TEXT_MODE_SCREEN_LEFT, "head: 0x%x", head);
-    printf(TEXT_MODE_SCREEN_LEFT, "memory_end: 0x%x", memory_end_4k);
-    printf(TEXT_MODE_SCREEN_LEFT, "management_page_size: 0x%x",
+    printf(TEXT_MODE_SCREEN_RIGHT, "head: 0x%x", head);
+    printf(TEXT_MODE_SCREEN_RIGHT, "memory_end: 0x%x", memory_end_4k);
+    printf(TEXT_MODE_SCREEN_RIGHT, "management_page_size: 0x%x",
            management_page_size);
-    printf(TEXT_MODE_SCREEN_LEFT, "number_of_page: %d",
+    printf(TEXT_MODE_SCREEN_RIGHT, "number_of_page: %d",
            management_page_size / PAGE_SIZE);
     /*     printf(TEXT_MODE_SCREEN_LEFT, "rest: %d", management_page_size %
      * PAGE_SIZE); */
@@ -32,6 +36,11 @@ bool init_p_memory(uintptr_t kernel_end_include_heap, uintptr_t memory_end)
 
     p_mem_data.free_num = number_of_page;
     p_mem_data.page_num = number_of_page;
+
+    printk(PRINT_PLACE_FREE_PAGE_SIZE, "FREE PAGE SIZE 0x%x",
+           p_mem_data.free_num * PAGE_SIZE);
+    printk(PRINT_PLACE_MAX_PAGE_SIZE, "MAX PAGE SIZE 0x%x",
+           p_mem_data.free_num * PAGE_SIZE);
 
     return true;
 }
@@ -58,6 +67,12 @@ page* alloc_serial_pages(uint32_t number_of_pages)
                     page* ret = (page*)memory_allocate(sizeof(page));
                     ret->head_addr = head_addr;
                     ret->number = number_of_pages;
+
+                    p_mem_data.free_num -= number_of_pages;
+
+                    printk(PRINT_PLACE_FREE_PAGE_SIZE, "FREE PAGE SIZE 0x%x",
+                           p_mem_data.free_num * PAGE_SIZE);
+
                     return ret;
                 }
             } else {
@@ -87,6 +102,9 @@ bool free_pages(page* free_page)
                 }
             }
             p_mem_data.free_num += free_page->number;
+            printk(PRINT_PLACE_FREE_PAGE_SIZE, "FREE PAGE SIZE 0x%x",
+                   p_mem_data.free_num * PAGE_SIZE);
+
             return memory_free(free_page);
         }
     }

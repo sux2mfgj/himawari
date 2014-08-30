@@ -16,7 +16,7 @@ void task1(void)
     io_sti();
 /*     printf(TEXT_MODE_SCREEN_RIGHT, "0x%x", io_load_eflags()); */
     for (i = 0; i < 100000; i++) {
-        printf(TEXT_MODE_SCREEN_LEFT, "task1: %d", i);
+        printf(TEXT_MODE_SCREEN_RIGHT, "task1: %d", i);
     }
 
     while(true){
@@ -29,7 +29,7 @@ void task2(void)
     int i = 0;
     io_sti();
     for (i = 0; i < 100000; i++) {
-        printf(TEXT_MODE_SCREEN_LEFT, "task2: %d", i);
+        printf(TEXT_MODE_SCREEN_RIGHT, "task2: %d", i);
     }
 
     while(true){
@@ -41,8 +41,11 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 {
 
     io_cli();
+    init_screen();
     if(!init_memory(multiboot_info)){
         //TODO: panic
+        printf(TEXT_MODE_SCREEN_RIGHT, "------------kernel panic-----------------");
+        io_hlt();
     }
 
     init_gdtidt();
@@ -52,21 +55,18 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 
     io_sti();
 
-    printf(TEXT_MODE_SCREEN_LEFT, "hello");
-    printf(TEXT_MODE_SCREEN_LEFT, "mem_lower: %d(KB)", multiboot_info->mem_lower);
-    printf(TEXT_MODE_SCREEN_LEFT, "mem_upper: %d(KB)", multiboot_info->mem_upper);
-    printf(TEXT_MODE_SCREEN_LEFT, "mem_total: %d(KB)", (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024));
-/*     integer_puts(multiboot_info->mem_upper, 21); */
-/*     integer_puts(multiboot_info->mmap_addr, 22); */
-/*     integer_puts(multiboot_info->mmap_length, 23); */
-/*     list_test(); */
+
+/*     printf(TEXT_MODE_SCREEN_LEFT, "hello"); */
+/*     printf(TEXT_MODE_SCREEN_LEFT, "mem_lower: %d(KB)", multiboot_info->mem_lower); */
+/*     printf(TEXT_MODE_SCREEN_LEFT, "mem_upper: %d(KB)", multiboot_info->mem_upper); */
+/*     printf(TEXT_MODE_SCREEN_LEFT, "mem_total: %d(KB)", (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024)); */
 
 /*     set_task(0, NULL, NULL); */
 /*     set_task(1, task1, stack[0]+1024); */
 /*     set_task(2, task2, stack[1]+1024); */
 
-    printf(TEXT_MODE_SCREEN_LEFT, "%x", &_kernel_end);
-    printf(TEXT_MODE_SCREEN_LEFT, "%x", &_kernel_start);
+/*     printf(TEXT_MODE_SCREEN_LEFT, "%x", &_kernel_end); */
+/*     printf(TEXT_MODE_SCREEN_LEFT, "%x", &_kernel_start); */
 
 
 

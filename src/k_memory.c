@@ -48,12 +48,19 @@ bool init_memory(MULTIBOOT_INFO *multiboot_info)
      * PUTS_RIGHT); */
 
     mem_upper = multiboot_info->mem_upper * 1024;
+    printk(
+        PRINT_PLACE_PHYSI_MEM_SIZE, "Physical MEMORY SIZE: 0x%x",
+        (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024) * 1024);
     if (mem_upper > KERNEL_HEAP_END) {
-        if (!memory_management_init(KERNEL_HEAP_END - (uintptr_t)&_kernel_end,
+        if (!memory_management_init(KERNEL_HEAP_END - (uintptr_t) & _kernel_end,
                                     (uintptr_t) & _kernel_end)) {
+            printf(TEXT_MODE_SCREEN_RIGHT,
+                   "error was occured by memory_management_init");
             return false;
         }
     } else {
+        printf(TEXT_MODE_SCREEN_RIGHT, "physical memory size is not enough");
+        printf(TEXT_MODE_SCREEN_RIGHT, "init_memory cause");
         return false;
     }
 
@@ -61,6 +68,12 @@ bool init_memory(MULTIBOOT_INFO *multiboot_info)
             kernel_end_include_heap,
             (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024) *
                 1024)) {
+        printf(TEXT_MODE_SCREEN_RIGHT, "init_p_memory cause");
+        return false;
+    }
+
+    if (!init_v_memory()) {
+        printf(TEXT_MODE_SCREEN_RIGHT, "init_v_memory cause");
         return false;
     }
 
@@ -86,10 +99,12 @@ bool memory_management_init(size_t size, uintptr_t base_addr)
 
     mem_data.data[0].base_addr = base_addr;
 
-    kernel_end_include_heap = base_addr + size; // have to be 0x500000
-    printf(TEXT_MODE_SCREEN_LEFT, "kernel_end_include_heap: 0x%x",
+    kernel_end_include_heap = base_addr + size;  // have to be 0x00a00000
+    printf(TEXT_MODE_SCREEN_RIGHT, "kernel_end_include_heap: 0x%x",
            kernel_end_include_heap);
 
+    printk(PRINT_PLACE_FREE_KERNEL_HEAP, "FREE KERNEL HEAP SIZE: 0x%x", size);
+    printk(PRINT_PLACE_MAX_KERNEL_HEAP, "MAX KERNEL HEAP SIZE: 0x%x", size);
     mem_data.data[0].size = size;
     mem_data.data[0].status = MEMORY_INFO_STATUS_FREE;
 
@@ -98,7 +113,6 @@ bool memory_management_init(size_t size, uintptr_t base_addr)
     mem_data.heap_size = size;
     mem_data.free_size = size;
 
-
     return true;
 }
 
@@ -106,8 +120,7 @@ void *memory_allocate(uint32_t size)
 {
     for (int i = 0; i < MEMORY_MANAGEMENT_DATA_SIZE; ++i) {
         if (mem_data.data[i].status == MEMORY_INFO_STATUS_END) {
-            /*             printf(TEXT_MODE_SCREEN_RIGHT, "memory management
-             * array over"); */
+            printf(TEXT_MODE_SCREEN_RIGHT, "memory management array over");
             return NULL;
         }
 
@@ -143,19 +156,20 @@ void *memory_allocate(uint32_t size)
                     mem_data.end_point++;
                     mem_data.free_size -= size;
 
+                    printk(PRINT_PLACE_FREE_KERNEL_HEAP,
+                           "FREE KERNEL HEAP SIZE: 0x%x", mem_data.free_size);
                     return (void *)mem_data.data[i].base_addr;
                 }
                 // memory management count size over
                 else {
-                    /*                     printf(TEXT_MODE_SCREEN_RIGHT,
-                     * "memory management count size over"); */
+                    printf(TEXT_MODE_SCREEN_RIGHT,
+                           "memory management count size over");
                     return NULL;
                 }
             }
             // memory size is not enough
             else {
-                /*                 printf(TEXT_MODE_SCREEN_RIGHT, "memory size
-                 * is not enough"); */
+                printf(TEXT_MODE_SCREEN_RIGHT, "memory size is not enough");
             }
         }
     }
@@ -307,6 +321,9 @@ exit:
         memory_management_array_compaction();
     }
     mem_data.free_size += current_info->size;
+
+    printk(PRINT_PLACE_FREE_KERNEL_HEAP, "FREE KERNEL HEAP SIZE: 0x%x",
+           mem_data.free_size);
     return true;
 }
 
