@@ -37,7 +37,9 @@ uint32_t* create_page_directory_table()
 
     for (int pdindex = 0; pdindex < PAGE_DIRECTORY_SIZE; ++pdindex) {
         for (int ptindex = 0; ptindex < PAGE_TABLE_SIZE; ++ptindex) {
-            page_table_head_addr[(pdindex * PAGE_DIRECTORY_SIZE) + ptindex] =
+            int _index = pdindex * PAGE_DIRECTORY_SIZE + ptindex;
+/*             page_table_head_addr[(pdindex * PAGE_DIRECTORY_SIZE) + ptindex] = */
+            page_table_head_addr[_index] =
                 create_page_table_entry(0x00000000, PTE_ABSENT |
                                                         PTE_RW_SUPERVISOR |
                                                         PTE_US_SUPERVISOR);
@@ -74,15 +76,15 @@ static uint32_t create_page_table_entry(uintptr_t physcal_addr, uint32_t flags)
     return ((uintptr_t)physcal_addr & 0xfffff000) | (flags & 0xfff);
 }
 
-static uintptr_t get_physical_addr(uint32_t* directory_table_addr,
-                                   void* virtual_addr)
-{
-    uint32_t pdindex = (uintptr_t)virtual_addr >> 22;
-    uint32_t ptindex = ((uintptr_t)virtual_addr >> 12) & 0x03ff;
+/* static uintptr_t get_physical_addr(uint32_t* directory_table_addr, */
+/*                                    void* virtual_addr) */
+/* { */
+/*     uint32_t pdindex = (uintptr_t)virtual_addr >> 22; */
+/*     uint32_t ptindex = ((uintptr_t)virtual_addr >> 12) & 0x03ff; */
 
-    uint32_t* page_table =
-        (uint32_t*)(uintptr_t)(directory_table_addr[pdindex] & 0xfffff000);
+/*     uint32_t* page_table = */
+/*         (uint32_t*)(uintptr_t)(directory_table_addr[pdindex] & 0xfffff000); */
 
-    return ((page_table[ptindex] & ~0xfff) + ((uintptr_t)virtual_addr & 0xfff));
-}
+/*     return ((page_table[ptindex] & ~0xfff) + ((uintptr_t)virtual_addr & 0xfff)); */
+/* } */
 

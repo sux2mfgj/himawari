@@ -43,17 +43,19 @@ bool init_memory(MULTIBOOT_INFO *multiboot_info)
 
     /*     integer_puts((uint32_t)&_text_start, 17, PUTS_RIGHT); */
     /*     integer_puts((uint32_t)&_kernel_end, 18, PUTS_RIGHT); */
-    /*     integer_puts(get_size_of_kernel(), 19, PUTS_RIGHT); */
+    /*     integer_puts(get_size_of_krnel(), 19, PUTS_RIGHT); */
     /*     integer_puts(memtest(0x00400000, 0xbfffffff) / (1024 * 1024), 20,
      * PUTS_RIGHT); */
+
+    uintptr_t aligned_kernel_end = (1 + (_kernel_end >> 3)) << 3;
 
     mem_upper = multiboot_info->mem_upper * 1024;
     printk(
         PRINT_PLACE_PHYSI_MEM_SIZE, "Physical MEMORY SIZE: 0x%x",
         (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024) * 1024);
     if (mem_upper > KERNEL_HEAP_END) {
-        if (!memory_management_init(KERNEL_HEAP_END - (uintptr_t) & _kernel_end,
-                                    (uintptr_t) & _kernel_end)) {
+        if (!memory_management_init(KERNEL_HEAP_END - (uintptr_t) & aligned_kernel_end,
+                                    (uintptr_t) & aligned_kernel_end)) {
             printf(TEXT_MODE_SCREEN_RIGHT,
                    "error was occured by memory_management_init");
             return false;
@@ -88,6 +90,7 @@ uint32_t get_size_of_kernel()
 
 bool memory_management_init(size_t size, uintptr_t base_addr)
 {
+
     int i;
 
     for (i = 0; i < MEMORY_MANAGEMENT_DATA_SIZE; ++i) {
@@ -96,11 +99,7 @@ bool memory_management_init(size_t size, uintptr_t base_addr)
         mem_data.data[i].status = MEMORY_INFO_STATUS_END;
     }
 
-    if (base_addr % 8 != 0) {
-        base_addr += (8 - base_addr % 8);
-    }
     mem_data.data[0].base_addr = base_addr;
-    printf(TEXT_MODE_SCREEN_RIGHT, "base addr: %x ", base_addr);
 
     kernel_end_include_heap = base_addr + size;  // have to be 0x00a00000
     printf(TEXT_MODE_SCREEN_RIGHT, "kernel_end_include_heap: 0x%x",
@@ -121,11 +120,7 @@ bool memory_management_init(size_t size, uintptr_t base_addr)
 
 void *memory_allocate(uint32_t size)
 {
-    // 8bit align
-    if (size % 8 != 0) {
-        size += (8 - size % 8);
-    }
-
+    size = (1 + (size >> 3)) << 3;
     for (int i = 0; i < MEMORY_MANAGEMENT_DATA_SIZE; ++i) {
         if (mem_data.data[i].status == MEMORY_INFO_STATUS_END) {
             printf(TEXT_MODE_SCREEN_RIGHT, "memory management array over");

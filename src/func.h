@@ -40,4 +40,6 @@ extern void task_switch(struct TASK_MANAGEMENT_DATA* prev_task,
 
 extern void set_page_directory(uintptr_t page_directory_addr);
 extern void enable_paging(void);
+
+extern void set_esp(uintptr_t *esp);
 #endif

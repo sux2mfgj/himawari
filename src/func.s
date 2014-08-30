@@ -264,11 +264,19 @@ set_page_directory: #void set_page_directory(uintptr_t page_directory_addr);
     movl %eax, %cr3
     ret
 
-# TODO:don't work
 .globl enable_paging
 enable_paging: # void enable_pating();
     movl %cr0, %eax
     orl $0x80000000, %eax
     movl %eax, %cr0
+    ret
+
+
+.globl set_esp
+set_esp: #void set_esp(uintptr_t *esp);
+    movl 0(%esp), %ebx
+    movl 4(%esp), %eax
+    movl %eax, %esp
+    push %ebx
     ret
 
