@@ -55,9 +55,9 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     init_inthandler();
 
 
-    enable_paging();
+/*     enable_paging(); */
 
-    printf(TEXT_MODE_SCREEN_RIGHT, "Paging enable!");
+/*     printf(TEXT_MODE_SCREEN_RIGHT, "Paging enable!"); */
 
     io_sti();
 

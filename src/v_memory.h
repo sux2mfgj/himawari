@@ -30,6 +30,7 @@ static uint32_t create_page_table_entry(uintptr_t physcal_addr, uint32_t flags);
 static void map_page(uint32_t* directory_table_addr, uintptr_t physcal_addr,
                      uintptr_t virtual_addr, uint32_t flags);
 
-static void* get_physical_addr(void *virtual_addr);
+static uintptr_t get_physical_addr(uint32_t* directory_table_addr,
+                                   void* virtual_addr);
 
 #endif
