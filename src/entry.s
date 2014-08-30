@@ -1,5 +1,6 @@
 .file "entry.s"
 
+    stack = .;
 .extern kernel_entry
 # need data for boot by grub
 MULTIBOOT_HEADER_MAGIC = 0x1BADB002

@@ -3,25 +3,25 @@
 #include "k_memory.h"
 #include "func.h"
 
-static struct SEGMENT_DESCRIPTOR *gdt;
-static struct GATE_DISCRIPTOR *idt;
+static struct SEGMENT_DESCRIPTOR gdt[NUM_GDT];
+static struct GATE_DISCRIPTOR idt[NUM_IDT];
 
 void init_gdtidt(void)
 {
-    gdt = (struct SEGMENT_DESCRIPTOR *)memory_allocate(
-        (sizeof(struct SEGMENT_DESCRIPTOR) * NUM_GDT));
+/*     gdt = (struct SEGMENT_DESCRIPTOR *)memory_allocate( */
+/*         (sizeof(struct SEGMENT_DESCRIPTOR) * NUM_GDT)); */
     /*     struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR
      * *)GDT_ADDR; */
     /*     struct GATE_DISCRIPTOR *idt = (struct GATE_DISCRIPTOR *) IDT_ADDR; */
-    idt = (struct GATE_DISCRIPTOR *)memory_allocate(
-        (sizeof(struct GATE_DISCRIPTOR) * NUM_IDT));
+/*     idt = (struct GATE_DISCRIPTOR *)memory_allocate( */
+/*         (sizeof(struct GATE_DISCRIPTOR) * NUM_IDT)); */
 
     printf(TEXT_MODE_SCREEN_RIGHT, "idt: 0x%x", idt);
     printf(TEXT_MODE_SCREEN_RIGHT, "gdt: 0x%x", gdt);
 
-    if (idt == NULL) {
-        return;
-    }
+/*     if (idt == NULL) { */
+/*         return; */
+/*     } */
     int i;
 
     // init GDT
