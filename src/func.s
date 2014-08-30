@@ -268,7 +268,7 @@ set_page_directory: #void set_page_directory(uintptr_t page_directory_addr);
 .globl enable_paging
 enable_paging: # void enable_pating();
     movl %cr0, %eax
-    orl 0x80000000, %eax
+    orl $0x80000000, %eax
     movl %eax, %cr0
     ret
 

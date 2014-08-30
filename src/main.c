@@ -42,7 +42,8 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 
     io_cli();
     init_screen();
-    if(!init_memory(multiboot_info)){
+
+     if(!init_memory(multiboot_info)){
         //TODO: panic
         printf(TEXT_MODE_SCREEN_RIGHT, "------------kernel panic-----------------");
         io_hlt();
@@ -52,6 +53,11 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     init_pit();
     init_pic();
     init_inthandler();
+
+
+    enable_paging();
+
+    printf(TEXT_MODE_SCREEN_RIGHT, "Paging enable!");
 
     io_sti();
 

@@ -88,7 +88,6 @@ uint32_t get_size_of_kernel()
 
 bool memory_management_init(size_t size, uintptr_t base_addr)
 {
-
     int i;
 
     for (i = 0; i < MEMORY_MANAGEMENT_DATA_SIZE; ++i) {
@@ -97,7 +96,11 @@ bool memory_management_init(size_t size, uintptr_t base_addr)
         mem_data.data[i].status = MEMORY_INFO_STATUS_END;
     }
 
+    if (base_addr % 8 != 0) {
+        base_addr += (8 - base_addr % 8);
+    }
     mem_data.data[0].base_addr = base_addr;
+    printf(TEXT_MODE_SCREEN_RIGHT, "base addr: %x ", base_addr);
 
     kernel_end_include_heap = base_addr + size;  // have to be 0x00a00000
     printf(TEXT_MODE_SCREEN_RIGHT, "kernel_end_include_heap: 0x%x",
@@ -118,6 +121,11 @@ bool memory_management_init(size_t size, uintptr_t base_addr)
 
 void *memory_allocate(uint32_t size)
 {
+    // 8bit align
+    if (size % 8 != 0) {
+        size += (8 - size % 8);
+    }
+
     for (int i = 0; i < MEMORY_MANAGEMENT_DATA_SIZE; ++i) {
         if (mem_data.data[i].status == MEMORY_INFO_STATUS_END) {
             printf(TEXT_MODE_SCREEN_RIGHT, "memory management array over");

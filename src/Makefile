@@ -5,7 +5,7 @@ QEMU = qemu-system-i386
 
 QEMUFLAGS = -monitor stdio -m 16M -gdb tcp::10000
 #  QEMUFLAGS = -curses -m 16M -gdb tcp::10000
-CFLAGS = -fno-builtin -nostdlib -mno-red-zone -ffreestanding \
+CFLAGS = -g -fno-builtin -nostdlib -mno-red-zone -ffreestanding \
 			-fno-stack-protector --target=i686-elf -m32
 ASFLAGS = --32
 LDFLAGS = -m elf_i386 --format elf32-i386 --oformat elf32-i386 -Map kernel.map -Tld.script
