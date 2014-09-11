@@ -22,10 +22,5 @@ SECTIONS
         _bss_end = .;
     }
 
-    . = ALIGN(32);
-    stack = .;
-    . += 4096;
-    . += 1024;
-
     _kernel_end = .;
 }

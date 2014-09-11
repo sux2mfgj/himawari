@@ -26,6 +26,8 @@ ISO = ../himawari.iso
 
 $(IMAGE): $(OBJS)
 	$(LD) $(LDFLAGS) $(OBJS) -o $@
+	objdump -D $(IMAGE) > asm_himawari
+
 
 $(ISO): $(IMAGE)
 	cp $(IMAGE) ../boot

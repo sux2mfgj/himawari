@@ -25,7 +25,7 @@ CHECKSUM = -(MULTIBOOT_HEADER_MAGIC+MULTIBOOT_HEADER_FLAGS)
 .globl entry
 entry:
 
-    movl $(stack+4096), %esp
+    movl $stack_start, %esp
 
 # reset eflags
     pushl $0
@@ -48,5 +48,7 @@ start_hlt:
     hlt
     jmp start_hlt
 
-
-.comm stack, 4096
+.data
+stack:
+    .space 4096
+stack_start:
