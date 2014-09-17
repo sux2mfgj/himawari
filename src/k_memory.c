@@ -47,15 +47,16 @@ bool init_memory(MULTIBOOT_INFO *multiboot_info)
     /*     integer_puts(memtest(0x00400000, 0xbfffffff) / (1024 * 1024), 20,
      * PUTS_RIGHT); */
 
-    uintptr_t aligned_kernel_end = (1 + ((uintptr_t)&_kernel_end >> 3)) << 3;
+    uintptr_t aligned_kernel_end = (1 + ((uintptr_t) & _kernel_end >> 3)) << 3;
 
     mem_upper = multiboot_info->mem_upper * 1024;
     printk(
         PRINT_PLACE_PHYSI_MEM_SIZE, "Physical MEMORY SIZE: 0x%x",
         (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024) * 1024);
     if (mem_upper > KERNEL_HEAP_END) {
-        if (!memory_management_init(KERNEL_HEAP_END - (uintptr_t)  aligned_kernel_end,
-                                    (uintptr_t)  aligned_kernel_end)) {
+        if (!memory_management_init(
+                KERNEL_HEAP_END - (uintptr_t)aligned_kernel_end,
+                (uintptr_t)aligned_kernel_end)) {
             printf(TEXT_MODE_SCREEN_RIGHT,
                    "error was occured by memory_management_init");
             return false;
@@ -74,10 +75,10 @@ bool init_memory(MULTIBOOT_INFO *multiboot_info)
         return false;
     }
 
-/*     if (!init_v_memory()) { */
-/*         printf(TEXT_MODE_SCREEN_RIGHT, "init_v_memory cause"); */
-/*         return false; */
-/*     } */
+    if (!init_v_memory()) {
+        printf(TEXT_MODE_SCREEN_RIGHT, "init_v_memory cause");
+        return false;
+    }
 
     return true;
 }
@@ -178,6 +179,56 @@ void *memory_allocate(uint32_t size)
     }
 
     return NULL;
+}
+
+void *memory_allocate_4k(uint32_t num)
+{
+    uint32_t alloc_size = (num * 0x1000);
+
+    if (mem_data.free_size < alloc_size) {
+        return NULL;
+    }
+
+    for (int i = 0; i < MEMORY_MANAGEMENT_DATA_SIZE; ++i) {
+        if (mem_data.data[i].status == MEMORY_INFO_STATUS_END) {
+            printf(TEXT_MODE_SCREEN_RIGHT, "memory management array over");
+            return NULL;
+        }
+
+        if (mem_data.data[i].status == MEMORY_INFO_STATUS_FREE) {
+            uint32_t surplus = mem_data.data[i].base_addr & 0x00000fff;
+            uint32_t skip_size = 0x1000 - surplus;
+
+            if ((mem_data.data[i].size - skip_size) >= alloc_size) {
+
+                // slide data
+                for (int j = mem_data.end_point; j > i; --j) {
+                    mem_data.data[j + 2] = mem_data.data[j];
+                }
+
+                // used space
+                mem_data.data[i + 1].base_addr =
+                    (mem_data.data[i].base_addr & 0xfffff000) + 0x1000;
+                mem_data.data[i + 1].size = alloc_size;
+                mem_data.data[i + 1].status = MEMORY_INFO_STATUS_USED;
+
+                // free space
+                mem_data.data[i + 2].base_addr =
+                    mem_data.data[i + 1].base_addr + alloc_size;
+                mem_data.data[i + 2].size =
+                    mem_data.data[i].size - (surplus + alloc_size);
+                mem_data.data[i + 2].status = MEMORY_INFO_STATUS_FREE;
+
+                // skip space
+                mem_data.data[i].size = surplus;
+
+                mem_data.end_point += 2;
+                mem_data.free_size -= alloc_size;
+
+                return (void *)mem_data.data[i + 1].base_addr;
+            }
+        }
+    }
 }
 
 /*

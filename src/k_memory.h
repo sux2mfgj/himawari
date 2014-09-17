@@ -37,6 +37,7 @@ typedef struct {
 
 bool memory_management_init(size_t size, uintptr_t base_addr);
 void *memory_allocate(uint32_t size);
+void *memory_allocate_4k(uint32_t num);
 bool memory_free(void *address);
 static void memory_management_array_compaction(void);
 

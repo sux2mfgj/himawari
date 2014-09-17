@@ -49,6 +49,7 @@ start_hlt:
     jmp start_hlt
 
 .data
+.align 8
 stack:
     .space 4096
 stack_start:

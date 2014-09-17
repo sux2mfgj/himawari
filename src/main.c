@@ -48,7 +48,7 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 
      if(!init_memory(multiboot_info)){
         //TODO: panic
-        printf(TEXT_MODE_SCREEN_RIGHT, "------------kernel panic-----------------");
+        printf(TEXT_MODE_SCREEN_RIGHT, "-----------------kernel panic-----------------");
         io_hlt();
     }
 
@@ -56,10 +56,7 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     init_pic();
     init_inthandler();
 
-/*     enable_paging(); */
-
-/*     printf(TEXT_MODE_SCREEN_RIGHT, "Paging enable!"); */
-
+    enable_paging();
     io_sti();
 
 
@@ -75,11 +72,9 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 /*     printf(TEXT_MODE_SCREEN_LEFT, "%x", &_kernel_end); */
 /*     printf(TEXT_MODE_SCREEN_LEFT, "%x", &_kernel_start); */
 
-
-
     for(;;){
         io_hlt();
-        /*         *         io_cli(); +| */
+        /*    io_cli();  */
         if (keyboard_data_queue_check()) {
             /*             io_sti(); */
         }
@@ -90,6 +85,7 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
         }
     }
 
-
 }
+
+
 

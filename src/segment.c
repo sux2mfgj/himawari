@@ -8,24 +8,23 @@ static struct GATE_DISCRIPTOR idt[NUM_IDT];
 
 void init_gdtidt(void)
 {
-/*     gdt = (struct SEGMENT_DESCRIPTOR *)memory_allocate( */
-/*         (sizeof(struct SEGMENT_DESCRIPTOR) * NUM_GDT)); */
+    /*     gdt = (struct SEGMENT_DESCRIPTOR *)memory_allocate( */
+    /*         (sizeof(struct SEGMENT_DESCRIPTOR) * NUM_GDT)); */
     /*     struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR
      * *)GDT_ADDR; */
     /*     struct GATE_DISCRIPTOR *idt = (struct GATE_DISCRIPTOR *) IDT_ADDR; */
-/*     idt = (struct GATE_DISCRIPTOR *)memory_allocate( */
-/*         (sizeof(struct GATE_DISCRIPTOR) * NUM_IDT)); */
+    /*     idt = (struct GATE_DISCRIPTOR *)memory_allocate( */
+    /*         (sizeof(struct GATE_DISCRIPTOR) * NUM_IDT)); */
 
     printf(TEXT_MODE_SCREEN_RIGHT, "idt: 0x%x", idt);
     printf(TEXT_MODE_SCREEN_RIGHT, "gdt: 0x%x", gdt);
 
-/*     if (idt == NULL) { */
-/*         return; */
-/*     } */
-    int i;
+    /*     if (idt == NULL) { */
+    /*         return; */
+    /*     } */
 
     // init GDT
-    for (i = 0; i < NUM_GDT; i++) {
+    for (int i = 0; i < NUM_GDT; i++) {
         set_segmdesc(gdt + i, 0, 0, 0, 0, 0, 0, 0);
     }
     set_segmdesc(gdt + CODE_SEGMENT_NUM, 0xffffffff, 0x00000000, 0,
@@ -41,11 +40,9 @@ void init_gdtidt(void)
 
     // init IDT
     for (int i = 0; i < NUM_IDT; i++) {
-        set_gatedesc(idt + i, (uintptr_t)io_hlt, 0, 0, 0, 0, 0);
-        /*         set_gatedesc( */
-        /*             idt + 0x20, (uintptr_t)asm_timer_inthandler, 1*8,
-         * GATE_TYPE_32BIT_INT, 0, */
-        /*             PRIVILEGE_LEVEL_OS, PRESENT); */
+        /*         set_gatedesc(idt + i, (uintptr_t)io_hlt, 0, 0, 0, 0, 0); */
+        set_gatedesc(idt + 0x20, (uintptr_t)asm_timer_inthandler, 1 * 8,
+                     GATE_TYPE_32BIT_INT, 0, PRIVILEGE_LEVEL_OS, PRESENT);
     }
 
     set_gatedesc(idt + 13, (uintptr_t)asm_fault_inthandler2,

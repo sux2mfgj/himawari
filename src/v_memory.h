@@ -1,5 +1,5 @@
-#ifndef _INCLUDED_V_MEMORY_H_
-#define _INCLUDED_V_MEMORY_H_
+#ifndef _INCLUDED_V_MEMORY2_H_
+#define _INCLUDED_V_MEMORY2_H_
 
 #include <stdint.h>
 #include <stddef.h>
@@ -17,20 +17,20 @@
 #define PTE_ACCESS 0x20
 #define PTE_DIRTY 0x40
 
-#define PAGE_DIRECTORY_SIZE 1024
+#define PAGE_DIRECTORY_TABLE_SIZE 1024
 #define PAGE_TABLE_SIZE 1024
 
 #define PHYSICAL_KERNEL_ADDR 0x00100000
 #define VIRTUAL_KERNEL_ADDR 0xc0000000
 
 bool init_v_memory();
-uint32_t* create_page_directory_table();
-static uint32_t create_page_table_entry(uintptr_t physcal_addr, uint32_t flags);
 
-static void map_page(uint32_t* directory_table_addr, uintptr_t physcal_addr,
-                     uintptr_t virtual_addr, uint32_t flags);
-
-static uintptr_t get_physical_addr(uint32_t* directory_table_addr,
-                                   void* virtual_addr);
+bool create_page_directory(uint32_t* dir_table, uint32_t dir_table_entry_flags,
+                           uint32_t page_table_entry_flags);
+static uint32_t create_table_entry(uintptr_t base_addr, uint32_t flags);
+void map_page(uint32_t* directory_table, uintptr_t physical_addr,
+              uintptr_t vitrual_addr);
+uint32_t* get_physical_addr(uint32_t* directory_table, uintptr_t virtual_addr);
 
 #endif
+
