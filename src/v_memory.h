@@ -25,8 +25,8 @@
 
 bool init_v_memory();
 
-bool create_page_directory(uint32_t* dir_table, uint32_t dir_table_entry_flags,
-                           uint32_t page_table_entry_flags);
+uint32_t* create_page_directory(uint32_t dir_table_entry_flags,
+                                uint32_t page_table_entry_flags);
 static uint32_t create_table_entry(uintptr_t base_addr, uint32_t flags);
 void map_page(uint32_t* directory_table, uintptr_t physical_addr,
               uintptr_t vitrual_addr);
