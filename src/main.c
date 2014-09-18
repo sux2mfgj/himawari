@@ -59,6 +59,10 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     enable_paging();
     io_sti();
 
+/*     void *label = &&vm_start; */
+/*     goto *(label+ VIRTUAL_KERNEL_ADDR); */
+/* vm_start: */
+
 
 /*     printf(TEXT_MODE_SCREEN_LEFT, "hello"); */
 /*     printf(TEXT_MODE_SCREEN_LEFT, "mem_lower: %d(KB)", multiboot_info->mem_lower); */
