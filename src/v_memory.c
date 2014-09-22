@@ -13,10 +13,12 @@ bool init_v_memory()
         return false;
     }
 
-
-    printf(TEXT_MODE_SCREEN_RIGHT, "vir: 0x%x, phy: 0x%x", 0x100000, get_physical_addr(kernel_directory_table, 0x100000));
-    printf(TEXT_MODE_SCREEN_RIGHT, "vir: 0x%x, phy: 0x%x", 0x400000, get_physical_addr(kernel_directory_table, 0x400000));
-    printf(TEXT_MODE_SCREEN_RIGHT, "vir: 0x%x, phy: 0x%x", 0x800000, get_physical_addr(kernel_directory_table, 0x800000));
+    printf(TEXT_MODE_SCREEN_RIGHT, "vir: 0x%x, phy: 0x%x", 0x100000,
+           get_physical_addr(kernel_directory_table, 0x100000));
+/*     printf(TEXT_MODE_SCREEN_RIGHT, "vir: 0x%x, phy: 0x%x", 0x400000, */
+/*            get_physical_addr(kernel_directory_table, 0x400000)); */
+/*     printf(TEXT_MODE_SCREEN_RIGHT, "vir: 0x%x, phy: 0x%x", 0x800000, */
+/*            get_physical_addr(kernel_directory_table, 0x800000)); */
 
     set_page_directory((uintptr_t)kernel_directory_table);
 
@@ -41,8 +43,8 @@ uint32_t* create_page_directory(uint32_t dir_table_entry_flags,
 
     // set page directry table entry
     for (int i = 0; i < PAGE_DIRECTORY_TABLE_SIZE; ++i) {
-        uint32_t* page_head = (uint32_t*)((uintptr_t)page_table_head_addr +
-                                          (i * PAGE_SIZE));
+        uint32_t* page_head =
+            (uint32_t*)((uintptr_t)page_table_head_addr + (i * PAGE_SIZE));
 
         directory_table[i] = create_table_entry(
             (uintptr_t)page_head, dir_table_entry_flags | PTE_PRESENT);
@@ -53,7 +55,6 @@ uint32_t* create_page_directory(uint32_t dir_table_entry_flags,
                 0x00000000, page_table_entry_flags | PTE_ABSENT);
         }
     }
-
 
     // kernel memory space mapping  to virtual memory
     for (uintptr_t k_phy_addr = 0x00000000, k_vir_addr = 0x00000000;
