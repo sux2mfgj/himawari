@@ -55,8 +55,8 @@ bool init_memory(MULTIBOOT_INFO *multiboot_info)
         (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024) * 1024);
     if (mem_upper > KERNEL_HEAP_END) {
         if (!memory_management_init(
-                KERNEL_HEAP_END - (uintptr_t)aligned_kernel_end,
-                (uintptr_t)aligned_kernel_end)) {
+                 KERNEL_HEAP_END - (uintptr_t)aligned_kernel_end,
+                 (uintptr_t)aligned_kernel_end)) {
             printf(TEXT_MODE_SCREEN_RIGHT,
                    "error was occured by memory_management_init");
             return false;
@@ -68,9 +68,9 @@ bool init_memory(MULTIBOOT_INFO *multiboot_info)
     }
 
     if (!init_p_memory(
-            kernel_end_include_heap,
-            (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024) *
-                1024)) {
+             kernel_end_include_heap,
+             (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024) *
+                 1024)) {
         printf(TEXT_MODE_SCREEN_RIGHT, "init_p_memory cause");
         return false;
     }
