@@ -57,7 +57,7 @@ static uint32_t textmode_puts(char *text, uint32_t x, uint32_t y,
 static uint32_t integer_puts(uint32_t number, uint32_t x, uint32_t y,
                              uint32_t place)
 {
-    int n, i = 0, j;
+    int i = 0, j;
     char buf[20];
 
     memset(buf, '\0', 20);
@@ -68,7 +68,7 @@ static uint32_t integer_puts(uint32_t number, uint32_t x, uint32_t y,
     }
 
     while (number != 0) {
-        n = number % 10 + 48;
+        int n = number % 10 + 48;
         buf[i] = n;
         i++;
         number /= 10;
@@ -86,7 +86,7 @@ static uint32_t hexadecimal_put(uint32_t number, uint32_t x, uint32_t y,
 {
     // TODO: make function
 
-    int i = 0, n;
+    int i = 0;
     char buf[20];
     char hex[] = {'0', '1', '2', '3', '4', '5', '6', '7',
                   '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
@@ -99,7 +99,7 @@ static uint32_t hexadecimal_put(uint32_t number, uint32_t x, uint32_t y,
     }
 
     while (number != 0) {
-        n = number % 16;
+        int n = number % 16;
         buf[i] = hex[n];
         ++i;
         number /= 16;
@@ -134,13 +134,13 @@ void slide_screen(uint32_t place)
     uint16_t *vram_textmode = (uint16_t *)VRAM_TEXTMODE;
     int i, j;
     char tmp;
-    uint16_t *read_addr, *write_addr;
+    uint16_t *read_addr, ;
 
     for (i = 0; i <= TEXT_MODE_HEIGHT; i++) {
         for (j = 0; j < (TEXT_MODE_WIDTH / 2); j++) {
             read_addr = vram_textmode + i * TEXT_MODE_WIDTH + j + place;
             tmp = (char)*read_addr;
-            write_addr = read_addr - TEXT_MODE_WIDTH;
+            uint16_t* write_addr = read_addr - TEXT_MODE_WIDTH;
             *write_addr = (WHITE << 8) | tmp;
         }
     }
