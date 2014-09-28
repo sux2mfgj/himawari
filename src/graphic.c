@@ -134,7 +134,7 @@ void slide_screen(uint32_t place)
     uint16_t *vram_textmode = (uint16_t *)VRAM_TEXTMODE;
     int i, j;
     char tmp;
-    uint16_t *read_addr, ;
+    uint16_t *read_addr;
 
     for (i = 0; i <= TEXT_MODE_HEIGHT; i++) {
         for (j = 0; j < (TEXT_MODE_WIDTH / 2); j++) {

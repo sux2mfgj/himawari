@@ -12,13 +12,15 @@ bool init_v_memory()
     if (NULL == kernel_directory_table) {
         return false;
     }
+    printf(TEXT_MODE_SCREEN_RIGHT, "kernel_directory_table addr 0x%x",
+           kernel_directory_table);
 
     printf(TEXT_MODE_SCREEN_RIGHT, "vir: 0x%x, phy: 0x%x", 0x100000,
            get_physical_addr(kernel_directory_table, 0x100000));
-/*     printf(TEXT_MODE_SCREEN_RIGHT, "vir: 0x%x, phy: 0x%x", 0x400000, */
-/*            get_physical_addr(kernel_directory_table, 0x400000)); */
-/*     printf(TEXT_MODE_SCREEN_RIGHT, "vir: 0x%x, phy: 0x%x", 0x800000, */
-/*            get_physical_addr(kernel_directory_table, 0x800000)); */
+    printf(TEXT_MODE_SCREEN_RIGHT, "vir: 0x%x, phy: 0x%x", 0x400000,
+           get_physical_addr(kernel_directory_table, 0x400000));
+    printf(TEXT_MODE_SCREEN_RIGHT, "vir: 0x%x, phy: 0x%x", 0x800000,
+           get_physical_addr(kernel_directory_table, 0x800000));
 
     set_page_directory((uintptr_t)kernel_directory_table);
 
@@ -35,11 +37,13 @@ uint32_t* create_page_directory(uint32_t dir_table_entry_flags,
     }
 
     uint32_t* page_table_head_addr =
-        (uint32_t*)memory_allocate_4k(PAGE_TABLE_SIZE);
+        (uint32_t*)memory_allocate_4k(PAGE_TABLE_ENTRY_NUM);
 
     if (NULL == page_table_head_addr) {
         return NULL;
     }
+    printf(TEXT_MODE_SCREEN_RIGHT, "page table addr 0x%x",
+           page_table_head_addr);
 
     // set page directry table entry
     for (int i = 0; i < PAGE_DIRECTORY_TABLE_SIZE; ++i) {
@@ -50,7 +54,7 @@ uint32_t* create_page_directory(uint32_t dir_table_entry_flags,
             (uintptr_t)page_head, dir_table_entry_flags | PTE_PRESENT);
 
         // set page table entry
-        for (int j = 0; j < PAGE_TABLE_SIZE; ++j) {
+        for (int j = 0; j < PAGE_TABLE_ENTRY_NUM; ++j) {
             page_head[j] = create_table_entry(
                 0x00000000, page_table_entry_flags | PTE_ABSENT);
         }

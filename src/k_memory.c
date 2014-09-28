@@ -6,38 +6,6 @@ static memory_data mem_data;
 static uintptr_t kernel_end_include_heap;
 static size_t mem_upper;
 
-/* uint32_t memtest( uint32_t start, uint32_t end) */
-/* { */
-/*     char flg486 = 0; */
-/*     uint32_t eflg, cr0, i; */
-
-/*     eflg = io_load_eflags(); */
-/*     eflg |= EFLAGS_AC_BIT; */
-/*     io_store_eflags(eflg); */
-/*     eflg = io_load_eflags(); */
-/*     if((eflg & EFLAGS_AC_BIT) != 0){ */
-/*         flg486 = 1; */
-/*     } */
-/*     eflg &= ~EFLAGS_AC_BIT; */
-/*     io_store_eflags(eflg); */
-
-/*     if(flg486 != 0){ */
-/*         cr0 = load_cr0(); */
-/*         cr0 |= CR0_CACHE_DISABLE; */
-/*         store_cr0(cr0); */
-/*     } */
-
-/*     i = memtest_sub(start, end); */
-
-/*     if(flg486 != 0){ */
-/*         cr0 = load_cr0(); */
-/*         cr0 &= ~CR0_CACHE_DISABLE; */
-/*         store_cr0(cr0); */
-/*     } */
-
-/*     return i; */
-/* } */
-
 bool init_memory(MULTIBOOT_INFO *multiboot_info)
 {
 
@@ -48,8 +16,10 @@ bool init_memory(MULTIBOOT_INFO *multiboot_info)
      * PUTS_RIGHT); */
 
     uintptr_t aligned_kernel_end = (1 + ((uintptr_t) & _kernel_end >> 3)) << 3;
+    printf(TEXT_MODE_SCREEN_RIGHT, "aligned_kernel_end 0x%x", aligned_kernel_end);
 
-    mem_upper = multiboot_info->mem_upper * 1024;
+/*     mem_upper = multiboot_info->mem_upper * 1024; */
+    mem_upper = (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024) * 1024;
     printk(
         PRINT_PLACE_PHYSI_MEM_SIZE, "Physical MEMORY SIZE: 0x%x",
         (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024) * 1024);
@@ -68,9 +38,9 @@ bool init_memory(MULTIBOOT_INFO *multiboot_info)
     }
 
     if (!init_p_memory(
-             kernel_end_include_heap,
              (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024) *
-                 1024)) {
+                 1024))
+    {
         printf(TEXT_MODE_SCREEN_RIGHT, "init_p_memory cause");
         return false;
     }
@@ -91,10 +61,8 @@ uint32_t get_size_of_kernel()
 
 bool memory_management_init(size_t size, uintptr_t base_addr)
 {
-
-    int i;
-
-    for (i = 0; i < MEMORY_MANAGEMENT_DATA_SIZE; ++i) {
+    // init memory management
+    for (int i = 0; i < MEMORY_MANAGEMENT_DATA_SIZE; ++i) {
         mem_data.data[i].base_addr = 0;
         mem_data.data[i].size = 0;
         mem_data.data[i].status = MEMORY_INFO_STATUS_END;
@@ -108,6 +76,7 @@ bool memory_management_init(size_t size, uintptr_t base_addr)
 
     printk(PRINT_PLACE_FREE_KERNEL_HEAP, "FREE KERNEL HEAP SIZE: 0x%x", size);
     printk(PRINT_PLACE_MAX_KERNEL_HEAP, "MAX KERNEL HEAP SIZE: 0x%x", size);
+
     mem_data.data[0].size = size;
     mem_data.data[0].status = MEMORY_INFO_STATUS_FREE;
 
@@ -141,6 +110,7 @@ void *memory_allocate(uint32_t size)
             if (mem_data.data[i].size >= size) {
 
                 if (mem_data.end_point <= MEMORY_MANAGEMENT_DATA_SIZE) {
+
                     // slide data
                     for (int j = mem_data.end_point; j > i; --j) {
                         mem_data.data[j + 1] = mem_data.data[j];
@@ -183,7 +153,7 @@ void *memory_allocate(uint32_t size)
 
 void *memory_allocate_4k(uint32_t num)
 {
-    uint32_t alloc_size = (num * 0x1000);
+    int alloc_size = (num * 0x1000);
 
     if (mem_data.free_size < alloc_size) {
         return NULL;
@@ -196,13 +166,13 @@ void *memory_allocate_4k(uint32_t num)
         }
 
         if (mem_data.data[i].status == MEMORY_INFO_STATUS_FREE) {
-            uint32_t surplus = mem_data.data[i].base_addr & 0x00000fff;
-            uint32_t skip_size = 0x1000 - surplus;
+            int surplus = mem_data.data[i].base_addr & 0x00000fff;
+            int skip_size = 0x1000 - surplus;
 
-            if ((mem_data.data[i].size - skip_size) >= alloc_size) {
+            if (((int)mem_data.data[i].size - skip_size) >= alloc_size) {
 
                 // slide data
-                for (int j = mem_data.end_point; j > i; --j) {
+                for (int j = mem_data.end_point; j >= i; --j) {
                     mem_data.data[j + 2] = mem_data.data[j];
                 }
 
@@ -435,17 +405,3 @@ static void memory_management_array_compaction(void)
         }
     }
 }
-
-void alloc_free_test()
-{
-    memory_data *t;
-
-    // h - c - u
-    t = memory_allocate(sizeof(memory_data));
-    print_array_status();
-    if (memory_free(t)) {
-        /*         printf(TEXT_MODE_SCREEN_RIGHT, "yes"); */
-    }
-    print_array_status();
-}
-

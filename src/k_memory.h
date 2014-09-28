@@ -21,13 +21,13 @@
 #define MEMORY_MANAGEMENT_DATA_SIZE 1024
 #define KERNEL_HEAP_END 0x00a00000
 
-typedef struct {
+typedef struct _memory_info{
     uintptr_t base_addr;
     uint32_t size;
     uint32_t status;
 } memory_info;
 
-typedef struct {
+typedef struct _memory_data{
     uint32_t end_point;
     uint32_t nodata_elements_count;
     size_t heap_size;

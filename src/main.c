@@ -48,7 +48,7 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     if (!init_memory(multiboot_info)) {
         // TODO: panic
         printf(TEXT_MODE_SCREEN_RIGHT,
-               "-----------------kernel panic-----------------");
+               "------------kernel panic------------");
         io_hlt();
     }
 
