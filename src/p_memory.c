@@ -4,7 +4,7 @@ static p_memory_data p_mem_data;
 
 bool init_p_memory(uintptr_t memory_end)
 {
-    /*     printf(TEXT_MODE_SCREEN_LEFT, "p_memory management head addr: 0x%x",
+    /*     printf(TEXT_MODE_SCREEN_RIGHT, "p_memory management head addr: 0x%x",
      * kernel_end_include_heap+(4-kernel_end_include_heap%4)); */
 
     p_mem_data.head_addr = KERNEL_HEAP_END;
@@ -19,7 +19,7 @@ bool init_p_memory(uintptr_t memory_end)
            management_page_size);
     printf(TEXT_MODE_SCREEN_RIGHT, "number_of_page: %d",
            management_page_size / PAGE_SIZE);
-    /*     printf(TEXT_MODE_SCREEN_LEFT, "rest: %d", management_page_size %
+    /*     printf(TEXT_MODE_SCREEN_RIGHT, "rest: %d", management_page_size %
      * PAGE_SIZE); */
 
     p_mem_data.bitmap = (bool*)memory_allocate(sizeof(bool) * number_of_page);

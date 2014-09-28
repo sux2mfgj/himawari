@@ -47,8 +47,7 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 
     if (!init_memory(multiboot_info)) {
         // TODO: panic
-        printf(TEXT_MODE_SCREEN_RIGHT,
-               "------------kernel panic------------");
+        printf(TEXT_MODE_SCREEN_RIGHT, "------------kernel panic------------");
         io_hlt();
     }
 
@@ -63,26 +62,25 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 vm_start:
 
     io_sti();
-    /*     printf(TEXT_MODE_SCREEN_LEFT, "hello"); */
-    /*     printf(TEXT_MODE_SCREEN_LEFT, "mem_lower: %d(KB)",
+    /*     printf(TEXT_MODE_SCREEN_RIGHT, "hello"); */
+    /*     printf(TEXT_MODE_SCREEN_RIGHT, "mem_lower: %d(KB)",
      * multiboot_info->mem_lower); */
-    /*     printf(TEXT_MODE_SCREEN_LEFT, "mem_upper: %d(KB)",
+    /*     printf(TEXT_MODE_SCREEN_RIGHT, "mem_upper: %d(KB)",
      * multiboot_info->mem_upper); */
-    /*     printf(TEXT_MODE_SCREEN_LEFT, "mem_total: %d(KB)",
+    /*     printf(TEXT_MODE_SCREEN_RIGHT, "mem_total: %d(KB)",
      * (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024)); */
 
     /*     set_task(0, NULL, NULL); */
     /*     set_task(1, task1, stack[0]+1024); */
     /*     set_task(2, task2, stack[1]+1024); */
 
-    /*     printf(TEXT_MODE_SCREEN_LEFT, "%x", &_kernel_end); */
-    /*     printf(TEXT_MODE_SCREEN_LEFT, "%x", &_kernel_start); */
+    /*     printf(TEXT_MODE_SCREEN_RIGHT, "%x", &_kernel_end); */
+    /*     printf(TEXT_MODE_SCREEN_RIGHT, "%x", &_kernel_start); */
 
     for (;;) {
-        io_hlt();
-        /*    io_cli();  */
+        io_cli();
         if (keyboard_data_queue_check()) {
-            /*             io_sti(); */
+            io_sti();
         } else {
             /*             task_switch_c(0, 1); */
             /*             printf(TEXT_MODE_SCREEN_RIGHT, "test"); */
