@@ -8,12 +8,12 @@ static interrupt_queue keyboard_data_queue;
 
 void fault_inthandler(int *esp)
 {
-    printf(TEXT_MODE_SCREEN_LEFT, "fault: %x", *esp);
+    printf(TEXT_MODE_SCREEN_RIGHT, "fault: %x", *esp);
 }
 
 void fault_inthandler2(int *esp)
 {
-    printf(TEXT_MODE_SCREEN_LEFT, "fault2: %x", *esp);
+    printf(TEXT_MODE_SCREEN_RIGHT, "fault2: %x", *esp);
 }
 
 
@@ -122,4 +122,10 @@ void test_keyboard_data_queue(void)
     }
     print_array_status();
 
+}
+
+void page_fault_handler(int *esp)
+{
+    printf(TEXT_MODE_SCREEN_RIGHT, "in page fault handler");
+    io_hlt();
 }

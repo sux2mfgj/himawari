@@ -16,7 +16,7 @@ SECTIONS
         *(.data);
         _data_end = .;
     }
-    .bss :{     /* ゼロで初期化されるstatic変数 */
+    .bss ALIGN(8):{     /* ゼロで初期化されるstatic変数 */
         _bss_start = .;
         *(.bss);
         _bss_end = .;

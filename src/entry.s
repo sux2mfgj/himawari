@@ -1,5 +1,6 @@
 .file "entry.s"
 
+    stack = .;
 .extern kernel_entry
 # need data for boot by grub
 MULTIBOOT_HEADER_MAGIC = 0x1BADB002
@@ -24,12 +25,16 @@ CHECKSUM = -(MULTIBOOT_HEADER_MAGIC+MULTIBOOT_HEADER_FLAGS)
 .globl entry
 entry:
 
+    movl $stack_start, %esp
+
 # reset eflags
     pushl $0
     popf
 
     pushl %ebx
     pushl %eax
+
+
 
 #    jmp kernel_entry
     call kernel_entry
@@ -43,3 +48,8 @@ start_hlt:
     hlt
     jmp start_hlt
 
+.data
+.align 8
+stack:
+    .space 4096
+stack_start:

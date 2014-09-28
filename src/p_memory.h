@@ -8,7 +8,7 @@
 #include "k_memory.h"
 #include "string.h"
 
-#define PAGE_SIZE 4096
+#define PAGE_SIZE 0x1000
 
 typedef struct {
     uintptr_t head_addr;
@@ -17,12 +17,12 @@ typedef struct {
     bool* bitmap;
 } p_memory_data;
 
-typedef struct {
-    uint32_t number;
-    void* addr;
+typedef struct  {
+    uintptr_t head_addr;
+    size_t number;
 } page;
 
-bool init_p_memory(uintptr_t kernel_end_include_heap, uintptr_t memory_end);
+bool init_p_memory(uintptr_t memory_end);
 page* alloc_serial_pages(uint32_t number_of_pages);
 // void *alloc_lagest_serial_pages(uint32_t page_num);
 bool free_pages(page* free_page);

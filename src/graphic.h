@@ -21,18 +21,24 @@
 #define TEXT_MODE
 // #define GRAPHIC_MODE
 
+#define PRINT_PLACE_PHYSI_MEM_SIZE 0
+#define PRINT_PLACE_MAX_KERNEL_HEAP 1
+#define PRINT_PLACE_FREE_KERNEL_HEAP 2
+#define PRINT_PLACE_MAX_PAGE_SIZE 3
+#define PRINT_PLACE_FREE_PAGE_SIZE 4
+
 void init_screen(void);
 
 void display_textmode(char c, uint8_t fore_color , uint8_t back_color
         , uint32_t x, uint32_t y);
 
-void textmode_putc(char c, uint32_t x, uint32_t y, uint32_t place);
-
-uint32_t textmode_puts(char* text, uint32_t x, uint32_t y, uint32_t place);
-uint32_t integer_puts(uint32_t number, uint32_t x, uint32_t y, uint32_t place);
-uint32_t hexadecimal_put(uint32_t number, uint32_t x, uint32_t y, uint32_t place);
+static void textmode_putc(char c, uint32_t x, uint32_t y, uint32_t place);
+static uint32_t textmode_puts(char* text, uint32_t x, uint32_t y, uint32_t place);
+static uint32_t integer_puts(uint32_t number, uint32_t x, uint32_t y, uint32_t place);
+static uint32_t hexadecimal_put(uint32_t number, uint32_t x, uint32_t y, uint32_t place);
 
 void printf(uint32_t place, char* format, ...);
+void printk(uint32_t print_place, char* format, ...);
 
 void slide_screen(uint32_t place);
 

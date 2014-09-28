@@ -1,81 +1,68 @@
-#include"k_memory.h"
-#include"func.h"
-#include"graphic.h"
+#include "k_memory.h"
+#include "func.h"
+#include "graphic.h"
 
 static memory_data mem_data;
 static uintptr_t kernel_end_include_heap;
 static size_t mem_upper;
 
-/* uint32_t memtest( uint32_t start, uint32_t end) */
-/* { */
-/*     char flg486 = 0; */
-/*     uint32_t eflg, cr0, i; */
-
-/*     eflg = io_load_eflags(); */
-/*     eflg |= EFLAGS_AC_BIT; */
-/*     io_store_eflags(eflg); */
-/*     eflg = io_load_eflags(); */
-/*     if((eflg & EFLAGS_AC_BIT) != 0){ */
-/*         flg486 = 1; */
-/*     } */
-/*     eflg &= ~EFLAGS_AC_BIT; */
-/*     io_store_eflags(eflg); */
-
-/*     if(flg486 != 0){ */
-/*         cr0 = load_cr0(); */
-/*         cr0 |= CR0_CACHE_DISABLE; */
-/*         store_cr0(cr0); */
-/*     } */
-
-/*     i = memtest_sub(start, end); */
-
-/*     if(flg486 != 0){ */
-/*         cr0 = load_cr0(); */
-/*         cr0 &= ~CR0_CACHE_DISABLE; */
-/*         store_cr0(cr0); */
-/*     } */
-
-/*     return i; */
-/* } */
-
-bool init_memory(MULTIBOOT_INFO* multiboot_info)
+bool init_memory(MULTIBOOT_INFO *multiboot_info)
 {
 
     /*     integer_puts((uint32_t)&_text_start, 17, PUTS_RIGHT); */
     /*     integer_puts((uint32_t)&_kernel_end, 18, PUTS_RIGHT); */
-    /*     integer_puts(get_size_of_kernel(), 19, PUTS_RIGHT); */
-    /*     integer_puts(memtest(0x00400000, 0xbfffffff) / (1024 * 1024), 20, PUTS_RIGHT); */
+    /*     integer_puts(get_size_of_krnel(), 19, PUTS_RIGHT); */
+    /*     integer_puts(memtest(0x00400000, 0xbfffffff) / (1024 * 1024), 20,
+     * PUTS_RIGHT); */
 
-    mem_upper = multiboot_info->mem_upper * 1024;
-    if(mem_upper > KERNEL_HEAP_SIZE){
-        if(!memory_management_init(KERNEL_HEAP_SIZE, (uintptr_t)&_kernel_end)){
+    uintptr_t aligned_kernel_end = (1 + ((uintptr_t) & _kernel_end >> 3)) << 3;
+    printf(TEXT_MODE_SCREEN_RIGHT, "aligned_kernel_end 0x%x", aligned_kernel_end);
+
+/*     mem_upper = multiboot_info->mem_upper * 1024; */
+    mem_upper = (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024) * 1024;
+    printk(
+        PRINT_PLACE_PHYSI_MEM_SIZE, "Physical MEMORY SIZE: 0x%x",
+        (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024) * 1024);
+    if (mem_upper > KERNEL_HEAP_END) {
+        if (!memory_management_init(
+                 KERNEL_HEAP_END - (uintptr_t)aligned_kernel_end,
+                 (uintptr_t)aligned_kernel_end)) {
+            printf(TEXT_MODE_SCREEN_RIGHT,
+                   "error was occured by memory_management_init");
             return false;
         }
-    }
-    else {
+    } else {
+        printf(TEXT_MODE_SCREEN_RIGHT, "physical memory size is not enough");
+        printf(TEXT_MODE_SCREEN_RIGHT, "init_memory cause");
         return false;
     }
 
-    if(!init_p_memory(kernel_end_include_heap, (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024)* 1024)){
+    if (!init_p_memory(
+             (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024) *
+                 1024))
+    {
+        printf(TEXT_MODE_SCREEN_RIGHT, "init_p_memory cause");
+        return false;
+    }
+
+    if (!init_v_memory()) {
+        printf(TEXT_MODE_SCREEN_RIGHT, "init_v_memory cause");
         return false;
     }
 
     return true;
-
 }
 
 uint32_t get_size_of_kernel()
 {
     /*     return (); */
-    return (&_kernel_end- &_kernel_start);
+    return (&_kernel_end - &_kernel_start);
 }
 
 bool memory_management_init(size_t size, uintptr_t base_addr)
 {
-
-    int i;
-
-    for(i = 0; i < MEMORY_MANAGEMENT_DATA_SIZE; ++i){
+    // init memory management
+    for (int i = 0; i < MEMORY_MANAGEMENT_DATA_SIZE; ++i) {
         mem_data.data[i].base_addr = 0;
         mem_data.data[i].size = 0;
         mem_data.data[i].status = MEMORY_INFO_STATUS_END;
@@ -83,9 +70,12 @@ bool memory_management_init(size_t size, uintptr_t base_addr)
 
     mem_data.data[0].base_addr = base_addr;
 
-    kernel_end_include_heap = base_addr + size;
-    printf(TEXT_MODE_SCREEN_LEFT, "kernel_end_include_heap: 0x%x", kernel_end_include_heap);
+    kernel_end_include_heap = base_addr + size;  // have to be 0x00a00000
+    printf(TEXT_MODE_SCREEN_RIGHT, "kernel_end_include_heap: 0x%x",
+           kernel_end_include_heap);
 
+    printk(PRINT_PLACE_FREE_KERNEL_HEAP, "FREE KERNEL HEAP SIZE: 0x%x", size);
+    printk(PRINT_PLACE_MAX_KERNEL_HEAP, "MAX KERNEL HEAP SIZE: 0x%x", size);
 
     mem_data.data[0].size = size;
     mem_data.data[0].status = MEMORY_INFO_STATUS_FREE;
@@ -93,16 +83,17 @@ bool memory_management_init(size_t size, uintptr_t base_addr)
     mem_data.end_point = 1;
     mem_data.nodata_elements_count = 0;
     mem_data.heap_size = size;
-    mem_data.free_size = size;;
+    mem_data.free_size = size;
 
     return true;
 }
 
-void* memory_allocate(uint32_t size)
+void *memory_allocate(uint32_t size)
 {
-    for(int i = 0; i < MEMORY_MANAGEMENT_DATA_SIZE; ++i){
-        if (mem_data.data[i].status == MEMORY_INFO_STATUS_END){
-            /*             printf(TEXT_MODE_SCREEN_RIGHT, "memory management array over"); */
+    size = (1 + (size >> 3)) << 3;
+    for (int i = 0; i < MEMORY_MANAGEMENT_DATA_SIZE; ++i) {
+        if (mem_data.data[i].status == MEMORY_INFO_STATUS_END) {
+            printf(TEXT_MODE_SCREEN_RIGHT, "memory management array over");
             return NULL;
         }
 
@@ -119,13 +110,15 @@ void* memory_allocate(uint32_t size)
             if (mem_data.data[i].size >= size) {
 
                 if (mem_data.end_point <= MEMORY_MANAGEMENT_DATA_SIZE) {
+
                     // slide data
-                    for(int j = mem_data.end_point; j > i; --j){
+                    for (int j = mem_data.end_point; j > i; --j) {
                         mem_data.data[j + 1] = mem_data.data[j];
                     }
 
                     // free data
-                    mem_data.data[i + 1].base_addr = mem_data.data[i].base_addr + size;
+                    mem_data.data[i + 1].base_addr =
+                        mem_data.data[i].base_addr + size;
                     mem_data.data[i + 1].size = mem_data.data[i].size - size;
                     mem_data.data[i + 1].status = MEMORY_INFO_STATUS_FREE;
 
@@ -137,23 +130,75 @@ void* memory_allocate(uint32_t size)
                     mem_data.end_point++;
                     mem_data.free_size -= size;
 
+                    printk(PRINT_PLACE_FREE_KERNEL_HEAP,
+                           "FREE KERNEL HEAP SIZE: 0x%x", mem_data.free_size);
                     return (void *)mem_data.data[i].base_addr;
                 }
                 // memory management count size over
                 else {
-                    /*                     printf(TEXT_MODE_SCREEN_RIGHT, "memory management count size over"); */
+                    printf(TEXT_MODE_SCREEN_RIGHT,
+                           "memory management count size over");
                     return NULL;
                 }
             }
             // memory size is not enough
             else {
-                /*                 printf(TEXT_MODE_SCREEN_RIGHT, "memory size is not enough"); */
+                printf(TEXT_MODE_SCREEN_RIGHT, "memory size is not enough");
             }
         }
-
     }
 
     return NULL;
+}
+
+void *memory_allocate_4k(uint32_t num)
+{
+    int alloc_size = (num * 0x1000);
+
+    if (mem_data.free_size < alloc_size) {
+        return NULL;
+    }
+
+    for (int i = 0; i < MEMORY_MANAGEMENT_DATA_SIZE; ++i) {
+        if (mem_data.data[i].status == MEMORY_INFO_STATUS_END) {
+            printf(TEXT_MODE_SCREEN_RIGHT, "memory management array over");
+            return NULL;
+        }
+
+        if (mem_data.data[i].status == MEMORY_INFO_STATUS_FREE) {
+            int surplus = mem_data.data[i].base_addr & 0x00000fff;
+            int skip_size = 0x1000 - surplus;
+
+            if (((int)mem_data.data[i].size - skip_size) >= alloc_size) {
+
+                // slide data
+                for (int j = mem_data.end_point; j >= i; --j) {
+                    mem_data.data[j + 2] = mem_data.data[j];
+                }
+
+                // used space
+                mem_data.data[i + 1].base_addr =
+                    (mem_data.data[i].base_addr & 0xfffff000) + 0x1000;
+                mem_data.data[i + 1].size = alloc_size;
+                mem_data.data[i + 1].status = MEMORY_INFO_STATUS_USED;
+
+                // free space
+                mem_data.data[i + 2].base_addr =
+                    mem_data.data[i + 1].base_addr + alloc_size;
+                mem_data.data[i + 2].size =
+                    mem_data.data[i].size - (surplus + alloc_size);
+                mem_data.data[i + 2].status = MEMORY_INFO_STATUS_FREE;
+
+                // skip space
+                mem_data.data[i].size = surplus;
+
+                mem_data.end_point += 2;
+                mem_data.free_size -= alloc_size;
+
+                return (void *)mem_data.data[i + 1].base_addr;
+            }
+        }
+    }
 }
 
 /*
@@ -174,19 +219,19 @@ bool memory_free(void *address)
     /*         previous_index = 0; */
 
     /*     } */
-    /*     printf(TEXT_MODE_SCREEN_RIGHT,"end_point: %d", mem_data->end_point); */
-    /*     printf(TEXT_MODE_SCREEN_RIGHT, "previous: %d, current: %d, next: %d", */
+    /*     printf(TEXT_MODE_SCREEN_RIGHT,"end_point: %d", mem_data->end_point);
+     */
+    /*     printf(TEXT_MODE_SCREEN_RIGHT, "previous: %d, current: %d, next: %d",
+     */
     /*             previous_index, current_index, next_index); */
 
     for (int i = 0; i < mem_data.end_point; i++) {
 
-
-        //before current index find
+        // before current index find
         if (mem_data.data[i].base_addr == (uintptr_t)address) {
             current_index = i;
             goto find;
-        }
-        else if (mem_data.data[i].status != MEMORY_INFO_STATUS_NODATA) {
+        } else if (mem_data.data[i].status != MEMORY_INFO_STATUS_NODATA) {
             previous_index = i;
         }
     }
@@ -201,9 +246,9 @@ find:
         }
     }
 
-    /*     printf(TEXT_MODE_SCREEN_RIGHT, "previous: %d, current: %d, next: %d", */
+    /*     printf(TEXT_MODE_SCREEN_RIGHT, "previous: %d, current: %d, next: %d",
+     */
     /*             previous_index, current_index, next_index); */
-
 
     current_info = &mem_data.data[current_index];
     next_info = &mem_data.data[next_index];
@@ -212,7 +257,7 @@ find:
     if (previous_index == current_index) {
 
         // h - c - u
-        if (next_info->status  == MEMORY_INFO_STATUS_USED) {
+        if (next_info->status == MEMORY_INFO_STATUS_USED) {
             current_info->status = MEMORY_INFO_STATUS_FREE;
             /*             printf(TEXT_MODE_SCREEN_LEFT, "h - c - u"); */
             /*             return true; */
@@ -231,8 +276,7 @@ find:
             /*             return true; */
             goto exit;
         }
-    }
-    else {
+    } else {
 
         if (previous_info->status == MEMORY_INFO_STATUS_FREE) {
 
@@ -247,7 +291,8 @@ find:
                 *next_info = *current_info;
 
                 mem_data.nodata_elements_count += 2;
-                /*                 printf(TEXT_MODE_SCREEN_LEFT, "f - c - f"); */
+                /*                 printf(TEXT_MODE_SCREEN_LEFT, "f - c - f");
+                 */
                 /*                 return true; */
                 goto exit;
             }
@@ -260,13 +305,13 @@ find:
                 current_info->status = MEMORY_INFO_STATUS_NODATA;
 
                 mem_data.nodata_elements_count++;
-                /*                 printf(TEXT_MODE_SCREEN_LEFT, "f - c - u"); */
+                /*                 printf(TEXT_MODE_SCREEN_LEFT, "f - c - u");
+                 */
                 /*                 return true; */
                 goto exit;
             }
 
-        }
-        else {
+        } else {
             // u - c - f
             if (next_info->status == MEMORY_INFO_STATUS_FREE) {
                 current_info->size += next_info->size;
@@ -277,18 +322,19 @@ find:
                 next_info->status = MEMORY_INFO_STATUS_NODATA;
 
                 mem_data.nodata_elements_count++;
-                /*                 printf(TEXT_MODE_SCREEN_LEFT, "u - c - f"); */
+                /*                 printf(TEXT_MODE_SCREEN_LEFT, "u - c - f");
+                 */
                 /*                 return true; */
                 goto exit;
             }
             // u - c - u
             else {
                 current_info->status = MEMORY_INFO_STATUS_FREE;
-                /*                 printf(TEXT_MODE_SCREEN_LEFT, "u - c - u"); */
+                /*                 printf(TEXT_MODE_SCREEN_LEFT, "u - c - u");
+                 */
                 /*                 return true; */
                 goto exit;
             }
-
         }
     }
 
@@ -299,6 +345,9 @@ exit:
         memory_management_array_compaction();
     }
     mem_data.free_size += current_info->size;
+
+    printk(PRINT_PLACE_FREE_KERNEL_HEAP, "FREE KERNEL HEAP SIZE: 0x%x",
+           mem_data.free_size);
     return true;
 }
 
@@ -307,23 +356,23 @@ void print_array_status(void)
     for (int i = 0; i < mem_data.end_point; i++) {
         if (mem_data.data[i].status == MEMORY_INFO_STATUS_FREE) {
             /*             printf(TEXT_MODE_SCREEN_RIGHT, "FREE"); */
-            /*             printf("(FREE: size:%d)->", mem_data.data[i].size); */
-        }
-        else if (mem_data.data[i].status == MEMORY_INFO_STATUS_USED) {
+            /*             printf("(FREE: size:%d)->", mem_data.data[i].size);
+             */
+        } else if (mem_data.data[i].status == MEMORY_INFO_STATUS_USED) {
             /*             printf(TEXT_MODE_SCREEN_RIGHT, "USED"); */
-            /*             printf("(USED: size:%d)->", mem_data.data[i].size); */
-        }
-        else if (mem_data.data[i].status == MEMORY_INFO_STATUS_NODATA) {
+            /*             printf("(USED: size:%d)->", mem_data.data[i].size);
+             */
+        } else if (mem_data.data[i].status == MEMORY_INFO_STATUS_NODATA) {
             /*             printf(TEXT_MODE_SCREEN_RIGHT, "NODATA"); */
             /*             printf("(NODATA)->"); */
         }
         /*         printf(TEXT_MODE_SCREEN_RIGHT, "size: %d, base_addr: %d", */
-        /*                 mem_data->data[i].size, mem_data->data[i].base_addr); */
+        /*                 mem_data->data[i].size, mem_data->data[i].base_addr);
+         */
     }
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "END"); */
     /*     printf("(END)\n"); */
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "------------------"); */
-
 }
 
 static void memory_management_array_compaction(void)
@@ -332,8 +381,8 @@ static void memory_management_array_compaction(void)
     int i = 0;
     nodata_index = current_index = 0;
 
-
-    /*     printf("nodata_elements_count: %d\n", mem_data.nodata_elements_count); */
+    /*     printf("nodata_elements_count: %d\n",
+     * mem_data.nodata_elements_count); */
     if (mem_data.nodata_elements_count == 0) {
         return;
     }
@@ -348,27 +397,11 @@ static void memory_management_array_compaction(void)
                     mem_data.nodata_elements_count = 0;
                     mem_data.end_point = i;
                     return;
-                }
-                else if (mem_data.data[j].status != MEMORY_INFO_STATUS_NODATA) {
+                } else if (mem_data.data[j].status !=
+                           MEMORY_INFO_STATUS_NODATA) {
                     mem_data.data[i] = mem_data.data[j];
                 }
             }
         }
-
     }
 }
-
-
-void alloc_free_test()
-{
-    memory_data *t;
-
-    // h - c - u
-    t = memory_allocate(sizeof(memory_data));
-    print_array_status();
-    if (memory_free(t)) {
-        /*         printf(TEXT_MODE_SCREEN_RIGHT, "yes"); */
-    }
-    print_array_status();
-}
-
