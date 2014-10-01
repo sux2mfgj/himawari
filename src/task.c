@@ -1,20 +1,4 @@
-/*
- * =====================================================================================
- *
- *       Filename:  tss.c
- *
- *    Description:  j
- *
- *        Version:  1.0
- *        Created:  05/19/2014 12:08:23 AM
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  YOUR NAME (),
- *   Organization:
- *
- * =====================================================================================
- */
+
 #include "task.h"
 #include "func.h"
 #include "graphic.h"
