@@ -4,3 +4,5 @@ himawari
 kernel.map
 *.iso
 test
+src/asm_himawari
+src/tags
