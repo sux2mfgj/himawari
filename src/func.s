@@ -223,6 +223,7 @@ asm_\operand:
 
 inthandler fault_inthandler
 inthandler fault_inthandler2
+inthandler page_fault_handler
 
 .extern switch_to
 .globl task_switch
@@ -256,4 +257,26 @@ task_switch: #void task_switch(TASK_MANAGEMENT_DATA *prev, TASK_MANAGEMENT_DATA 
     ret
 # jmp task_switch
 
+
+.globl set_page_directory
+set_page_directory: #void set_page_directory(uintptr_t page_directory_addr);
+    movl 4(%esp), %eax
+    movl %eax, %cr3
+    ret
+
+.globl enable_paging
+enable_paging: # void enable_pating();
+    movl %cr0, %eax
+    orl $0x80000000, %eax
+    movl %eax, %cr0
+    ret
+
+
+.globl set_esp
+set_esp: #void set_esp(uintptr_t *esp);
+    movl 0(%esp), %ebx
+    movl 4(%esp), %eax
+    movl %eax, %esp
+    push %ebx
+    ret
 

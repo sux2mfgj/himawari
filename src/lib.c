@@ -37,14 +37,14 @@ node *delete_node(node *list_head, node* del_node)
     node *current_node = list_head;
 
     node *tmp = list_head->next;
-    printf(TEXT_MODE_SCREEN_LEFT, "list_head: %d", list_head);
+/*     printf(TEXT_MODE_SCREEN_RIGHT, "list_head:0x%x", list_head); */
 
     if (list_head == del_node) {
         if (!memory_free(list_head->data)){
-            printf(TEXT_MODE_SCREEN_LEFT, "list_head->data free faild :%d", list_head->data);
+            printf(TEXT_MODE_SCREEN_RIGHT, "list_head->data free faild :%d", list_head->data);
         }
         if (!memory_free(list_head)){
-            printf(TEXT_MODE_SCREEN_LEFT, "list_head free faild :%d",list_head);
+            printf(TEXT_MODE_SCREEN_RIGHT, "list_head free faild :%d",list_head);
         }
         if (tmp == NULL) {
             return NULL;

@@ -15,7 +15,6 @@ typedef struct _node{
     void *data;
 }node;
 
-
 node *new_node(uint32_t data_size);
 bool append_node(node *list_head, node* append_node);
 node *delete_node(node *list_head, node* del_node);
