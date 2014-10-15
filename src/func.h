@@ -35,9 +35,6 @@ extern void store_cr0(int cr0);
 
 extern int memtest_sub(unsigned int start, unsigned int end);
 
-extern void task_switch(struct TASK_MANAGEMENT_DATA* prev_task,
-        struct TASK_MANAGEMENT_DATA* next_task);
-
 extern void set_page_directory(uintptr_t page_directory_addr);
 extern void enable_paging(void);
 

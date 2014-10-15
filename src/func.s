@@ -225,9 +225,9 @@ inthandler fault_inthandler
 inthandler fault_inthandler2
 inthandler page_fault_handler
 
-.extern switch_to
-.globl task_switch
-task_switch: #void task_switch(TASK_MANAGEMENT_DATA *prev, TASK_MANAGEMENT_DATA *next)
+.extern __switch_to
+.globl switch_to
+switch_to: #void task_switch(TASK_MANAGEMENT_DATA *prev, TASK_MANAGEMENT_DATA *next)
 
 #     pusha
     pushf
@@ -253,6 +253,7 @@ task_switch: #void task_switch(TASK_MANAGEMENT_DATA *prev, TASK_MANAGEMENT_DATA 
 #     jmp switch_to
     popl %ebp
     popf
+    popfl
 #     popa
     ret
 # jmp task_switch

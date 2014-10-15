@@ -76,6 +76,13 @@ vm_start:
 
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "%x", &_kernel_end); */
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "%x", &_kernel_start); */
+    uint32_t stack[2][1024];
+    task_struct kernel_task, task_struct0, task_struct1;
+    task_struct0.context.eip = (uintptr_t)task1;
+    task_struct0.context.esp = (uintptr_t)stack[0] + sizeof(uint32_t)*1024;
+    task_struct1.context.eip = (uintptr_t)task2;
+    task_struct1.context.esp = (uintptr_t)stack[1] + sizeof(uint32_t)*1024;
+
 
     for (;;) {
         io_cli();
