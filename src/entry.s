@@ -52,4 +52,7 @@ start_hlt:
 .align 8
 stack:
     .space 4096
+    .space 4096
+    .space 4096
+    .space 4096
 stack_start:

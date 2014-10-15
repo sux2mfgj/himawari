@@ -15,12 +15,12 @@ bool init_v_memory()
     printf(TEXT_MODE_SCREEN_RIGHT, "kernel_directory_table addr 0x%x",
            kernel_directory_table);
 
-    printf(TEXT_MODE_SCREEN_RIGHT, "vir: 0x%x, phy: 0x%x", 0x100000,
-           get_physical_addr(kernel_directory_table, 0x100000));
-    printf(TEXT_MODE_SCREEN_RIGHT, "vir: 0x%x, phy: 0x%x", 0x400000,
-           get_physical_addr(kernel_directory_table, 0x400000));
-    printf(TEXT_MODE_SCREEN_RIGHT, "vir: 0x%x, phy: 0x%x", 0x800000,
-           get_physical_addr(kernel_directory_table, 0x800000));
+/*     printf(TEXT_MODE_SCREEN_RIGHT, "vir: 0x%x, phy: 0x%x", 0x100000, */
+/*            get_physical_addr(kernel_directory_table, 0x100000)); */
+/*     printf(TEXT_MODE_SCREEN_RIGHT, "vir: 0x%x, phy: 0x%x", 0x400000, */
+/*            get_physical_addr(kernel_directory_table, 0x400000)); */
+/*     printf(TEXT_MODE_SCREEN_RIGHT, "vir: 0x%x, phy: 0x%x", 0x800000, */
+/*            get_physical_addr(kernel_directory_table, 0x800000)); */
 
     set_page_directory((uintptr_t)kernel_directory_table);
 
