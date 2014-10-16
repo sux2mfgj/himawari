@@ -54,11 +54,7 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     init_pic();
     init_inthandler();
 
-    enable_paging();
-
-    void *label = &&vm_start;
-    goto *(label + VIRTUAL_KERNEL_ADDR);
-vm_start:
+/*     enable_paging(); */
 
     io_sti();
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "hello"); */
@@ -91,4 +87,5 @@ vm_start:
         }
     }
 }
+
 

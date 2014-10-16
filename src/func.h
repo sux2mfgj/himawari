@@ -36,7 +36,10 @@ extern void store_cr0(int cr0);
 extern int memtest_sub(unsigned int start, unsigned int end);
 
 extern void set_page_directory(uintptr_t page_directory_addr);
+extern void disable_paging(void);
+extern void start_paging(void);
 extern void enable_paging(void);
+extern void start_4k_paging(void);
 
 extern void set_esp(uintptr_t *esp);
 #endif
