@@ -7,7 +7,7 @@
 #include <stdarg.h>
 
 
-#define VRAM_TEXTMODE 0x000B8000
+#define VRAM_TEXTMODE 0xc00B8000
 
 #define BLACK 0x0
 #define WHITE 0xf

@@ -36,6 +36,7 @@ void display_textmode(char c, uint8_t fore_color, uint8_t back_color,
     return;
 }
 
+
 static void textmode_putc(char c, uint32_t x, uint32_t y, uint32_t place)
 {
     display_textmode(c, WHITE, BLACK, place + x, y);
