@@ -22,7 +22,7 @@ bool init_v_memory()
 /*     printf(TEXT_MODE_SCREEN_RIGHT, "vir: 0x%x, phy: 0x%x", 0x800000, */
 /*            get_physical_addr(kernel_directory_table, 0x800000)); */
 
-    set_page_directory((uintptr_t)kernel_directory_table);
+    set_page_directory((uintptr_t)kernel_directory_table - 0xc0000000);
 
     return true;
 }
