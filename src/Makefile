@@ -29,6 +29,7 @@ ISO = ../himawari.iso
 $(IMAGE): $(OBJS)
 	$(LD) $(LDFLAGS) $(OBJS) -o $@
 	objdump -D $(IMAGE) > asm_himawari
+	ctags -R .
 
 
 $(ISO): $(IMAGE)
