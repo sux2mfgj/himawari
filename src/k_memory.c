@@ -201,6 +201,7 @@ void *memory_allocate_4k(uint32_t num)
             }
         }
     }
+    return NULL;
 }
 
 /*
