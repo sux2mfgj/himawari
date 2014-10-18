@@ -39,7 +39,6 @@ void task2(void)
 
 void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 {
-
     io_cli();
     init_screen();
 
@@ -55,11 +54,7 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     init_pic();
     init_inthandler();
 
-    enable_paging();
-
-    void *label = &&vm_start;
-    goto *(label + VIRTUAL_KERNEL_ADDR);
-vm_start:
+/*     enable_paging(); */
 
     io_sti();
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "hello"); */
@@ -70,15 +65,19 @@ vm_start:
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "mem_total: %d(KB)",
      * (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024)); */
 
-    /*     set_task(0, NULL, NULL); */
-    /*     set_task(1, task1, stack[0]+1024); */
-    /*     set_task(2, task2, stack[1]+1024); */
-
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "%x", &_kernel_end); */
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "%x", &_kernel_start); */
 
+    uint32_t stack[2][1024];
+    task_struct kernel_task, task_struct0, task_struct1;
+    task_struct0.context.eip = (uintptr_t)task1;
+    task_struct0.context.esp = (uintptr_t)stack[0] + sizeof(uint32_t)*1024;
+    task_struct1.context.eip = (uintptr_t)task2;
+    task_struct1.context.esp = (uintptr_t)stack[1] + sizeof(uint32_t)*1024;
+
+
     for (;;) {
-        io_cli();
+        io_hlt();
         if (keyboard_data_queue_check()) {
             io_sti();
         } else {
@@ -88,4 +87,5 @@ vm_start:
         }
     }
 }
+
 

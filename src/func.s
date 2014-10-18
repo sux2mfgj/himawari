@@ -225,9 +225,9 @@ inthandler fault_inthandler
 inthandler fault_inthandler2
 inthandler page_fault_handler
 
-.extern switch_to
-.globl task_switch
-task_switch: #void task_switch(TASK_MANAGEMENT_DATA *prev, TASK_MANAGEMENT_DATA *next)
+.extern __switch_to
+.globl switch_to
+switch_to: #void task_switch(TASK_MANAGEMENT_DATA *prev, TASK_MANAGEMENT_DATA *next)
 
 #     pusha
     pushf
@@ -253,6 +253,7 @@ task_switch: #void task_switch(TASK_MANAGEMENT_DATA *prev, TASK_MANAGEMENT_DATA 
 #     jmp switch_to
     popl %ebp
     popf
+    popfl
 #     popa
     ret
 # jmp task_switch
@@ -264,13 +265,33 @@ set_page_directory: #void set_page_directory(uintptr_t page_directory_addr);
     movl %eax, %cr3
     ret
 
+.globl disable_paging
+disable_paging:
+    movl %cr4, %eax
+    andl $0xffffff7f, %eax
+    movl %eax, %cr4
+    ret
+
+.globl start_paging
+start_paging:
+    movl %cr4, %eax
+    orl $0x00000080, %eax
+    movl %eax, %cr4
+    ret
+
 .globl enable_paging
-enable_paging: # void enable_pating();
+enable_paging: # void enable_paging();
     movl %cr0, %eax
     orl $0x80000000, %eax
     movl %eax, %cr0
     ret
 
+.globl start_4k_paging
+start_4k_paging:
+    movl %cr4, %eax
+    andl $0xffffffef, %eax
+    movl %eax, %cr4
+    ret
 
 .globl set_esp
 set_esp: #void set_esp(uintptr_t *esp);

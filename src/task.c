@@ -4,39 +4,59 @@
 #include "graphic.h"
 
 
-static struct TASK_MANAGEMENT_DATA task_management_data[3];
-
-void task_switch_c(uint32_t task1_num, uint32_t task2_num)
+void task_switch(task_struct *prev, task_struct *next)
 {
-/*     printf(TEXT_MODE_SCREEN_RIGHT, "before %d: 0x%x", */
-/*             task1_num, task_management_data[task1_num].eip); */
-/*     printf(TEXT_MODE_SCREEN_RIGHT, "before %d: 0x%x", */
-/*             task1_num, task_management_data[task2_num].eip); */
-    task_switch(&task_management_data[task1_num], &task_management_data[task2_num]);
-/*     printf(TEXT_MODE_SCREEN_RIGHT, "after %d: 0x%x", */
-/*             task1_num, task_management_data[task1_num].eip); */
-/*     printf(TEXT_MODE_SCREEN_RIGHT, "after %d: 0x%x", */
-/*             task1_num,  task_management_data[task2_num].eip); */
+    asm volatile(
+            "pushfl;"
+            "pushl %%ebp;"
+            "movl %%esp, %[prev_esp];"
+            "movl %[next_esp], %%esp;"
+            "movl $1f, %[prev_eip];"
+            "pushl %[next_eip];"
+            "jmp __switch_to;"
+            "1:;"
+            "popl %%ebp;"
+            "popfl;"
+            //output parameters
+            :[prev_esp] "=m" (prev->context.esp), [prev_eip] "=m" (prev->context.eip)
+            //input parameters
+            :[next_esp] "m" (next->context.esp), [next_eip] "m" (next->context.eip),
+            "a" (prev), "d" (next));
 }
+/*
+  switch_to: #void task_switch(TASK_MANAGEMENT_DATA *prev, TASK_MANAGEMENT_DATA *next)
 
-void set_task(uint32_t task_number, void (*f)(), uint8_t* esp)
+#     pusha
+    pushf
+    pushl %ebp
+
+#store
+    movl 12(%esp), %ebp
+    movl %esp, 0(%ebp) # prev->esp = %esp
+#     movl restore, %eax
+    movl $1f, 4(%ebp) #prev->eip = $restore
+
+#load
+    movl 16(%esp), %ebp
+    movl 0(%ebp), %esp     # %esp = next->esp
+#    pushl $1f
+    pushl 4(%ebp)       #push next->eip
+
+#   test
+#     pushl %eax
+#     pushl %eax
+    jmp switch_to
+1:
+#     jmp switch_to
+    popl %ebp
+    popf
+#     popa
+    ret
+
+ */
+
+void __switch_to()
 {
-/*     esp--; */
-/*     *esp = (uintptr_t)f; */
-/*     ++esp; */
-
-    task_management_data[task_number].esp = (uintptr_t)esp;
-/*     _set_task(&(task_management_data[task_number].eip)); */
-    task_management_data[task_number].eip = (uintptr_t)f;
-
-
-    printf(TEXT_MODE_SCREEN_RIGHT, "task%d: esp: 0x%x", task_number, (uintptr_t)esp);
-    printf(TEXT_MODE_SCREEN_RIGHT, "task%d: eip: 0x%x", task_number, (uintptr_t)f);
-}
-
-void switch_to()
-{
-    printf(TEXT_MODE_SCREEN_RIGHT, "in switch_to");
     return;
 }
 
