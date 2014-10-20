@@ -10,3 +10,5 @@ void timer_interrupt()
     scheduler_tick();
     return;
 }
+
+//TODO: add programable timer

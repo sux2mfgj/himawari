@@ -92,8 +92,7 @@ bool init_task(void);
 static task_struct* current_task;
 
 void scheduler_tick(void);
-// static bool scheduler(void);
-bool scheduler(void);
+static bool scheduler(void);
 
 void print_pid_test();
 

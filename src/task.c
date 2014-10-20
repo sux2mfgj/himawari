@@ -124,8 +124,8 @@ void scheduler_tick()
         scheduler();
 }
 
-/* static bool scheduler(void) */
-bool scheduler(void)
+//FIXME: diffence of Speed task1 and task2
+static bool scheduler(void)
 {
 /*     lock_task_list(); */
     task_struct *prev = current_task;

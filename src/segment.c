@@ -3,6 +3,8 @@
 #include "k_memory.h"
 #include "func.h"
 
+//TODO: set TSS 
+
 static struct SEGMENT_DESCRIPTOR gdt[NUM_GDT];
 static struct GATE_DISCRIPTOR idt[NUM_IDT];
 
