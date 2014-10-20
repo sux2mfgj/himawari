@@ -2,8 +2,8 @@
 #include "segment.h"
 #include "task.h"
 #include "graphic.h"
+#include "timer.h"
 
-static uint32_t timer_tick = 0;
 static interrupt_queue keyboard_data_queue;
 
 void fault_inthandler(int *esp)
@@ -19,16 +19,7 @@ void fault_inthandler2(int *esp)
 void timer_inthandler(int *esp)
 {
     io_out8(PIC_MASTER_CMD_STATE_PORT, PIC_OCW2_EOI);
-    /*     io_out8(0xa0, 0x20); */
-    timer_tick++;
-    /*     if (timer_tick == 100) { */
-    /*        task_switch_c(0, 1); */
-    /*     } */
-    /*     else if (timer_tick == 200) { */
-    /*         task_switch_c(1, 2); */
-    /*     } */
-
-    /*     printf(TEXT_MODE_SCREEN_RIGHT, "timer: %d", timer_tick); */
+    timer_interrupt();
     return;
 }
 
@@ -37,37 +28,9 @@ void keyboard_inthandler(int *esp)
     static int n = 0;
     unsigned char data;
     node *tmp;
-    /*     io_out8(PIC_MASTER_CMD_STATE_PORT, 0x61); */
     io_out8(PIC_MASTER_CMD_STATE_PORT, PIC_OCW2_EOI);
     data = io_in8(0x0060);
-    /*     printf(TEXT_MODE_SCREEN_RIGHT, "%d", data); */
-
-    /*     if (a == 1) { */
-    /*         a = 0; */
-    /*         b = 1; */
-    /*     } */
-    /*     else { */
-    /*         a = 1; */
-    /*         b = 0; */
-    /*     } */
     if (data <= 81) {
-
-        /*         if (n == 0) { */
-        /*         ++n; */
-        /*     printf(TEXT_MODE_SCREEN_RIGHT, "interrupt success 1"); */
-        /*             task_switch_c(0, 1); */
-        /*         } */
-        /*         else if((n%2)!=0){ */
-        /*         ++n; */
-        /*     printf(TEXT_MODE_SCREEN_RIGHT, "interrupt success 2"); */
-        /*             task_switch_c(1, 2); */
-        /*         } */
-        /*         else { */
-        /*         ++n; */
-        /*     printf(TEXT_MODE_SCREEN_RIGHT, "interrupt success 1"); */
-        /*             task_switch_c(2,1); */
-        /*         } */
-
         tmp = new_node(sizeof(char));
         *(char *)(tmp->data) = key_table[data];
         if (keyboard_data_queue.size == 0) {
