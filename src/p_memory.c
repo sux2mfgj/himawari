@@ -31,9 +31,9 @@ bool init_p_memory(uintptr_t memory_end)
     p_mem_data.free_num = number_of_page;
     p_mem_data.page_num = number_of_page;
 
-    printk(PRINT_PLACE_FREE_PAGE_SIZE, "FREE PAGE NUM 0x%x",
+    printk(FREE_PAGE_NUM, "FREE PAGE NUM 0x%x",
            p_mem_data.free_num);
-    printk(PRINT_PLACE_MAX_PAGE_SIZE, "MAX PAGE NUM 0x%x",
+    printk(MAX_PAGE_NUM, "MAX PAGE NUM 0x%x",
            number_of_page);
 
     return true;
@@ -65,7 +65,7 @@ page* alloc_serial_pages(uint32_t number_of_pages)
 
                     p_mem_data.free_num -= number_of_pages;
 
-                    printk(PRINT_PLACE_FREE_PAGE_SIZE, "FREE PAGE SIZE 0x%x",
+                    printk(FREE_PAGE_NUM, "FREE PAGE SIZE 0x%x",
                            p_mem_data.free_num * PAGE_SIZE);
 
                     return ret;
@@ -97,7 +97,7 @@ bool free_pages(page* free_page)
                 }
             }
             p_mem_data.free_num += free_page->number;
-            printk(PRINT_PLACE_FREE_PAGE_SIZE, "FREE PAGE SIZE 0x%x",
+            printk(FREE_PAGE_NUM, "FREE PAGE SIZE 0x%x",
                    p_mem_data.free_num * PAGE_SIZE);
 
             return memory_free(free_page);

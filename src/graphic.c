@@ -153,7 +153,7 @@ void slide_screen(uint32_t place)
     return;
 }
 
-void printk(uint32_t print_place, char *format, ...)
+void printk(printk_place place, char *format, ...)
 {
     char *f;
     va_list args;
@@ -166,27 +166,27 @@ void printk(uint32_t print_place, char *format, ...)
 
             switch (*f) {
                 case 'c':
-                    textmode_putc((uint8_t)va_arg(args, int), x++, print_place,
+                    textmode_putc((uint8_t)va_arg(args, int), x++, place,
                                   TEXT_MODE_SCREEN_LEFT);
                     break;
                 case 's':
                     x += textmode_puts((char *)va_arg(args, char *), x,
-                                       print_place, TEXT_MODE_SCREEN_LEFT);
+                                       place, TEXT_MODE_SCREEN_LEFT);
                     break;
 
                 case 'd':
                     x += integer_puts((uint32_t)va_arg(args, int), x,
-                                      print_place, TEXT_MODE_SCREEN_LEFT);
+                                      place, TEXT_MODE_SCREEN_LEFT);
                     break;
 
                 case 'x':
                     x += hexadecimal_put((uint32_t)va_arg(args, int), x,
-                                         print_place, TEXT_MODE_SCREEN_LEFT);
+                                         place, TEXT_MODE_SCREEN_LEFT);
                     break;
             }
 
         } else {
-            textmode_putc((uint8_t) * f, x++, print_place, TEXT_MODE_SCREEN_LEFT);
+            textmode_putc((uint8_t) * f, x++, place, TEXT_MODE_SCREEN_LEFT);
         }
     }
 

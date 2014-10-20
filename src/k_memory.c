@@ -23,7 +23,7 @@ bool init_memory(MULTIBOOT_INFO *multiboot_info)
     mem_upper =
         (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024) * 1024;
     printk(
-        PRINT_PLACE_PHYSI_MEM_SIZE, "Physical MEMORY SIZE: 0x%x",
+        PHYSICAL_MEM_SIZE, "Physical MEMORY SIZE: 0x%x",
         (multiboot_info->mem_upper + multiboot_info->mem_lower + 1024) * 1024);
     if (mem_upper > KERNEL_HEAP_END) {
         if (!memory_management_init(
@@ -75,8 +75,8 @@ bool memory_management_init(size_t size, uintptr_t base_addr)
     printf(TEXT_MODE_SCREEN_RIGHT, "kernel_end_include_heap: 0x%x",
            kernel_end_include_heap);
 
-    printk(PRINT_PLACE_FREE_KERNEL_HEAP, "FREE KERNEL HEAP SIZE: 0x%x", size);
-    printk(PRINT_PLACE_MAX_KERNEL_HEAP, "MAX KERNEL HEAP SIZE: 0x%x", size);
+    printk(FREE_KERNEL_HEAP, "FREE KERNEL HEAP SIZE: 0x%x", size);
+    printk(MAX_KERNEL_HEAP, "MAX KERNEL HEAP SIZE: 0x%x", size);
 
     mem_data.data[0].size = size;
     mem_data.data[0].status = MEMORY_INFO_STATUS_FREE;
@@ -131,7 +131,7 @@ void *memory_allocate(uint32_t size)
                     mem_data.end_point++;
                     mem_data.free_size -= size;
 
-                    printk(PRINT_PLACE_FREE_KERNEL_HEAP,
+                    printk(FREE_KERNEL_HEAP,
                            "FREE KERNEL HEAP SIZE: 0x%x", mem_data.free_size);
 /*                     printf(TEXT_MODE_SCREEN_RIGHT, "alloc: %d", size); */
                     return (void *)mem_data.data[i].base_addr;
@@ -349,7 +349,7 @@ exit:
     }
     mem_data.free_size += free_size;
 /*         printf(TEXT_MODE_SCREEN_RIGHT, "free: %d", current_info->size); */
-    printk(PRINT_PLACE_FREE_KERNEL_HEAP, "FREE KERNEL HEAP SIZE: 0x%x",
+    printk(FREE_KERNEL_HEAP, "FREE KERNEL HEAP SIZE: 0x%x",
            mem_data.free_size);
 
     return true;

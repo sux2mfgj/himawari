@@ -7,16 +7,12 @@
 #include "interrupt_handler.h"
 #include "task.h"
 
-/* uint8_t stack[3][1024]; */
-uint32_t stack[1024];
-
 void task1(void)
 {
     int i = 0;
-    io_sti();
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "0x%x", io_load_eflags()); */
-    for (i = 0; i < 100000; i++) {
-        printf(TEXT_MODE_SCREEN_RIGHT, "task1: %d", i);
+    for (i = 0; i < 1000000; i++) {
+        printk(DEBUG1, "task1: %d", i);
     }
 
     while (true) {
@@ -27,9 +23,8 @@ void task1(void)
 void task2(void)
 {
     int i = 0;
-    io_sti();
-    for (i = 0; i < 100000; i++) {
-        printf(TEXT_MODE_SCREEN_RIGHT, "task2: %d", i);
+    for (i = 0; i < 1000000; i++) {
+        printf(DEBUG2, "task2: %d", i);
     }
 
     while (true) {
@@ -68,13 +63,13 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "%x", &_kernel_end); */
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "%x", &_kernel_start); */
 
-    uint32_t stack[2][1024];
-    task_struct kernel_task, task_struct0, task_struct1;
-    task_struct0.context.eip = (uintptr_t)task1;
-    task_struct0.context.esp = (uintptr_t)stack[0] + sizeof(uint32_t)*1024;
-    task_struct1.context.eip = (uintptr_t)task2;
-    task_struct1.context.esp = (uintptr_t)stack[1] + sizeof(uint32_t)*1024;
-
+/*     uint32_t stack[2][1024]; */
+/*     task_struct kernel_task, task_struct0, task_struct1; */
+/*     task_struct0.context.eip = (uintptr_t)task1; */
+/*     task_struct0.context.esp = (uintptr_t)stack[0] + sizeof(uint32_t)*1024; */
+/*     task_struct1.context.eip = (uintptr_t)task2; */
+/*     task_struct1.context.esp = (uintptr_t)stack[1] + sizeof(uint32_t)*1024; */
+/*     task_switch((task_struct*)&kernel_task, (task_struct*)&task_struct0); */
 
     for (;;) {
         io_hlt();
