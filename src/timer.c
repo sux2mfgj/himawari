@@ -3,7 +3,7 @@
 
 static uint32_t timer_tick = 0;
 
-void do_timer()
+void timer_interrupt()
 {
     timer_tick++;
     return;

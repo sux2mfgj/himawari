@@ -19,7 +19,7 @@ void fault_inthandler2(int *esp)
 void timer_inthandler(int *esp)
 {
     io_out8(PIC_MASTER_CMD_STATE_PORT, PIC_OCW2_EOI);
-    do_timer();
+    timer_interrupt();
     return;
 }
 

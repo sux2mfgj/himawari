@@ -7,6 +7,6 @@
 
 
 
-void do_timer(void);
+void timer_interrupt(void);
 
 #endif
