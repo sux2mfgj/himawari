@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include "lib.h"
 
 #define KERNEL_STACK_SIZE 1024
 
@@ -44,26 +45,33 @@
 //     uint16_t iobase;
 // } tss_struct;
 
-typedef enum{
+typedef enum {
     RUNNIG,
     READY,
     BLOCKED
 } process_state;
 
+typedef enum {
+    PROCESS,
+    THREAD
+} kind;
+
 typedef struct context {
-    uint32_t esp;
-    uint32_t esp0;
-    uint32_t eip;
+    uint32_t* esp;
+    uint32_t* esp0;
+    uint32_t* eip;
 } context;
 
 typedef struct task_struct {
     uint32_t* page_directory_table;
     process_state state;
+    kind kind;
     uint32_t id;
     context context;
-//     uint32_t* kernel_stack;
-//     struct task_struct* parent;
-//     char task_name[16];
+    struct task_struct* next_task;
+    //     uint32_t* kernel_stack;
+    //     struct task_struct* parent;
+    //     char task_name[16];
 } task_struct;
 
 // union thread_union {
@@ -71,7 +79,23 @@ typedef struct task_struct {
 //     uint32_t stack[KERNEL_STACK_SIZE];
 // };
 
-void task_switch(task_struct *prev, task_struct *next);
+void task_switch(task_struct* prev, task_struct* next);
 void __switch_to(void);
 
+// scheduler
+bool create_kernel_thread(void* entry);
+static bool task_list_lock;
+static void lock_task_list();
+static void unlock_task_list();
+
+bool init_task(void);
+static task_struct* current_task;
+
+void scheduler_tick(void);
+// static bool scheduler(void);
+bool scheduler(void);
+
+void print_pid_test();
+
+static uint32_t pid = 0;
 #endif

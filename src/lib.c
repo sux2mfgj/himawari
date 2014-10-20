@@ -1,10 +1,12 @@
-#include"lib.h"
-
+#include "lib.h"
 
 // linked list
 node *new_node(uint32_t data_size)
 {
     node *ret = memory_allocate(sizeof(node));
+    if (NULL == ret) {
+        return false;
+    }
 
     ret->data = memory_allocate(data_size);
     ret->next = NULL;
@@ -13,7 +15,7 @@ node *new_node(uint32_t data_size)
     return ret;
 }
 
-bool append_node(node *list_head, node* append_node)
+bool append_node(node *list_head, node *append_node)
 {
     node *current_node = list_head;
 
@@ -32,26 +34,27 @@ bool append_node(node *list_head, node* append_node)
     return true;
 }
 
-node *delete_node(node *list_head, node* del_node)
+node *delete_node(node *list_head, node *del_node)
 {
     node *current_node = list_head;
 
     node *tmp = list_head->next;
-/*     printf(TEXT_MODE_SCREEN_RIGHT, "list_head:0x%x", list_head); */
+    /*     printf(TEXT_MODE_SCREEN_RIGHT, "list_head:0x%x", list_head); */
 
     if (list_head == del_node) {
-        if (!memory_free(list_head->data)){
-            printf(TEXT_MODE_SCREEN_RIGHT, "list_head->data free faild :%d", list_head->data);
+        if (!memory_free(list_head->data)) {
+            printf(TEXT_MODE_SCREEN_RIGHT, "list_head->data free faild :%d",
+                   list_head->data);
         }
-        if (!memory_free(list_head)){
-            printf(TEXT_MODE_SCREEN_RIGHT, "list_head free faild :%d",list_head);
+        if (!memory_free(list_head)) {
+            printf(TEXT_MODE_SCREEN_RIGHT, "list_head free faild :%d",
+                   list_head);
         }
         if (tmp == NULL) {
             return NULL;
         }
         return tmp;
-    }
-    else {
+    } else {
         tmp = del_node->prev;
         tmp->next = del_node->next;
         del_node->next->prev = tmp;
@@ -74,10 +77,7 @@ void list_test(void)
 
     head = delete_node(head, head);
     print_array_status();
-/*     head = delete_node(head, head); */
-/*     print_array_status(); */
-
+    /*     head = delete_node(head, head); */
+    /*     print_array_status(); */
 }
-
-
 

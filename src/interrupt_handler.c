@@ -3,6 +3,7 @@
 #include "task.h"
 #include "graphic.h"
 #include "timer.h"
+#include "task.h"
 
 static interrupt_queue keyboard_data_queue;
 
@@ -30,6 +31,7 @@ void keyboard_inthandler(int *esp)
     node *tmp;
     io_out8(PIC_MASTER_CMD_STATE_PORT, PIC_OCW2_EOI);
     data = io_in8(0x0060);
+
     if (data <= 81) {
         tmp = new_node(sizeof(char));
         *(char *)(tmp->data) = key_table[data];

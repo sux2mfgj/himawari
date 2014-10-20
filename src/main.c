@@ -10,9 +10,8 @@
 void task1(void)
 {
     int i = 0;
-    /*     printf(TEXT_MODE_SCREEN_RIGHT, "0x%x", io_load_eflags()); */
-    for (i = 0; i < 1000000; i++) {
-        printk(DEBUG1, "task1: %d", i);
+    while (i >= 0) {
+        printk(DEBUG1, "task1: %d", i++);
     }
 
     while (true) {
@@ -23,8 +22,8 @@ void task1(void)
 void task2(void)
 {
     int i = 0;
-    for (i = 0; i < 1000000; i++) {
-        printf(DEBUG2, "task2: %d", i);
+    while (i >= 0) {
+        printk(DEBUG2, "task2: %d", i++);
     }
 
     while (true) {
@@ -49,9 +48,13 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     init_pic();
     init_inthandler();
 
-/*     enable_paging(); */
+    init_task();
+    create_kernel_thread(task2);
+    create_kernel_thread(task1);
+    print_pid_test();
 
     io_sti();
+    printf(TEXT_MODE_SCREEN_RIGHT, "----start----");
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "hello"); */
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "mem_lower: %d(KB)",
      * multiboot_info->mem_lower); */
@@ -63,13 +66,16 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "%x", &_kernel_end); */
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "%x", &_kernel_start); */
 
-/*     uint32_t stack[2][1024]; */
-/*     task_struct kernel_task, task_struct0, task_struct1; */
-/*     task_struct0.context.eip = (uintptr_t)task1; */
-/*     task_struct0.context.esp = (uintptr_t)stack[0] + sizeof(uint32_t)*1024; */
-/*     task_struct1.context.eip = (uintptr_t)task2; */
-/*     task_struct1.context.esp = (uintptr_t)stack[1] + sizeof(uint32_t)*1024; */
-/*     task_switch((task_struct*)&kernel_task, (task_struct*)&task_struct0); */
+    /*     uint32_t stack[2][1024]; */
+    /*     task_struct kernel_task, task_struct0, task_struct1; */
+    /*     task_struct0.context.eip = (uintptr_t)task1; */
+    /*     task_struct0.context.esp = (uintptr_t)stack[0] +
+     * sizeof(uint32_t)*1024; */
+    /*     task_struct1.context.eip = (uintptr_t)task2; */
+    /*     task_struct1.context.esp = (uintptr_t)stack[1] +
+     * sizeof(uint32_t)*1024; */
+    /*     task_switch((task_struct*)&kernel_task, (task_struct*)&task_struct0);
+     */
 
     for (;;) {
         io_hlt();
@@ -82,5 +88,4 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
         }
     }
 }
-
 

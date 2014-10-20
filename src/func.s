@@ -69,8 +69,8 @@ io_out32:
     ret
 
 io_load_eflags:
-    pushf
-    pop %eax
+    pushfl
+    popl %eax
     ret
 
 io_store_eflags:
