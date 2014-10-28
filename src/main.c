@@ -51,10 +51,11 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     init_task();
     create_kernel_thread(task2);
     create_kernel_thread(task1);
-    print_pid_test();
+/*     print_pid_test(); */
 
     io_sti();
-    printf(TEXT_MODE_SCREEN_RIGHT, "----start----");
+/*     printf(TEXT_MODE_SCREEN_RIGHT, "----start----"); */
+
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "hello"); */
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "mem_lower: %d(KB)",
      * multiboot_info->mem_lower); */
@@ -82,9 +83,6 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
         if (keyboard_data_queue_check()) {
             io_sti();
         } else {
-            /*             task_switch_c(0, 1); */
-            /*             printf(TEXT_MODE_SCREEN_RIGHT, "test"); */
-            /*             print_array_status(); */
         }
     }
 }

@@ -3,27 +3,13 @@
 #include "k_memory.h"
 #include "func.h"
 
-//TODO: set TSS 
-
 static struct SEGMENT_DESCRIPTOR gdt[NUM_GDT];
 static struct GATE_DISCRIPTOR idt[NUM_IDT];
 
 void init_gdtidt(void)
 {
-    /*     gdt = (struct SEGMENT_DESCRIPTOR *)memory_allocate( */
-    /*         (sizeof(struct SEGMENT_DESCRIPTOR) * NUM_GDT)); */
-    /*     struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR
-     * *)GDT_ADDR; */
-    /*     struct GATE_DISCRIPTOR *idt = (struct GATE_DISCRIPTOR *) IDT_ADDR; */
-    /*     idt = (struct GATE_DISCRIPTOR *)memory_allocate( */
-    /*         (sizeof(struct GATE_DISCRIPTOR) * NUM_IDT)); */
-
     printf(TEXT_MODE_SCREEN_RIGHT, "idt: 0x%x", idt);
     printf(TEXT_MODE_SCREEN_RIGHT, "gdt: 0x%x", gdt);
-
-    /*     if (idt == NULL) { */
-    /*         return; */
-    /*     } */
 
     // init GDT
     for (int i = 0; i < NUM_GDT; i++) {
@@ -37,14 +23,16 @@ void init_gdtidt(void)
                  SEG_TYPE_DATE_REW, DESC_TYPE_SEGMENT, PRIVILEGE_LEVEL_OS,
                  PRESENT);
 
-    /*     load_gdtr(0xffff, (uintptr_t)gdt); */
-    load_gdtr(sizeof(struct SEGMENT_DESCRIPTOR) * 4, (uintptr_t)gdt);
+    load_gdtr(sizeof(struct SEGMENT_DESCRIPTOR) * (NUM_GDT - 1),
+              (uintptr_t)gdt);
 
     // init IDT
     for (int i = 0; i < NUM_IDT; i++) {
-        /*         set_gatedesc(idt + i, (uintptr_t)io_hlt, 0, 0, 0, 0, 0); */
-        set_gatedesc(idt + 0x20, (uintptr_t)asm_timer_inthandler, 1 * 8,
-                     GATE_TYPE_32BIT_INT, 0, PRIVILEGE_LEVEL_OS, PRESENT);
+        set_gatedesc(idt + i, (uintptr_t)io_hlt, 0, 0, 0, 0, 0);
+        /*         set_gatedesc(idt + 0x20, (uintptr_t)asm_timer_inthandler, 1 *
+         * 8, */
+        /*                      GATE_TYPE_32BIT_INT, 0, PRIVILEGE_LEVEL_OS,
+         * PRESENT); */
     }
 
     set_gatedesc(idt + 13, (uintptr_t)asm_fault_inthandler2,
@@ -58,15 +46,14 @@ void init_gdtidt(void)
                  CODE_SEGMENT_NUM * 8, GATE_TYPE_32BIT_INT, 0,
                  PRIVILEGE_LEVEL_OS, PRESENT);
 
-    /*     load_idtr(IDT_LIMIT, (uintptr_t)idt); */
-    load_idtr(sizeof(struct GATE_DISCRIPTOR) * NUM_IDT, (uintptr_t)idt);
-
     set_gatedesc(idt + 0x20, (uintptr_t)asm_timer_inthandler,
                  CODE_SEGMENT_NUM * 8, GATE_TYPE_32BIT_INT, 0,
                  PRIVILEGE_LEVEL_OS, PRESENT);
 
     set_gatedesc(idt + 0x21, (uintptr_t)asm_inthandler21, CODE_SEGMENT_NUM * 8,
                  GATE_TYPE_32BIT_INT, 0, PRIVILEGE_LEVEL_OS, PRESENT);
+
+    load_idtr(sizeof(struct GATE_DISCRIPTOR) * NUM_IDT, (uintptr_t)idt);
 
     return;
 }
@@ -148,6 +135,12 @@ void init_pit(void)
                   PIT_CONTROL_WORD_MODE_SQARE);
 
     return;
+}
+
+void init_tss(void)
+{
+    memset(&tss0, '0', sizeof(tss_struct));
+    /*     set_gatedesc(); */
 }
 
 void set_pit_count(uint16_t count, uint8_t counter, uint8_t mode)
