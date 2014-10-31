@@ -33,8 +33,14 @@
 #define PRESENT     1
 #define NOT_PRESENT 0
 
-#define CODE_SEGMENT_NUM 2
-#define DATA_SEGMENT_NUM 3
+enum segment_descriptor_variable {
+    KERNEL_CODE_SEGMENT = 2,
+    KERNEL_DATA_SEGMENT = 3,
+    USER_CODE_SEGMENT = 4,
+    USER_DATA_SEGMENT = 5
+};
+// #define KERNEL_CODE_SEGMENT_NUM 2
+// #define DATA_SEGMENT_NUM 3
 
 #define GATE_TYPE_32BIT_TASK    0x5
 #define GATE_TYPE_16BIT_INT     0x6
@@ -135,8 +141,6 @@ struct GATE_DISCRIPTOR
     uint16_t offset_high;
 };
 
-void init_tss(void);
-
 void init_gdtidt(void);
 void set_segmdesc(
         struct SEGMENT_DESCRIPTOR *sd,
@@ -162,6 +166,10 @@ void init_pic(void);
 
 void init_pit(void);
 void set_pit_count(uint16_t count, uint8_t counter, uint8_t mode);
+
+void init_tss(void);
+void load_sp0(uintptr_t esp);
+
 
 void timer_interrupt(void);
 

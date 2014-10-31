@@ -28,7 +28,8 @@ typedef enum printk_place{
     MAX_PAGE_NUM,
     FREE_PAGE_NUM,
     DEBUG1,
-    DEBUG2
+    DEBUG2,
+    DEBUG3
 }printk_place;
 // #define PRINT_PLACE_PHYSI_MEM_SIZE 0
 // #define PRINT_PLACE_MAX_KERNEL_HEAP 1

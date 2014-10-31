@@ -58,7 +58,16 @@ static void unlock_task_list()
     return;
 }
 
-bool create_kernel_thread(void *entry)
+bool create_kernel_thread(void *entry){
+    return __create_kernel_thread(entry, false);
+}
+
+bool create_init_thread(void)
+{
+    return __create_kernel_thread(init, true);
+}
+
+static bool __create_kernel_thread(void *entry, bool is_init)
 {
     task_struct *thread = (task_struct *)memory_allocate(sizeof(task_struct));
     if (NULL == thread) {
@@ -68,7 +77,7 @@ bool create_kernel_thread(void *entry)
     thread->page_directory_table = NULL;
     thread->state = RUNNIG;
     thread->kind = THREAD;
-    thread->id = ++pid;
+    thread->id = pid++;
     thread->context.eip = entry;
 
     uint32_t *bp = (uint32_t *)memory_allocate_4k(1);
@@ -86,19 +95,43 @@ bool create_kernel_thread(void *entry)
     return true;
 }
 
+//TODO: make kernel_helper function
+
+
 void scheduler_tick() { scheduler(); }
 
 // FIXME: diffence of Speed task1 and task2
 static bool scheduler(void)
 {
-    /*     lock_task_list(); */
+    lock_task_list();
     task_struct *prev = current_task;
     current_task = current_task->next_task;
-    /*     unlock_task_list(); */
+    unlock_task_list();
     task_switch(prev, current_task);
 
     return true;
 }
+
+bool exec_init(void)
+{
+
+}
+
+void init(void)
+{
+    int i = 0xffff;
+    while (i >= 0) {
+        printk(DEBUG3, "process: %d", i--);
+    }
+    create_kernel_thread(task2);
+    create_kernel_thread(task1);
+
+    exec_init();
+    while(true){
+        io_hlt();
+    }
+}
+
 
 void print_pid_test()
 {

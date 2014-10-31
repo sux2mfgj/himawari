@@ -15,13 +15,15 @@ void init_gdtidt(void)
     for (int i = 0; i < NUM_GDT; i++) {
         set_segmdesc(gdt + i, 0, 0, 0, 0, 0, 0, 0);
     }
-    set_segmdesc(gdt + CODE_SEGMENT_NUM, 0xffffffff, 0x00000000, 0,
+    set_segmdesc(gdt + KERNEL_CODE_SEGMENT, 0xffffffff, 0x00000000, 0,
                  SEG_TYPE_CODE_XRC, DESC_TYPE_SEGMENT, PRIVILEGE_LEVEL_OS,
                  PRESENT);
 
-    set_segmdesc(gdt + DATA_SEGMENT_NUM, 0xffffffff, 0x00000000, 0,
+    set_segmdesc(gdt + KERNEL_DATA_SEGMENT, 0xffffffff, 0x00000000, 0,
                  SEG_TYPE_DATE_REW, DESC_TYPE_SEGMENT, PRIVILEGE_LEVEL_OS,
                  PRESENT);
+
+    /*     set_segmdesc(gdt + USER_CODE_SEGMENT, 0xffffffff, 0x00000000, ) */
 
     load_gdtr(sizeof(struct SEGMENT_DESCRIPTOR) * (NUM_GDT - 1),
               (uintptr_t)gdt);
@@ -36,22 +38,24 @@ void init_gdtidt(void)
     }
 
     set_gatedesc(idt + 13, (uintptr_t)asm_fault_inthandler2,
-                 CODE_SEGMENT_NUM * 8, GATE_TYPE_32BIT_INT, 0,
+                 KERNEL_CODE_SEGMENT * 8, GATE_TYPE_32BIT_INT, 0,
                  PRIVILEGE_LEVEL_OS, PRESENT);
 
-    set_gatedesc(idt + 8, (uintptr_t)asm_fault_inthandler, CODE_SEGMENT_NUM * 8,
-                 GATE_TYPE_32BIT_INT, 0, PRIVILEGE_LEVEL_OS, PRESENT);
+    set_gatedesc(idt + 8, (uintptr_t)asm_fault_inthandler,
+                 KERNEL_CODE_SEGMENT * 8, GATE_TYPE_32BIT_INT, 0,
+                 PRIVILEGE_LEVEL_OS, PRESENT);
 
     set_gatedesc(idt + 14, (uintptr_t)asm_page_fault_handler,
-                 CODE_SEGMENT_NUM * 8, GATE_TYPE_32BIT_INT, 0,
+                 KERNEL_CODE_SEGMENT * 8, GATE_TYPE_32BIT_INT, 0,
                  PRIVILEGE_LEVEL_OS, PRESENT);
 
     set_gatedesc(idt + 0x20, (uintptr_t)asm_timer_inthandler,
-                 CODE_SEGMENT_NUM * 8, GATE_TYPE_32BIT_INT, 0,
+                 KERNEL_CODE_SEGMENT * 8, GATE_TYPE_32BIT_INT, 0,
                  PRIVILEGE_LEVEL_OS, PRESENT);
 
-    set_gatedesc(idt + 0x21, (uintptr_t)asm_inthandler21, CODE_SEGMENT_NUM * 8,
-                 GATE_TYPE_32BIT_INT, 0, PRIVILEGE_LEVEL_OS, PRESENT);
+    set_gatedesc(idt + 0x21, (uintptr_t)asm_inthandler21,
+                 KERNEL_CODE_SEGMENT * 8, GATE_TYPE_32BIT_INT, 0,
+                 PRIVILEGE_LEVEL_OS, PRESENT);
 
     load_idtr(sizeof(struct GATE_DISCRIPTOR) * NUM_IDT, (uintptr_t)idt);
 
@@ -141,6 +145,11 @@ void init_tss(void)
 {
     memset(&tss0, '0', sizeof(tss_struct));
     /*     set_gatedesc(); */
+}
+
+void load_sp0(uintptr_t esp0)
+{
+    tss0.esp0 = esp0;
 }
 
 void set_pit_count(uint16_t count, uint8_t counter, uint8_t mode)
