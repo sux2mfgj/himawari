@@ -17,6 +17,7 @@ ubuntu 14.04
 install
     grub2
     qemu
+    clang
 
 
 ---
