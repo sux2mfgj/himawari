@@ -90,8 +90,6 @@ hardware_interrupt14:
 hardware_interrupt15:
     PIC_SLAVE_INTERRUPT(15)
 
-test:
-    pushl $99;
 # ----- exception -----
 
 #define IS_INT_IN_KERNEL(displ, label)    \
@@ -103,7 +101,6 @@ exception_entry:
 
 # TODO: have to create from user trapframe and from kernel trapframe
 exception_from_user:
-    pushl $50
 
 exception_from_kernel:
     call exception_handler
@@ -114,8 +111,7 @@ exception_from_kernel:
     jmp exception_entry
 
 #define EXCEPTION_NO_ERROR_CODE(vector) \
-    pushl $vector ;\
-#pushl $0;\
+    pushl $0 ;\
     EXCEPTION_ERROR_CODE(vector)
 
 .globl divide_error

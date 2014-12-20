@@ -126,7 +126,7 @@ void init_pic(void)
     io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW4);
 
     // setting enable
-    io_out8(PIC_MASTER_DATA_PORT, 0xfd);  // 1111 1101
+    io_out8(PIC_MASTER_DATA_PORT, 0xfc);  // 1111 1100
     io_out8(PIC_SLAVE_DATA_PORT, 0xff);   // 1111 1111
 
     return;

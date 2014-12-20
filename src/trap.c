@@ -27,7 +27,7 @@ static gate_vector_table exception_table[] = {
     {NULL, 0, 0}};
 
 static gate_vector_table pic_table[] = {
-    {hardware_interrupt0, 32, PRIVILEGE_OS},
+    {hardware_interrupt0, HARDWARE_VECTOR(0), PRIVILEGE_OS},
     {hardware_interrupt1, HARDWARE_VECTOR(1), PRIVILEGE_OS},
     {hardware_interrupt2, HARDWARE_VECTOR(2), PRIVILEGE_OS},
     {hardware_interrupt3, HARDWARE_VECTOR(3), PRIVILEGE_OS},
