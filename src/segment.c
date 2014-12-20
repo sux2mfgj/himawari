@@ -2,6 +2,8 @@
 #include "graphic.h"
 #include "k_memory.h"
 #include "func.h"
+#include "vectors.h"
+
 
 static struct SEGMENT_DESCRIPTOR gdt[NUM_GDT];
 static struct GATE_DISCRIPTOR idt[NUM_IDT];
@@ -29,12 +31,9 @@ void init_gdtidt(void)
               (uintptr_t)gdt);
 
     // init IDT
+    /*
     for (int i = 0; i < NUM_IDT; i++) {
         set_gatedesc(idt + i, (uintptr_t)io_hlt, 0, 0, 0, 0, 0);
-        /*         set_gatedesc(idt + 0x20, (uintptr_t)asm_timer_inthandler, 1 *
-         * 8, */
-        /*                      GATE_TYPE_32BIT_INT, 0, PRIVILEGE_LEVEL_OS,
-         * PRESENT); */
     }
 
     set_gatedesc(idt + 13, (uintptr_t)asm_fault_inthandler2,
@@ -58,7 +57,7 @@ void init_gdtidt(void)
                  PRIVILEGE_LEVEL_OS, PRESENT);
 
     load_idtr(sizeof(struct GATE_DISCRIPTOR) * NUM_IDT, (uintptr_t)idt);
-
+*/
     return;
 }
 
@@ -127,7 +126,7 @@ void init_pic(void)
     io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW4);
 
     // setting enable
-    io_out8(PIC_MASTER_DATA_PORT, 0xfc);  // 1111 1100
+    io_out8(PIC_MASTER_DATA_PORT, 0xfd);  // 1111 1101
     io_out8(PIC_SLAVE_DATA_PORT, 0xff);   // 1111 1111
 
     return;

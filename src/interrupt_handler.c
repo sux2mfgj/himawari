@@ -4,6 +4,7 @@
 #include "graphic.h"
 #include "timer.h"
 #include "task.h"
+#include "vectors.h"
 
 static interrupt_queue keyboard_data_queue;
 

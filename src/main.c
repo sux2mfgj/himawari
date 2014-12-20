@@ -6,6 +6,7 @@
 #include "lib.h"
 #include "interrupt_handler.h"
 #include "task.h"
+#include "trap.h"
 
 void task1(void)
 {
@@ -37,6 +38,7 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     init_screen();
 
     init_gdtidt();
+    init_interrupt();
 
     if (!init_memory(multiboot_info)) {
         // TODO: panic
@@ -48,10 +50,10 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     init_pic();
     init_inthandler();
 
-    init_tss();
+    //init_tss();
 
-    init_task();
-    create_kernel_thread(init);
+/*     init_task(); */
+/*     create_kernel_thread(init); */
 /*     print_pid_test(); */
 
     io_sti();
@@ -81,10 +83,10 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 
     for (;;) {
         io_hlt();
-        if (keyboard_data_queue_check()) {
-            io_sti();
-        } else {
-        }
+/*         if (keyboard_data_queue_check()) { */
+/*             io_sti(); */
+/*         } else { */
+/*         } */
     }
 }
 

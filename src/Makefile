@@ -3,17 +3,16 @@ AS = as
 LD = ld
 QEMU = qemu-system-i386
 
-QEMUFLAGS = -monitor stdio -m 32M -gdb tcp::10000 -S -sdl
-#  QEMUFLAGS = -curses -m 16M -gdb tcp::10000
+QEMUFLAGS = -monitor stdio -m 32M -gdb tcp::10000  -S -sdl
 CFLAGS = -g -fno-builtin -nostdlib -mno-red-zone -ffreestanding \
 			-fno-stack-protector --target=i686-elf -m32
 ASFLAGS = --32
 PPFLAGS = -E
 LDFLAGS = -m elf_i386 --format elf32-i386 --oformat elf32-i386 -Map kernel.map -Tld.script
 
-C_OBJS = entry.o main.o segment.o interrupt_handler.o graphic.o k_memory.o p_memory.o v_memory.o lib.o task.o string.o timer.o
+C_OBJS = entry.o main.o segment.o trap.o interrupt_handler.o graphic.o k_memory.o p_memory.o v_memory.o lib.o task.o string.o timer.o
 C_SRC = ${C_OBJS: .o=.c}
-ASM_OBJS = func.o
+ASM_OBJS = func.o vectors.o
 OBJS = $(ASM_OBJS) $(C_OBJS)
 
 IMAGE = himawari
