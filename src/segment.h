@@ -33,42 +33,20 @@
 #define PRESENT     1
 #define NOT_PRESENT 0
 
-#define CODE_SEGMENT_NUM 2
-#define DATA_SEGMENT_NUM 3
+enum segment_descriptor_variable {
+    KERNEL_CODE_SEGMENT = 2,
+    KERNEL_DATA_SEGMENT = 3,
+    USER_CODE_SEGMENT = 4,
+    USER_DATA_SEGMENT = 5
+};
+// #define KERNEL_CODE_SEGMENT_NUM 2
+// #define DATA_SEGMENT_NUM 3
 
 #define GATE_TYPE_32BIT_TASK    0x5
 #define GATE_TYPE_16BIT_INT     0x6
 #define GATE_TYPE_16BIT_TRAP    0x7
 #define GATE_TYPE_32BIT_INT     0xe
 #define GATE_TYPE_32BIT_TRAP    0xf
-
-#define PIC_MASTER_CMD_STATE_PORT 0x20
-#define PIC_MASTER_DATA_PORT 0x21
-#define PIC_SLAVE_CMD_STATE_PORT 0xA0
-#define PIC_SLAVE_DATA_PORT 0xA1
-
-#define PIC_MASTER_ICW1 0x11
-#define PIC_MASTER_ICW2 0x20 // use after 0x20 number interrupt descriptor table
-#define PIC_MASTER_ICW3 0x04
-// #define PIC_MASTER_ICW4 0x01
-#define PIC_MASTER_ICW4 0x00
-
-#define PIC_SLAVE_ICW1 PIC_MASTER_ICW1
-#define PIC_SLAVE_ICW2 0x28
-#define PIC_SLAVE_ICW3 0x02
-#define PIC_SLAVE_ICW4 PIC_MASTER_ICW4
-
-#define PIC_IMR_MASK_IRQ0 0x01
-#define PIC_IMR_MASK_IRQ1 0x02
-#define PIC_IMR_MASK_IRQ2 0x04
-#define PIC_IMR_MASK_IRQ3 0x08
-#define PIC_IMR_MASK_IRQ4 0x10
-#define PIC_IMR_MASK_IRQ5 0x20
-#define PIC_IMR_MASK_IRQ6 0x40
-#define PIC_IMR_MASK_IRQ7 0x80
-#define PIC_IMR_MASK_IRQ_ALL 0xff
-
-#define PIC_OCW2_EOI 0x20
 
 #define PIT_PORT_COUNTER0       0x40
 #define PIT_PORT_COUNTER1       0x41
@@ -135,8 +113,6 @@ struct GATE_DISCRIPTOR
     uint16_t offset_high;
 };
 
-void init_tss(void);
-
 void init_gdtidt(void);
 void set_segmdesc(
         struct SEGMENT_DESCRIPTOR *sd,
@@ -162,6 +138,10 @@ void init_pic(void);
 
 void init_pit(void);
 void set_pit_count(uint16_t count, uint8_t counter, uint8_t mode);
+
+void init_tss(void);
+void load_sp0(uintptr_t esp);
+
 
 void timer_interrupt(void);
 

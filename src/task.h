@@ -76,6 +76,8 @@ typedef struct task_struct {
     //     char task_name[16];
 } task_struct;
 
+static task_struct init_process;
+
 // union thread_union {
 //     thread_info thread_info;
 //     uint32_t stack[KERNEL_STACK_SIZE];
@@ -86,6 +88,8 @@ void __switch_to(void);
 
 // scheduler
 bool create_kernel_thread(void* entry);
+bool create_init_thread(void);
+static bool __create_kernel_thread(void* entry, bool is_init);
 static bool task_list_lock;
 static void lock_task_list();
 static void unlock_task_list();
@@ -96,7 +100,14 @@ static task_struct* current_task;
 void scheduler_tick(void);
 static bool scheduler(void);
 
+bool exec_init(void);
+void init(void);
+void task1(void);
+void task2(void);
+
 void print_pid_test();
+
+
 
 static uint32_t pid = 0;
 #endif
