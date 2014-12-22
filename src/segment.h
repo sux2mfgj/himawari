@@ -27,9 +27,6 @@
 #define DESC_TYPE_SYSTEM    0
 #define DESC_TYPE_SEGMENT   1
 
-#define PRIVILEGE_LEVEL_OS  0
-#define PRIVILEGE_LEVEL_APP 3
-
 #define PRESENT     1
 #define NOT_PRESENT 0
 

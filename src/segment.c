@@ -3,6 +3,7 @@
 #include "k_memory.h"
 #include "func.h"
 #include "vectors.h"
+#include "trap.h"
 
 
 static struct SEGMENT_DESCRIPTOR gdt[NUM_GDT];
@@ -18,11 +19,11 @@ void init_gdtidt(void)
         set_segmdesc(gdt + i, 0, 0, 0, 0, 0, 0, 0);
     }
     set_segmdesc(gdt + KERNEL_CODE_SEGMENT, 0xffffffff, 0x00000000, 0,
-                 SEG_TYPE_CODE_XRC, DESC_TYPE_SEGMENT, PRIVILEGE_LEVEL_OS,
+                 SEG_TYPE_CODE_XRC, DESC_TYPE_SEGMENT, PRIVILEGE_OS,
                  PRESENT);
 
     set_segmdesc(gdt + KERNEL_DATA_SEGMENT, 0xffffffff, 0x00000000, 0,
-                 SEG_TYPE_DATE_REW, DESC_TYPE_SEGMENT, PRIVILEGE_LEVEL_OS,
+                 SEG_TYPE_DATE_REW, DESC_TYPE_SEGMENT, PRIVILEGE_OS,
                  PRESENT);
 
     /*     set_segmdesc(gdt + USER_CODE_SEGMENT, 0xffffffff, 0x00000000, ) */
