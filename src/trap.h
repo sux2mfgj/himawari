@@ -10,7 +10,7 @@
 
 #define INTERRUPT_DESCRIPTOR_TABLE_SIZE 256
 
-#define HARDWARE_VECTOR(n) n+32
+#define HARDWARE_VECTOR(n) n + 32
 
 // only 32bit protect mode
 enum GATE_TYPE { TAKS_GATE = 0x5, INTERRUPT_GATE = 0xe, TRAP_GATE = 0xf };
@@ -20,6 +20,12 @@ enum PRIVILEGE_LEVEL { PRIVILEGE_OS = 0, PRIVILEGE_USER = 3 };
 enum IRQ_HANDLER_NUM {
     IRQ_CLOCK,
     IRQ_KEYBOARD,
+    IRQ_CASCADE_SLAVE,
+    IRQ_SECOND_SERIAL,
+    IRQ_FIRST_SERIAL,
+    IRQ_XT_WINCHESTER,
+    IRQ_FLOPPY,
+    IRQ_PRINTER
 };
 
 typedef struct _gate_discriptor {
@@ -45,10 +51,10 @@ typedef struct _gate_vector_table {
 void init_interrupt(void);
 
 static inline void _set_gatedesc(gate_descriptor *gd, uint32_t offset,
-                         uint32_t selector, uint8_t gate_type,
-                         uint8_t storage_segment,
-                         uint8_t descriptor_privilege_level, uint8_t present);
-
+                                 uint32_t selector, uint8_t gate_type,
+                                 uint8_t storage_segment,
+                                 uint8_t descriptor_privilege_level,
+                                 uint8_t present);
 
 // pic asmblly handlers
 extern void hardware_interrupt0(void);
