@@ -36,4 +36,8 @@ extern void enable_paging(void);
 extern void start_4k_paging(void);
 
 extern void set_esp(uintptr_t *esp);
+
+
+// test code
+extern void test_sys_call(void);
 #endif

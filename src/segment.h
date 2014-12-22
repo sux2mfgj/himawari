@@ -122,14 +122,14 @@ void set_segmdesc(
         uint8_t present);
 
 
-void set_gatedesc(
-        struct GATE_DISCRIPTOR *gd,
-        uint32_t offset,
-        uint32_t selector,
-        uint8_t gate_type,
-        uint8_t storage_segment,
-        uint8_t descriptor_privilege_level,
-        uint8_t present);
+// void set_gatedesc(
+//         gate_descriptor *gd,
+//         uint32_t offset,
+//         uint32_t selector,
+//         uint8_t gate_type,
+//         uint8_t storage_segment,
+//         uint8_t descriptor_privilege_level,
+//         uint8_t present);
 
 void init_pic(void);
 

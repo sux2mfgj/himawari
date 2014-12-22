@@ -190,3 +190,17 @@ machine_check:
 .globl simd_exception
 simd_exception:
     EXCEPTION_NO_ERROR_CODE(SIMD_EXCEPTION_VECTOR)
+
+# ---- system call ----
+.globl system_call
+system_call:
+    IS_INT_IN_KERNEL(8, system_call_by_kernel)
+
+system_call_by_user:
+
+system_call_by_kernel:
+    pushl %eax
+    call system_call_handler
+    iret
+
+

@@ -45,6 +45,9 @@ static gate_vector_table pic_table[] = {
     {hardware_interrupt15, HARDWARE_VECTOR(15), PRIVILEGE_OS},
     {NULL, 0, 0}};
 
+static gate_vector_table system_call_vector = {system_call, SYSTEM_CALL_VECTOR,
+                                               PRIVILEGE_USER};
+
 static inline void _set_gatedesc(gate_descriptor* gd, uint32_t offset,
                                  uint32_t selector, uint8_t gate_type,
                                  uint8_t storage_segment,
@@ -66,15 +69,20 @@ static inline void _set_gatedesc(gate_descriptor* gd, uint32_t offset,
 /*                  KERNEL_CODE_SEGMENT * 8, GATE_TYPE_32BIT_INT, 0, */
 /*                  PRIVILEGE_LEVEL_OS, PRESENT); */
 
-
 void int_gate(gate_vector_table* gvt)
 {
     gate_vector_table* current;
     for (current = gvt; current->gate != NULL; current++) {
         _set_gatedesc(&idt[current->vector_num], (uintptr_t)current->gate,
-                      KERNEL_CODE_SEGMENT * 8, INTERRUPT_GATE, 0, current->level,
-                      PRESENT);
+                      KERNEL_CODE_SEGMENT * 8, INTERRUPT_GATE, 0,
+                      current->level, PRESENT);
     }
+}
+
+void trap_gate(gate_vector_table tb)
+{
+    _set_gatedesc(&idt[tb.vector_num], (uintptr_t)tb.gate,
+                  KERNEL_CODE_SEGMENT * 8, TRAP_GATE, 0, tb.level, PRESENT);
 }
 
 // TODO: set default handler that call kernel panic function. kernel panic
@@ -83,6 +91,7 @@ void init_interrupt(void)
 {
     int_gate(pic_table);
     int_gate(exception_table);
+    trap_gate(system_call_vector);
 
     load_idtr(sizeof(gate_descriptor) * (INTERRUPT_DESCRIPTOR_TABLE_SIZE - 1),
               (uintptr_t)idt);
@@ -90,15 +99,15 @@ void init_interrupt(void)
     return;
 }
 
-void exception_handler(int a, int b)
+void exception_handler(int a)
 {
-    printk(DEBUG1, "in exception_handler %d: %d", a, b);
+    printk(DEBUG1, "in exception_handler. occured %s.", error_name[a]);
     while (true) {
         io_hlt();
     }
 }
 
-void irq_handler(enum IRQ_HANDLER_NUM irq)
+void irq_handler(IRQ_HANDLER_NUM irq)
 {
     switch (irq) {
         case IRQ_CLOCK:
@@ -112,5 +121,11 @@ void irq_handler(enum IRQ_HANDLER_NUM irq)
         default:
             break;
     }
+    return;
+}
+
+void system_call_handler(SYSTEM_CALL_NUM num)
+{
+    printk(DEBUG2, "in system call handler %d", num);
     return;
 }

@@ -17,7 +17,8 @@ enum GATE_TYPE { TAKS_GATE = 0x5, INTERRUPT_GATE = 0xe, TRAP_GATE = 0xf };
 
 enum PRIVILEGE_LEVEL { PRIVILEGE_OS = 0, PRIVILEGE_USER = 3 };
 
-enum IRQ_HANDLER_NUM {
+typedef enum {
+    // master
     IRQ_CLOCK,
     IRQ_KEYBOARD,
     IRQ_CASCADE_SLAVE,
@@ -26,7 +27,32 @@ enum IRQ_HANDLER_NUM {
     IRQ_XT_WINCHESTER,
     IRQ_FLOPPY,
     IRQ_PRINTER
+    // slave
+} IRQ_HANDLER_NUM;
+
+static char *error_name[] = {
+    "divide by zero error",
+    "debug",
+    "non-maskable interrupt",
+    "breakpoint",
+    "overflow",
+    "bound range exceeded",
+    "invalid opecode",
+    "device not available",
+    "double fault",
+    "coprocessor segment overrun",
+    "invalid TSS",
+    "Segment Not Presetnt",
+    "Stack-Segment Fault",
+    "General Protection Fault",
+    "Page fault",
+    "x87 Floating-Point Exception",
+    "Alignment Check",
+    "Machine Check",
+    "SIMD Floating-Point Exception",
 };
+
+typedef enum { SYS_TEST, } SYSTEM_CALL_NUM;
 
 typedef struct _gate_discriptor {
     uint16_t offset_low;
@@ -95,7 +121,11 @@ extern void alignment_check(void);
 extern void machine_check(void);
 extern void simd_exception(void);
 
-void exception_handler(int, int);
-void irq_handler(enum IRQ_HANDLER_NUM irq);
+// system call assmblly handler
+extern void system_call(void);
+
+void exception_handler(int);
+void irq_handler(IRQ_HANDLER_NUM irq);
+void system_call_handler(SYSTEM_CALL_NUM num);
 
 #endif

@@ -211,3 +211,11 @@ set_esp: #void set_esp(uintptr_t *esp);
     push %ebx
     ret
 
+
+# below code is test
+.globl test_sys_call
+test_sys_call:
+    pushl %eax
+    movl $10, %eax
+    int $128
+    pop %eax
