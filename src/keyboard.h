@@ -1,23 +1,12 @@
-#ifndef _INCLUDED_INTERRUPT_HANDLER_H_
-#define _INCLUDED_INTERRUPT_HANDLER_H_
+#ifndef _INCLUDED_KEYBOARD_H_
+#define _INCLUDED_KEYBOARD_H_
 
-#include"lib.h"
-#include"func.h"
+#include "lib.h"
 
 typedef struct {
     node* queue;
     uint32_t size;
 }interrupt_queue;
-
-
-void timer_inthandler(int *esp);
-void keyboard_inthandler(int *esp);
-void fault_inthandler(int *esp);
-void fault_inthandler2(int *esp);
-void page_fault_handler(int *esp);
-
-void init_inthandler(void);
-bool keyboard_data_queue_check(void);
 
 static char key_table[] = {
     '0', '0', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9','-','=','0',
@@ -28,7 +17,9 @@ static char key_table[] = {
     '6', '+', '1', '2', '3', '0', '.'
 };
 
-//test
-void test_keyboard_data_queue(void);
+bool keyboard_data_queue_check(void);
+static interrupt_queue keyboard_data_queue;
+void init_inthandler(void);
+void keyboard_interrupt(void);
 
 #endif

@@ -3,6 +3,7 @@
 
 #include "vectors.h"
 #include "segment.h"
+#include "keyboard.h"
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -15,6 +16,11 @@
 enum GATE_TYPE { TAKS_GATE = 0x5, INTERRUPT_GATE = 0xe, TRAP_GATE = 0xf };
 
 enum PRIVILEGE_LEVEL { PRIVILEGE_OS = 0, PRIVILEGE_USER = 3 };
+
+enum IRQ_HANDLER_NUM {
+    IRQ_CLOCK,
+    IRQ_KEYBOARD,
+};
 
 typedef struct _gate_discriptor {
     uint16_t offset_low;
@@ -84,6 +90,6 @@ extern void machine_check(void);
 extern void simd_exception(void);
 
 void exception_handler(int, int);
-void irq_handler(int irq);
+void irq_handler(enum IRQ_HANDLER_NUM irq);
 
 #endif

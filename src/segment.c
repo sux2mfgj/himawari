@@ -26,6 +26,15 @@ void init_gdtidt(void)
                  SEG_TYPE_DATE_REW, DESC_TYPE_SEGMENT, PRIVILEGE_OS,
                  PRESENT);
 
+    set_segmdesc(gdt + USER_CODE_SEGMENT, 0xc0000000, 0x00000000, 0,
+                 SEG_TYPE_DATE_REW, DESC_TYPE_SEGMENT, PRIVILEGE_USER,
+                 PRESENT);
+
+    set_segmdesc(gdt + USER_DATA_SEGMENT, 0xc0000000, 0x00000000, 0,
+                 SEG_TYPE_DATE_REW, DESC_TYPE_SEGMENT, PRIVILEGE_USER,
+                 PRESENT);
+
+
     /*     set_segmdesc(gdt + USER_CODE_SEGMENT, 0xffffffff, 0x00000000, ) */
 
     load_gdtr(sizeof(struct SEGMENT_DESCRIPTOR) * (NUM_GDT - 1),

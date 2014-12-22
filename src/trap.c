@@ -93,24 +93,20 @@ void init_interrupt(void)
 void exception_handler(int a, int b)
 {
     printk(DEBUG1, "in exception_handler %d: %d", a, b);
-/*     while (true) { */
+    while (true) {
         io_hlt();
-/*     } */
+    }
 }
 
-void irq_handler(int irq)
+void irq_handler(enum IRQ_HANDLER_NUM irq)
 {
     switch (irq) {
-        case 0:
+        case IRQ_CLOCK:
             timer_interrupt();
             break;
 
-        case 1: {
-            char data;
-            data = io_in8(0x0060);
-            if (data <= 81) {
-                printk(DEBUG2, "%c", data);
-            }
+        case IRQ_KEYBOARD: {
+            keyboard_interrupt();
             break;
         }
         default:

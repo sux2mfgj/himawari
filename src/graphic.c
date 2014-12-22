@@ -208,7 +208,7 @@ void printf(uint32_t place, char *format, ...)
         y = &right_line_num;
     }
 
-    if (*y == 25) {
+    if (*y == 24) {
         slide_screen(place);
     } else {
         (*y)++;

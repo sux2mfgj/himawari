@@ -114,7 +114,7 @@ static bool scheduler(void)
 
 bool exec_init(void)
 {
-
+    return true;
 }
 
 void init(void)

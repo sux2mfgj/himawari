@@ -10,7 +10,7 @@ ASFLAGS = --32
 PPFLAGS = -E
 LDFLAGS = -m elf_i386 --format elf32-i386 --oformat elf32-i386 -Map kernel.map -Tld.script
 
-C_OBJS = entry.o main.o segment.o trap.o interrupt_handler.o graphic.o k_memory.o p_memory.o v_memory.o lib.o task.o string.o timer.o
+C_OBJS = entry.o main.o segment.o trap.o keyboard.o graphic.o k_memory.o p_memory.o v_memory.o lib.o task.o string.o timer.o
 C_SRC = ${C_OBJS: .o=.c}
 ASM_OBJS = func.o vectors.o
 OBJS = $(ASM_OBJS) $(C_OBJS)

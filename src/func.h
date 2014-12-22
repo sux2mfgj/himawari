@@ -24,12 +24,6 @@ extern void io_store_eflags(int eflags);
 extern void load_gdtr(int a, int b);
 extern void load_idtr(int a, int b);
 
-extern void asm_inthandler21(int *esp);
-extern void asm_timer_inthandler(int *esp);
-extern void asm_fault_inthandler(int *esp);
-extern void asm_fault_inthandler2(int *esp);
-extern void asm_page_fault_handler(int *eps);
-
 extern int load_cr0(void);
 extern void store_cr0(int cr0);
 
