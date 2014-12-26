@@ -26,6 +26,7 @@ bool keyboard_data_queue_check(void)
     }
 }
 
+//FIXME: occured page fault
 void keyboard_interrupt(void)
 {
     unsigned char data;

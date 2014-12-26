@@ -37,7 +37,7 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     io_cli();
     init_screen();
 
-    init_gdtidt();
+    init_gdt();
     init_interrupt();
 
     if (!init_memory(multiboot_info)) {
@@ -48,7 +48,6 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 
     init_pit();
     init_pic();
-/*     init_inthandler(); */
 
     //init_tss();
 
@@ -57,7 +56,7 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
 /*     print_pid_test(); */
 
     io_sti();
-/*     printf(TEXT_MODE_SCREEN_RIGHT, "----start----"); */
+    printf(TEXT_MODE_SCREEN_RIGHT, "----start----");
 
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "hello"); */
     /*     printf(TEXT_MODE_SCREEN_RIGHT, "mem_lower: %d(KB)",

@@ -94,23 +94,7 @@ struct SEGMENT_DESCRIPTOR
     uint8_t base_high;
 };
 
-
-struct GATE_DISCRIPTOR
-{
-    uint16_t offset_low;
-    uint16_t selector;
-
-    uint8_t unused;
-
-    unsigned gate_type                  :4;
-    unsigned storage_segment            :1;
-    unsigned descriptor_privilege_level :2;
-    unsigned present                    :1;
-
-    uint16_t offset_high;
-};
-
-void init_gdtidt(void);
+void init_gdt(void);
 void set_segmdesc(
         struct SEGMENT_DESCRIPTOR *sd,
         uint32_t limit,
@@ -120,16 +104,6 @@ void set_segmdesc(
         uint8_t descriptor_type,
         uint8_t descriptor_privilege_level,
         uint8_t present);
-
-
-// void set_gatedesc(
-//         gate_descriptor *gd,
-//         uint32_t offset,
-//         uint32_t selector,
-//         uint8_t gate_type,
-//         uint8_t storage_segment,
-//         uint8_t descriptor_privilege_level,
-//         uint8_t present);
 
 void init_pic(void);
 
