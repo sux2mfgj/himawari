@@ -31,7 +31,7 @@ void keyboard_interrupt(void)
     unsigned char data;
     node *tmp;
     data = io_in8(0x0060);
-    test_sys_call();
+    //test_sys_call();
     if (data <= 81) {
         tmp = new_node(sizeof(char));
         *(char *)(tmp->data) = key_table[data];

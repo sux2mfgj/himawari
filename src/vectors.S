@@ -196,6 +196,7 @@ simd_exception:
 system_call:
     IS_INT_IN_KERNEL(8, system_call_by_kernel)
 
+# TODO: have to create from user trapframe and from kernel trapframe
 system_call_by_user:
 
 system_call_by_kernel:
