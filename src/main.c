@@ -49,10 +49,10 @@ void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info)
     init_pit();
     init_pic();
 
-    //init_tss();
+    init_tss();
 
-/*     init_task(); */
-/*     create_kernel_thread(init); */
+    init_task();
+    create_kernel_thread(init);
 /*     print_pid_test(); */
 
     io_sti();

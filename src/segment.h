@@ -24,6 +24,12 @@
 #define SEG_TYPE_CODE_XC   0x6
 #define SEG_TYPE_CODE_XRC  0x7
 
+// for tss
+#define SEG_TYPE_TSS_16_AVAIL 0x1
+#define SEG_TYPE_TSS_16_BUSY 0x3
+#define SEG_TYPE_TSS_32_BUSY 0x9
+#define SEG_TYPE_TSS_32_AVAIL 0xb
+
 #define DESC_TYPE_SYSTEM    0
 #define DESC_TYPE_SEGMENT   1
 
@@ -34,7 +40,8 @@ enum segment_descriptor_variable {
     KERNEL_CODE_SEGMENT = 2,
     KERNEL_DATA_SEGMENT = 3,
     USER_CODE_SEGMENT = 4,
-    USER_DATA_SEGMENT = 5
+    USER_DATA_SEGMENT = 5,
+    TSS_SEGMENT = 6
 };
 // #define KERNEL_CODE_SEGMENT_NUM 2
 // #define DATA_SEGMENT_NUM 3

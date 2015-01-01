@@ -15,32 +15,57 @@ void init_gdt(void)
     for (int i = 0; i < NUM_GDT; i++) {
         set_segmdesc(gdt + i, 0, 0, 0, 0, 0, 0, 0);
     }
-    set_segmdesc(gdt + KERNEL_CODE_SEGMENT, 0xffffffff, 0x00000000, 0,
-                 SEG_TYPE_CODE_XRC, DESC_TYPE_SEGMENT, PRIVILEGE_OS,
+    set_segmdesc(gdt + KERNEL_CODE_SEGMENT,
+                 0xffffffff,
+                 0x00000000,
+                 0,
+                 SEG_TYPE_CODE_XRC,
+                 DESC_TYPE_SEGMENT,
+                 PRIVILEGE_OS,
                  PRESENT);
 
-    set_segmdesc(gdt + KERNEL_DATA_SEGMENT, 0xffffffff, 0x00000000, 0,
-                 SEG_TYPE_DATE_REW, DESC_TYPE_SEGMENT, PRIVILEGE_OS,
+    set_segmdesc(gdt + KERNEL_DATA_SEGMENT,
+                 0xffffffff,
+                 0x00000000,
+                 0,
+                 SEG_TYPE_DATE_REW,
+                 DESC_TYPE_SEGMENT,
+                 PRIVILEGE_OS,
                  PRESENT);
 
-    set_segmdesc(gdt + USER_CODE_SEGMENT, 0xc0000000, 0x00000000, 0,
-                 SEG_TYPE_DATE_REW, DESC_TYPE_SEGMENT, PRIVILEGE_USER,
+    set_segmdesc(gdt + USER_CODE_SEGMENT,
+                 0xc0000000,
+                 0x00000000,
+                 0,
+                 SEG_TYPE_DATE_REW,
+                 DESC_TYPE_SEGMENT,
+                 PRIVILEGE_USER,
                  PRESENT);
 
-    set_segmdesc(gdt + USER_DATA_SEGMENT, 0xc0000000, 0x00000000, 0,
-                 SEG_TYPE_DATE_REW, DESC_TYPE_SEGMENT, PRIVILEGE_USER,
+    set_segmdesc(gdt + USER_DATA_SEGMENT,
+                 0xc0000000,
+                 0x00000000,
+                 0,
+                 SEG_TYPE_DATE_REW,
+                 DESC_TYPE_SEGMENT,
+                 PRIVILEGE_USER,
                  PRESENT);
 
-    //TODO: have to set task state segment
+    // TODO: have to set task state segment
+
     load_gdtr(sizeof(struct SEGMENT_DESCRIPTOR) * (NUM_GDT - 1),
               (uintptr_t)gdt);
 
     return;
 }
 
-void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, uint32_t limit, uint32_t base,
-                  uint8_t accessed, uint8_t segment_type,
-                  uint8_t descriptor_type, uint8_t descriptor_privilege_level,
+void set_segmdesc(struct SEGMENT_DESCRIPTOR* sd,
+                  uint32_t limit,
+                  uint32_t base,
+                  uint8_t accessed,
+                  uint8_t segment_type,
+                  uint8_t descriptor_type,
+                  uint8_t descriptor_privilege_level,
                   uint8_t present)
 {
     if (limit > 0xfffff) {
@@ -96,7 +121,8 @@ void init_pic(void)
 
 void init_pit(void)
 {
-    set_pit_count(PIT_CLK_10MS, PIT_CONTROL_WORD_SC_COUNTER0,
+    set_pit_count(PIT_CLK_10MS,
+                  PIT_CONTROL_WORD_SC_COUNTER0,
                   PIT_CONTROL_WORD_MODE_SQARE);
 
     return;
@@ -105,13 +131,28 @@ void init_pit(void)
 void init_tss(void)
 {
     memset(&tss0, '0', sizeof(tss_struct));
-    /*     set_gatedesc(); */
+    tss0.ss0 = KERNEL_DATA_SEGMENT;
+    tss0.cs = KERNEL_CODE_SEGMENT;
+    tss0.ss = KERNEL_DATA_SEGMENT;
+    tss0.es = KERNEL_DATA_SEGMENT;
+    tss0.ds = KERNEL_DATA_SEGMENT;
+    tss0.gs = KERNEL_DATA_SEGMENT;
+
+    /*     set_segmdesc(gdt + USER_DATA_SEGMENT, 0xc0000000, 0x00000000, 0, */
+    /*                  SEG_TYPE_DATE_REW, DESC_TYPE_SEGMENT, PRIVILEGE_USER, */
+    /*                  PRESENT); */
+    set_segmdesc(gdt + TSS_SEGMENT,
+                 sizeof(struct task_struct) - 1,
+                 &tss0,
+                 0,
+                 SEG_TYPE_TSS_32_AVAIL,
+                 DESC_TYPE_SYSTEM,
+                 PRIVILEGE_OS,
+                 PRESENT);
+
 }
 
-void load_sp0(uintptr_t esp0)
-{
-    tss0.esp0 = esp0;
-}
+void load_sp0(uintptr_t esp0) { tss0.esp0 = esp0; }
 
 void set_pit_count(uint16_t count, uint8_t counter, uint8_t mode)
 {
@@ -126,4 +167,3 @@ void set_pit_count(uint16_t count, uint8_t counter, uint8_t mode)
 
     return;
 }
-

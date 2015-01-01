@@ -119,17 +119,13 @@ bool exec_init(void)
 
 void init(void)
 {
-    int i = 0xffff;
+    int i = 0xffffffff;
+    create_kernel_thread(task2);
+    create_kernel_thread(task1);
     while (i >= 0) {
         printk(DEBUG3, "process: %d", i--);
     }
-    create_kernel_thread(task2);
-    create_kernel_thread(task1);
 
-    exec_init();
-    while(true){
-        io_hlt();
-    }
 }
 
 
