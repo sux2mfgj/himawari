@@ -124,7 +124,45 @@ extern void simd_exception(void);
 // system call assmblly handler
 extern void system_call(void);
 
-void exception_handler(int);
+// trap frame
+typedef struct _trap_frame {
+    // registers as pushed by pusha
+    uint32_t edi;
+    uint32_t esi;
+    uint32_t ebp;
+    uint32_t esp;
+    uint32_t ebx;
+    uint32_t edx;
+    uint32_t ecx;
+    uint32_t eax;
+
+    // set of trap frame
+    uint16_t gs;
+    uint16_t padding0;
+    uint16_t fs;
+    uint16_t padding1;
+    uint16_t es;
+    uint16_t padding2;
+    uint16_t ds;
+    uint16_t padding3;
+
+    //
+    uint16_t trap_number;
+
+    //defined by x86 hardware
+    uint32_t error_code;
+    uint32_t eip;
+    uint16_t cs;
+    uint16_t padding4;
+    uint32_t eflags;
+
+    // from user to kernel
+//     uint32_t user_esp;
+//     uint16_t ss;
+//     uint16_t padding5;
+}trap_frame;
+
+void exception_handler(trap_frame*);
 void irq_handler(IRQ_HANDLER_NUM irq);
 void system_call_handler(SYSTEM_CALL_NUM num);
 

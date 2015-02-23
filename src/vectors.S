@@ -103,8 +103,15 @@ exception_entry:
 exception_from_user:
 
 exception_from_kernel:
-    call exception_handler
+    push %ds
+    push %es
+    push %fs
+    push %gs
 
+    pushal
+    pushl %esp
+    call exception_handler
+    #iret
 
 #define EXCEPTION_ERROR_CODE(vector) \
     pushl $vector; \

@@ -99,9 +99,11 @@ void init_interrupt(void)
     return;
 }
 
-void exception_handler(int a)
+void exception_handler(trap_frame* t_frame)
 {
-    printk(DEBUG1, "in exception_handler. occured %s.", error_name[a]);
+    printk(DEBUG1, "exception occured: %s.", error_name[t_frame->trap_number]);
+    printk(DEBUG2, "program counter is 0x%x", t_frame->eip);
+    printk(DEBUG3, "eflags ix 0x%x", t_frame->eflags);
     while (true) {
         io_hlt();
     }
