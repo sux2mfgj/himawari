@@ -4,7 +4,7 @@ LD = ld
 QEMU = qemu-system-i386
 
 QEMUFLAGS = -monitor stdio -m 32M -gdb tcp::10000  -S -sdl
-CFLAGS = -g -fno-builtin -nostdlib -mno-red-zone -ffreestanding \
+CFLAGS = -ggdb3 -fno-builtin -nostdlib -mno-red-zone -ffreestanding \
 			-fno-stack-protector --target=i686-elf -m32
 ASFLAGS = --32
 PPFLAGS = -E
