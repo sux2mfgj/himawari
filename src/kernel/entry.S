@@ -1,6 +1,5 @@
 .file "entry.S"
 
-#    stack = .;
 .extern kernel_entry
 # need data for boot by grub
 MULTIBOOT_HEADER_MAGIC = 0x1BADB002
@@ -22,7 +21,6 @@ multiboot_header:
     .long 0x0
     .long 0x0
 
-
 #include "paging.h"
 
 .data
@@ -30,7 +28,7 @@ multiboot_header:
 page_directory:
     .long 0x00000083
     .long 0x00400083
-    .rept ( KERNEL_PAGE_NUM - 2)
+    .rept (KERNEL_PAGE_NUM - 2)
         .long 0x00000000
     .endr
 
@@ -39,7 +37,6 @@ page_directory:
     .rept (1024 - KERNEL_PAGE_NUM - 2)
         .long 0x00000000
     .endr
-
 
 .text
 .globl entry
@@ -69,10 +66,8 @@ start_in_high_her_half:
     pushl %ebx
     pushl %eax
 
-
-
-#    jmp kernel_entry
-    call kernel_entry
+    jmp kernel_entry
+#    call kernel_entry
 
 loop:
     hlt

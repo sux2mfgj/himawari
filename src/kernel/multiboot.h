@@ -1,6 +1,10 @@
 #ifndef _INCLUDED_MUTIBOOT_H_
 #define _INCLUDED_MUTIBOOT_H_
 
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
+
 typedef struct {
 //     version number
     uint32_t flags;

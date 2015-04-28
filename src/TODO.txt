@@ -1,3 +1,0 @@
-
-
-TODO: idt & gdt have to be dynamic allocated.
