@@ -6,6 +6,6 @@
 
 #include "multiboot.h"
 
-void kernel_entry(uint32_t magic, MULTIBOOT_INFO *multiboot_info);
+void kernel_entry(const uint32_t magic, const MULTIBOOT_INFO *multiboot_info);
 
 #endif
