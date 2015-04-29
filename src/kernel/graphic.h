@@ -25,8 +25,10 @@ void display_char(const char c,
                   const text_color back_color,
                   const uint32_t x,
                   const uint32_t y);
+
 void hputc(const char c, const text_color x, const text_color y);
 uint32_t hputs(const char* const text, const uint32_t x, const uint32_t y);
+void hprintf(const char* const format, ...);
 
 static uint32_t integer_puts(uint32_t number,
                              const uint32_t x,
@@ -35,6 +37,5 @@ static uint32_t hexadecimal_puts(uint32_t number,
                                  const uint32_t x,
                                  const uint32_t y);
 
-void hprintf(const char* const format, ...);
-
+static void slide_screen(void);
 #endif

@@ -132,7 +132,7 @@ void hprintf(const char* const format, ...)
     uint32_t x = 0;
 
     if(print_line_number > TEXT_MODE_HEIGHT){
-        //TODO: slide screen
+        slide_screen();
     }
 
     for(f = format; *f != '\0'; ++f){
@@ -166,7 +166,29 @@ void hprintf(const char* const format, ...)
     }
 
 finish:
+
+    if (TEXT_MODE_HEIGHT > print_line_number) {
+        ++print_line_number;
+    }
+
     va_end(args);
     return;
 }
 
+static void slide_screen(void)
+{
+    for (int i = 0; i <= TEXT_MODE_HEIGHT; ++i) {
+        for (int j = 0; j < TEXT_MODE_WIDTH; ++j) {
+            const uintptr_t read_addr =
+                vram_textmove_addr + i * TEXT_MODE_WIDTH + j;
+            uint16_t* const write_addr = (uint16_t*)read_addr - TEXT_MODE_WIDTH;
+            *write_addr = (WHITE << 8) | *(uint16_t*)read_addr;
+        }
+    }
+
+    for (int i = 0; i < TEXT_MODE_WIDTH; ++i) {
+        hputc(' ', i, TEXT_MODE_HEIGHT);
+    }
+
+    return;
+}
