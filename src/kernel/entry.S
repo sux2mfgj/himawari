@@ -69,6 +69,9 @@ start_in_high_her_half:
     jmp kernel_entry
 #    call kernel_entry
 
+.text
+.align 4
+
 loop:
     hlt
     jmp loop

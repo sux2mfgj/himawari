@@ -1,4 +1,5 @@
 #include "graphic.h"
+#include "kernel.h"
 #include <stdarg.h>
 
 bool init_screen(void)
@@ -8,6 +9,8 @@ bool init_screen(void)
             hputc(' ', i, j);
         }
     }
+
+    printk = &hprintf;
 
     return true;
 }
@@ -124,7 +127,7 @@ static uint32_t hexadecimal_puts(uint32_t number,
 
 
 //TODO:ptsをつくったら関数ポインタでprintfを繋ぎ変えてそっちを使うようにする
-void hprintf(const char* const format, ...)
+bool hprintf(const char* const format, ...)
 {
     const char *f;
     va_list args;
@@ -172,7 +175,7 @@ finish:
     }
 
     va_end(args);
-    return;
+    return 0;
 }
 
 static void slide_screen(void)

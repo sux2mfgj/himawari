@@ -8,4 +8,6 @@
 
 void kernel_entry(const uint32_t magic, const MULTIBOOT_INFO *multiboot_info);
 
+bool (*printk)(const char* const format, ...);
+
 #endif

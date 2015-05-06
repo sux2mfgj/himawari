@@ -12,28 +12,26 @@ SECTIONS
 
     .text : AT( ADDR(.text) - virtual_base){
         _text_start = .;
-        *(.entry)
-        *(.text)
+        *(.entry);
+        *(.text);
         _text_end = .;
     }
     .data : AT( ADDR(.data) - virtual_base){
         _data_start = .;
-        *(.data)
+        *(.data);
         _data_end = .;
     }
     .bss ALIGN(4): AT( ADDR(.bss) - virtual_base){
         _bss_start = .;
-        *(.bss)
+        *(.bss);
         _bss_end = .;
     }
-    .rodata : AT(ADDR(.rodata) - virtual_base){
+/*    .rodata : AT(ADDR(.rodata) - virtual_base){
         _rodata_start = .;
-        *(.rodata)
+        *(.rodata);
         _rodata_end = .;
     }
-
-    _device_driver_start = .;
-    _device_driver_end = .;
+*/
 
     _kernel_end = .;
 }

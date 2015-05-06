@@ -11,6 +11,7 @@ void kernel_entry(const uint32_t magic, const MULTIBOOT_INFO *multiboot_info)
         io_hlt();
     }
 
+    printk("start himawari");
 
     io_hlt();
     return;
