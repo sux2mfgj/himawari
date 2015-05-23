@@ -19,7 +19,7 @@ typedef enum text_mode_char_color{
 static const uintptr_t vram_textmove_addr = VRAM_TEXTMODE;
 static uint32_t print_line_number = 0;
 
-bool init_screen(void);
+bool init_text_screen(void);
 void display_char(const char c,
                   const text_color fore_color,
                   const text_color back_color,

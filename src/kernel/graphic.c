@@ -2,14 +2,13 @@
 #include "kernel.h"
 #include <stdarg.h>
 
-bool init_screen(void)
+bool init_text_screen(void)
 {
     for (int i = 0; i < TEXT_MODE_WIDTH; ++i) {
         for (int j = 0; j < TEXT_MODE_HEIGHT; j++) {
             hputc(' ', i, j);
         }
     }
-
     printk = &hprintf;
 
     return true;
@@ -24,7 +23,7 @@ void display_char(const char c,
     uint16_t color = (back_color << 4) | (fore_color & 0x0f);
     uint16_t* vram_write_addr = (uint16_t*)vram_textmove_addr;
 
-    vram_write_addr += x + y * TEXT_MODE_HEIGHT;
+    vram_write_addr += x + y * TEXT_MODE_WIDTH;
     *vram_write_addr = (color << 8) | c;
 
     return;
@@ -159,7 +158,7 @@ bool hprintf(const char* const format, ...)
                     break;
 
                 default:
-                    hputs(" print error", x, print_line_number);
+                    hputs(" print error", x, ++print_line_number);
                     goto finish;
             }
         }
