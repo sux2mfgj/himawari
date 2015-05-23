@@ -3,6 +3,7 @@
 #include "paging.h"
 #include "trap.h"
 #include "kernel.h"
+#include "asm.h"
 
 static segment_descriptor gdt[NUMBER_OF_GDT];
 
@@ -51,6 +52,10 @@ bool init_gdt(void)
                            DESC_TYPE_SEGMENT,
                            PRIVILEGE_USER,
                            PRESENT);
+
+    // TODO: have to set task state segment
+    load_gdtr(sizeof(segment_descriptor) * (NUMBER_OF_GDT - 1),
+              (uintptr_t)gdt);
 
     return true;
 }
