@@ -2,6 +2,7 @@
 #include "asm.h"
 #include "graphic.h"
 #include "segment.h"
+#include "trap.h"
 
 void kernel_entry(const uint32_t magic, const MULTIBOOT_INFO *multiboot_info)
 {
@@ -16,8 +17,13 @@ void kernel_entry(const uint32_t magic, const MULTIBOOT_INFO *multiboot_info)
         io_hlt();
     }
 
+    if(!init_interrupt()){
+        io_hlt();
+    }
+
     printk("start himawari");
 
-    io_hlt();
+    io_sti();
+    while (true) {}
     return;
 }

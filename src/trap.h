@@ -1,21 +1,21 @@
 #ifndef _INCLUDED_TRAP_H_
 #define _INCLUDED_TRAP_H_
 
-// #include "vectors.h"
-// #include "segment.h"
-// #include "keyboard.h"
+#include "vectors.h"
+#include "segment.h"
+#include "keyboard.h"
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
 
-// #define INTERRUPT_DESCRIPTOR_TABLE_SIZE 256
+#define INTERRUPT_DESCRIPTOR_TABLE_SIZE 256
 
 #define HARDWARE_VECTOR(n) n + 32
 
 // only 32bit protect mode
-typedef enum { TAKS_GATE = 0x5, INTERRUPT_GATE = 0xe, TRAP_GATE = 0xf }gate_type;
+enum GATE_TYPE { TAKS_GATE = 0x5, INTERRUPT_GATE = 0xe, TRAP_GATE = 0xf };
 
-typedef enum { PRIVILEGE_OS = 0, PRIVILEGE_USER = 3 }privilege_level;
+enum PRIVILEGE_LEVEL { PRIVILEGE_OS = 0, PRIVILEGE_USER = 3 };
 
 typedef enum {
     // master
@@ -30,7 +30,7 @@ typedef enum {
     // slave
 } IRQ_HANDLER_NUM;
 
-static const char *error_name[] = {
+static char *error_name[] = {
     "divide by zero error",
     "debug",
     "non-maskable interrupt",
@@ -52,7 +52,7 @@ static const char *error_name[] = {
     "SIMD Floating-Point Exception",
 };
 
-typedef enum { SYS_TEST, }system_call_number;
+typedef enum { SYS_TEST, } SYSTEM_CALL_NUM;
 
 typedef struct _gate_discriptor {
     uint16_t offset_low;
@@ -71,10 +71,10 @@ typedef struct _gate_discriptor {
 typedef struct _gate_vector_table {
     void (*gate)(void);
     uint32_t vector_num;
-    privilege_level level;
+    enum PRIVILEGE_LEVEL level;
 } gate_vector_table;
 
-bool init_interrupt(void);
+void init_interrupt(void);
 
 static inline void _set_gatedesc(gate_descriptor *gd, uint32_t offset,
                                  uint32_t selector, uint8_t gate_type,
@@ -125,8 +125,8 @@ extern void simd_exception(void);
 extern void system_call(void);
 
 // trap frame
-typedef struct{
-//     registers as pushed by pusha
+typedef struct _trap_frame {
+    // registers as pushed by pusha
     uint32_t edi;
     uint32_t esi;
     uint32_t ebp;
@@ -136,7 +136,7 @@ typedef struct{
     uint32_t ecx;
     uint32_t eax;
 
-//     set of trap frame
+    // set of trap frame
     uint16_t gs;
     uint16_t padding0;
     uint16_t fs;
@@ -146,17 +146,17 @@ typedef struct{
     uint16_t ds;
     uint16_t padding3;
 
-
+    //
     uint16_t trap_number;
 
-//     defined by x86 hardware
+    //defined by x86 hardware
     uint32_t error_code;
     uint32_t eip;
     uint16_t cs;
     uint16_t padding4;
     uint32_t eflags;
 
-//     from user to kernel
+    // from user to kernel
 //     uint32_t user_esp;
 //     uint16_t ss;
 //     uint16_t padding5;
@@ -164,6 +164,6 @@ typedef struct{
 
 void exception_handler(trap_frame*);
 void irq_handler(IRQ_HANDLER_NUM irq);
-void system_call_handler(system_call_number num);
+void system_call_handler(SYSTEM_CALL_NUM num);
 
 #endif

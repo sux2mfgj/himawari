@@ -21,7 +21,7 @@ SECTIONS
         *(.data);
         _data_end = .;
     }
-    .bss ALIGN(4): AT( ADDR(.bss) - virtual_base){
+    .bss ALIGN(16): AT( ADDR(.bss) - virtual_base){
         _bss_start = .;
         *(.bss);
         _bss_end = .;

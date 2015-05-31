@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "trap.h"
 
 #define NUMBER_OF_IDT 256
 #define NUMBER_OF_GDT 8192
@@ -66,6 +67,9 @@ typedef enum {
 
 #define PRESENT     1
 #define NOT_PRESENT 0
+
+static gate_descriptor idt[NUMBER_OF_IDT];
+static segment_descriptor gdt[NUMBER_OF_GDT];
 
 bool init_gdt(void);
 void set_segment_descriptor(segment_descriptor* sd,

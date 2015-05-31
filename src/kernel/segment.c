@@ -5,11 +5,11 @@
 #include "kernel.h"
 #include "asm.h"
 
-static segment_descriptor gdt[NUMBER_OF_GDT];
+/* static segment_descriptor gdt[NUMBER_OF_GDT]; */
 
 bool init_gdt(void)
 {
-    printk("init_gdt, gdt: 0x%x", gdt);
+    printk("gdt: 0x%x", gdt);
 
     for (int i = 0; i < NUMBER_OF_GDT; ++i) {
         set_segment_descriptor(gdt + i, 0, 0, 0, 0, 0, 0, 0);
