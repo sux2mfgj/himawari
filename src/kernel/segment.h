@@ -6,7 +6,10 @@
 #include "trap.h"
 
 #define NUMBER_OF_IDT 256
-#define NUMBER_OF_GDT 8192
+// #define NUMBER_OF_GDT 8192
+#define NUMBER_OF_GDT 10
+#define GDT_ADDR 0x000000500
+#define IDT_ADDR 0x000001000
 
 typedef struct {
     uint16_t limit_low, base_low;
@@ -68,8 +71,8 @@ typedef enum {
 #define PRESENT     1
 #define NOT_PRESENT 0
 
-static gate_descriptor idt[NUMBER_OF_IDT];
-static segment_descriptor gdt[NUMBER_OF_GDT];
+static gate_descriptor* idt;
+static segment_descriptor* gdt;
 
 bool init_gdt(void);
 void set_segment_descriptor(segment_descriptor* sd,

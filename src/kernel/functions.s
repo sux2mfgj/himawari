@@ -45,3 +45,17 @@ load_idtr:
     lidt 6(%esp)
     ret
 
+.globl io_in8
+io_in8:
+    movl 4(%esp), %edx
+    movl $0, %eax
+    inb %dx, %al
+    ret
+
+.globl io_out8
+io_out8:
+    movl 4(%esp), %edx
+    movb 8(%esp), %al
+    outb %al, %dx
+    ret
+

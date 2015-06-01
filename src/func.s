@@ -51,6 +51,10 @@ io_in32:
     ret
 
 io_out8:
+
+extern void io
+
+extern void io
     movl 4(%esp), %edx
     movb 8(%esp), %al
     outb %al, %dx

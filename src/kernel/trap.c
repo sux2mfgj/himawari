@@ -90,23 +90,78 @@ void trap_gate(gate_vector_table tb)
 // function is not implement yet
 bool init_interrupt(void)
 {
+    idt = (gate_descriptor* )IDT_ADDR;
+    printk("idt: 0x%x", idt);
     int_gate(pic_table);
     int_gate(exception_table);
     trap_gate(system_call_vector);
 
 
-    printk("idt: 0x%x", idt);
+    init_pic();
+    init_pit();
+
     load_idtr(sizeof(gate_descriptor) * (NUMBER_OF_IDT - 1),
               (uintptr_t)idt);
 
     return true;
 }
 
+void init_pic(void)
+{
+    // Mask
+    io_out8(PIC_MASTER_DATA_PORT, PIC_IMR_MASK_IRQ_ALL);
+    io_out8(PIC_SLAVE_DATA_PORT, PIC_IMR_MASK_IRQ_ALL);
+
+    // Master
+    io_out8(PIC_MASTER_CMD_STATE_PORT, PIC_MASTER_ICW1);
+    io_out8(PIC_MASTER_DATA_PORT, PIC_MASTER_ICW2);
+    io_out8(PIC_MASTER_DATA_PORT, PIC_MASTER_ICW3);
+    io_out8(PIC_MASTER_DATA_PORT, PIC_MASTER_ICW4);
+
+    // Slave
+    io_out8(PIC_SLAVE_CMD_STATE_PORT, PIC_SLAVE_ICW1);
+    io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW2);
+    io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW3);
+    io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW4);
+
+    // setting enable
+    io_out8(PIC_MASTER_DATA_PORT, 0xfc);  // 1111 1100
+    io_out8(PIC_SLAVE_DATA_PORT, 0xff);   // 1111 1111
+
+    return;
+}
+
+void init_pit(void)
+{
+    set_pit_count(PIT_CLK_10MS,
+                  PIT_CONTROL_WORD_SC_COUNTER0,
+                  PIT_CONTROL_WORD_MODE_SQARE);
+
+    return;
+}
+
+void set_pit_count(uint16_t count, uint8_t counter, uint8_t mode)
+{
+    uint8_t command;
+
+    command = mode | PIT_CONTROL_WORD_RL_LSB_MSB | counter;
+
+    io_out8(PIT_PORT_CONTROL_WORD, command);
+
+    io_out8(PIT_PORT_COUNTER0, (uint8_t)(count & 0xff));
+    io_out8(PIT_PORT_COUNTER0, (uint8_t)((count >> 8) & 0xff));
+
+    return;
+}
 void exception_handler(trap_frame* t_frame)
 {
+    printk("t_frame address 0x%x", t_frame);
     printk("exception occured: %s.", error_name[t_frame->trap_number]);
     printk("program counter is 0x%x", t_frame->eip);
     printk("eflags is 0x%x", t_frame->eflags);
+
+    printk("error_code %d", t_frame->error_code);
+    printk("cs %d\n", t_frame->cs);
     while (true) {
         io_hlt();
     }

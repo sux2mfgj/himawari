@@ -166,4 +166,67 @@ void exception_handler(trap_frame*);
 void irq_handler(IRQ_HANDLER_NUM irq);
 void system_call_handler(system_call_number num);
 
+//PIT
+#define PIT_PORT_COUNTER0       0x40
+#define PIT_PORT_COUNTER1       0x41
+#define PIT_PORT_COUNTER2       0x41
+#define PIT_PORT_CONTROL_WORD   0x43
+
+#define PIT_CONTROL_WORD_BCD_BINARY 0
+#define PIT_CONTROL_WORD_BCD_BCD    1
+
+#define PIT_CONTROL_WORD_MODE_TIMER         0x00
+#define PIT_CONTROL_WORD_MODE_ONESHOT_TIMER 0x01
+#define PIT_CONTROL_WORD_MODE_PULSE         0x02
+#define PIT_CONTROL_WORD_MODE_SQARE         0x03
+#define PIT_CONTROL_WORD_MODE_SOFTWARE      0x04
+#define PIT_CONTROL_WORD_MODE_HARDWARE      0x05
+
+#define PIT_CONTROL_WORD_RL_LOAD    0x0
+#define PIT_CONTROL_WORD_RL_LSB     0x1  // write: LSB( Least Significant Byte )
+#define PIT_CONTROL_WORD_RL_MSB     0x2  // write: MSB( Most Significant Byte )
+#define PIT_CONTROL_WORD_RL_LSB_MSB 0x3  // write: LSB and MSB
+
+#define PIT_CONTROL_WORD_SC_COUNTER0    0x00
+#define PIT_CONTROL_WORD_SC_COUNTER1    0x01
+#define PIT_CONTROL_WORD_SC_COUNTER2    0x02
+#define PIT_CONTROL_WORD_SC_DISABLE     0x03
+
+#define PIT_CH0_CLK     1193181.67
+#define PIT_CLK_1MS     PIT_CH0_CLK / 1000
+#define PIT_CLK_10MS    PIT_CH0_CLK / 100
+
+//PIC
+#define PIC_MASTER_CMD_STATE_PORT 0x20
+#define PIC_MASTER_DATA_PORT 0x21
+#define PIC_SLAVE_CMD_STATE_PORT 0xA0
+#define PIC_SLAVE_DATA_PORT 0xA1
+
+#define PIC_MASTER_ICW1 0x11
+#define PIC_MASTER_ICW2 0x20 // use after 0x20 number interrupt descriptor table
+#define PIC_MASTER_ICW3 0x04
+// #define PIC_MASTER_ICW4 0x01
+#define PIC_MASTER_ICW4 0x00
+
+#define PIC_SLAVE_ICW1 PIC_MASTER_ICW1
+#define PIC_SLAVE_ICW2 0x28
+#define PIC_SLAVE_ICW3 0x02
+#define PIC_SLAVE_ICW4 PIC_MASTER_ICW4
+
+#define PIC_IMR_MASK_IRQ0 0x01
+#define PIC_IMR_MASK_IRQ1 0x02
+#define PIC_IMR_MASK_IRQ2 0x04
+#define PIC_IMR_MASK_IRQ3 0x08
+#define PIC_IMR_MASK_IRQ4 0x10
+#define PIC_IMR_MASK_IRQ5 0x20
+#define PIC_IMR_MASK_IRQ6 0x40
+#define PIC_IMR_MASK_IRQ7 0x80
+#define PIC_IMR_MASK_IRQ_ALL 0xff
+
+#define PIC_OCW2_EOI 0x20
+
+void init_pic(void);
+void init_pit(void);
+void set_pit_count(uint16_t count, uint8_t counter, uint8_t mode);
+
 #endif

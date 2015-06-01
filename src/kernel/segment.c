@@ -9,6 +9,8 @@
 
 bool init_gdt(void)
 {
+
+    gdt = (segment_descriptor* )GDT_ADDR;
     printk("gdt: 0x%x", gdt);
 
     for (int i = 0; i < NUMBER_OF_GDT; ++i) {
