@@ -38,6 +38,6 @@ typedef struct {
     uint32_t vbe_interface_off;
     uint32_t vbe_interface_len;
 
-} MULTIBOOT_INFO;
+} multiboot_info;
 
 #endif

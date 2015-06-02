@@ -125,7 +125,7 @@ void init_pic(void)
     io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW4);
 
     // setting enable
-    io_out8(PIC_MASTER_DATA_PORT, 0xfc);  // 1111 1100
+    io_out8(PIC_MASTER_DATA_PORT, 0xff);  // 1111 1100
     io_out8(PIC_SLAVE_DATA_PORT, 0xff);   // 1111 1111
 
     return;
@@ -153,6 +153,7 @@ void set_pit_count(uint16_t count, uint8_t counter, uint8_t mode)
 
     return;
 }
+
 void exception_handler(trap_frame* t_frame)
 {
     printk("t_frame address 0x%x", t_frame);

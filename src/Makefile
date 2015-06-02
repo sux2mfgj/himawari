@@ -1,12 +1,12 @@
 QEMU := qemu-system-i386
 
-QEMUFLAGS := -monitor stdio -m 32M -gdb tcp::10000  -S -sdl
+QEMUFLAGS := -monitor stdio -m 16M -gdb tcp::10000  -S -sdl
 
 KERNEL := ./kernel/himawari
 ISO := ../himawari.iso
 DIASM := asm_himawari
 
-.PHONY: all
+.PHONY: all $(KERNEL)
 all: $(ISO)
 
 $(ISO): $(KERNEL)
