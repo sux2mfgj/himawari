@@ -12,7 +12,7 @@ LD_SCRIPT := kernel.ld
 LDFLAGS := -m elf_i386 --format elf32-i386 --oformat elf32-i386 \
 		  -Map $(MAPFILE) -T$(LD_SCRIPT) -nostdlib
 
-C_OBJS := segment.o main.o graphic.o trap.o kvmemory.o
+C_OBJS := segment.o main.o graphic.o trap.o kmemory.o
 ASM_OBJS := entry.o functions.o vectors.o
 
 OBJS := $(ASM_OBJS) $(C_OBJS)

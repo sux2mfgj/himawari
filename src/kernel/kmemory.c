@@ -1,14 +1,19 @@
 #include "kernel.h"
-#include "kvmemory.h"
+#include "kmemory.h"
 #include "paging.h"
 
-bool init_kvmemory(const multiboot_info* mb_info)
+bool init_kmemory(const multiboot_info* mb_info)
 {
 
     // TODO: set below variable
     uintptr_t memory_limit = 0xffffffff;
 
-    uintptr_t aligned_kernel_end = (1 + ((uintptr_t)&_kernel_end >> 3)) << 3;
+    printk("flag 1: 0x%x", 0x1 & mb_info->flags);
+    printk("flag 2: 0x%x", 0x2 & mb_info->flags);
+    printk("flag 4: 0x%x", 0x4 & mb_info->flags);
+
+
+    uintptr_t aligned_kernel_end = (1 + ((uintptr_t)&_kernel_end >> 4)) << 4;
     printk("kernel end addr before alloc kvmemory: 0x%x", aligned_kernel_end);
 
     if ((aligned_kernel_end + KVMEMORY_SIZE) < memory_limit) {
@@ -29,7 +34,7 @@ bool init_kvmemory(const multiboot_info* mb_info)
 }
 
 //return is aligned MIN_KVMEMORY_ALLOC_SIZE;
-void* kvmalloc(uint32_t size)
+void* kmalloc(uint32_t size)
 {
     for (int i = 0; i < (KVMEMORY_SIZE / MIN_KVMEMORY_ALLOC_SIZE); ++i) {
         if (ALLOCATED == kvmem_list[i].flag) {

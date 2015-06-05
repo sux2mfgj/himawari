@@ -23,6 +23,6 @@ static kvmem_struct kvmem_list[KVMEMORY_SIZE / MIN_KVMEMORY_ALLOC_SIZE];
 static uintptr_t base_addr;
 
 
-bool init_kvmemory(const multiboot_info* mb_info);
-void* kvmalloc(uint32_t size);
+bool init_kmemory(const multiboot_info* mb_info);
+void* kmalloc(uint32_t size);
 #endif

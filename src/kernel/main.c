@@ -3,7 +3,7 @@
 #include "segment.h"
 #include "graphic.h"
 #include "trap.h"
-#include "kvmemory.h"
+#include "kmemory.h"
 
 void kernel_entry(const uint32_t magic, const multiboot_info *mb_info)
 {
@@ -22,7 +22,7 @@ void kernel_entry(const uint32_t magic, const multiboot_info *mb_info)
         kernel_panic("init_interrupt");
     }
 
-    if(!init_kvmemory(mb_info)){
+    if(!init_kmemory(mb_info)){
         kernel_panic("init_kvmemory");
     }
 
