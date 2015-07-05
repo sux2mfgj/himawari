@@ -21,6 +21,7 @@ run_debug: $(ISO)
 	$(QEMU) $(QEMUFLAGS) $(QEMU_DEBUG_FLAGS) -cdrom $(ISO)
 
 run_iso: $(ISO)
+	grub-mkimage -O i386-pc -o ../efi.img multiboot
 	$(QEMU) $(QEMUFLAGS) -cdrom $(ISO)
 
 clean:

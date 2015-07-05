@@ -66,8 +66,8 @@ start_in_high_her_half:
     pushl %ebx
     pushl %eax
 
-    jmp kernel_entry
-#    call kernel_entry
+#     jmp kernel_entry
+    call kernel_entry
 
 .text
 .align 4
