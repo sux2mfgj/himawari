@@ -2,19 +2,64 @@
 #include "kmemory.h"
 #include "system.h"
 
-static task_node* task_node_head;
-static task_node* current_task;
+#include "kernel.h"
+
+/* static task_struct task_struct_head; */
+static task_struct* current_task;
+
+void test_thread(void)
+{
+    printk("start test thread");
+
+    while (true) {
+        printk("test thread main loop");
+        io_hlt();
+    }
+}
+
+extern uint32_t test_stack_start;
 
 bool init_process(void)
 {
-    task_node_head = kmalloc(sizeof(task_node));
-    task_node_head->next_ptr = task_node_head;
+    /*     task_struct_head = (task_struct* )kmalloc(sizeof(task_struct)); */
+    current_task = (task_struct*)kmalloc(sizeof(task_struct));
+    current_task->next_ptr = current_task;
 
-    task_node_head->task_struct.page_directory_table = NULL;
-    task_node_head->task_struct.context.eip = system;
-    task_node_head->task_struct.context.esp = NULL;
+/*     current_task->= (task_struct*)kmalloc(sizeof(task_struct)); */
 
-    current_task = task_node_head;
+    current_task->page_directory_table = (uintptr_t)NULL;
+    current_task->context.eip = (uintptr_t)system;
+    current_task->context.esp = (uintptr_t)NULL;
+    current_task->name = "";
+    
+    /*     task_struct_head.next_ptr = &task_struct_head; */
+
+    /*     task_struct_head= (task_struct* )kmalloc(sizeof(task_struct)); */
+
+/*     task_struct_head.page_directory_table = (uintptr_t)NULL; */
+/*     task_struct_head.context.eip = (uintptr_t)system; */
+/*     task_struct_head.context.esp = (uintptr_t)NULL; */
+
+/*     current_node = &task_struct_head; */
+
+    // below code is sample
+    task_struct* test_thread_struct = (task_struct *)kmalloc(sizeof(task_struct));
+
+/*     test_thread->task_struct = (task_struct*)kmalloc(sizeof(task_struct)); */
+
+    test_thread_struct->page_directory_table = (uintptr_t)NULL;
+    test_thread_struct->context.eip = (uintptr_t)test_thread;
+    test_thread_struct->context.esp = (uintptr_t)test_stack_start;
+
+/*     task_node* test_thread_node = kmalloc(sizeof(task_node)); */
+
+/*     test_thread_node->task_struct = (task_struct*)kmalloc(sizeof(task_struct)); */
+
+/*     test_thread_node->task_struct->page_directory_table = NULL; */
+/*     test_thread_node->task_struct->context.eip = test_thread; */
+/*     test_thread_node->task_struct->context.esp = test_stack_start; */
+
+    append_take_node(current_task, test_thread_struct);
 
     return true;
 }
@@ -47,13 +92,15 @@ void schedule(void)
     task_struct* next = current_task->next_ptr;
 
     if (prev != next){
+/*         printk("0x%x", current_node->next_ptr->task_struct->context.esp); */
+/*         printk("0x%x", current_node->next_ptr->task_struct->context.eip); */
         task_switch(prev, next);
     }
 }
 
-void append_take_node(task_node* head, task_node* node)
+void append_take_node(task_struct* head, task_struct* node)
 {
-    task_node* tmp = head;
+    task_struct* tmp = head;
     while (tmp->next_ptr != head) {
         tmp = tmp->next_ptr;
     }     

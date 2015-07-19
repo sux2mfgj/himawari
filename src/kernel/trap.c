@@ -125,7 +125,7 @@ void init_pic(void)
     io_out8(PIC_SLAVE_DATA_PORT, PIC_SLAVE_ICW4);
 
     // setting enable
-    io_out8(PIC_MASTER_DATA_PORT, 0xff);  // 1111 1100
+    io_out8(PIC_MASTER_DATA_PORT, 0xfe);  // 1111 1100
     io_out8(PIC_SLAVE_DATA_PORT, 0xff);   // 1111 1111
 
     return;
@@ -170,7 +170,7 @@ void exception_handler(trap_frame* t_frame)
 
 void irq_handler(IRQ_HANDLER_NUM irq)
 {
-    printk("irq_handler : %d", irq);
+/*     printk("irq_handler : %d", irq); */
     switch (irq) {
         case IRQ_CLOCK:
             timer_interrupt_handler();
