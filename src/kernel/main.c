@@ -26,14 +26,20 @@ void kernel_entry(const uint32_t magic, const multiboot_info *mb_info)
         kernel_panic("init_kvmemory");
     }
 
+    if(!init_process()){
+        kernel_panic("init_process");
+    }
+
     printk("start himawari");
 
     io_sti();
-    while (true) {}
+    system();
+/*     while (true) {} */
     return;
 }
 
 void kernel_panic_handler(const char* name, const char* file, const int line)
 {
+    printk("%s [%s :%d]", name, file, line);
     io_hlt();
 }

@@ -6,7 +6,9 @@ bool init_kmemory(const multiboot_info* mb_info)
 {
 
     // TODO: set below variable
-    uintptr_t memory_limit = 0xffffffff;
+    uintptr_t memory_limit =
+            (mb_info->mem_upper + mb_info->mem_lower + 1024) * 1024;
+
 
     printk("flag 1: 0x%x", 0x1 & mb_info->flags);
     printk("flag 2: 0x%x", 0x2 & mb_info->flags);
@@ -16,9 +18,9 @@ bool init_kmemory(const multiboot_info* mb_info)
     uintptr_t aligned_kernel_end = (1 + ((uintptr_t)&_kernel_end >> 4)) << 4;
     printk("kernel end addr before alloc kvmemory: 0x%x", aligned_kernel_end);
 
+
     if ((aligned_kernel_end + KVMEMORY_SIZE) < memory_limit) {
         kernel_panic("don't enough memory.");
-        return false;
     }
     base_addr = aligned_kernel_end;
 

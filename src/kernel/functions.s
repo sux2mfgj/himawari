@@ -60,3 +60,16 @@ io_out8:
     outb %al, %dx
     ret
 
+.extern system
+.globl start_other_process
+start_other_process:
+    movl $system_stack_start, %esp
+    movl $system_stack_start, %ebp
+    jmp system
+
+
+.data
+.align 8
+system_stack:
+    .space 4096
+system_stack_start:

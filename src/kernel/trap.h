@@ -74,7 +74,7 @@ typedef struct _gate_vector_table {
     privilege_level level;
 } gate_vector_table;
 
-bool init_interrupt(void);
+bool ikenit_interrupt(void);
 
 static inline void _set_gatedesc(gate_descriptor *gd, uint32_t offset,
                                  uint32_t selector, uint8_t gate_type,
