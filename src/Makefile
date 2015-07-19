@@ -6,6 +6,7 @@ QEMU_DEBUG_FLAGS = -S -gdb tcp::10000
 KERNEL := ./kernel/himawari
 ISO := ../himawari.iso
 DIASM := asm_himawari
+EFI_IMG := ../efi.img
 
 .PHONY: all $(KERNEL)
 all: $(ISO)
@@ -20,8 +21,10 @@ $(KERNEL): $(KERNEL_NEED_FILES)
 run_debug: $(ISO)
 	$(QEMU) $(QEMUFLAGS) $(QEMU_DEBUG_FLAGS) -cdrom $(ISO)
 
-run_iso: $(ISO)
+$(EFI_IMG):
 	grub-mkimage -O i386-pc -o ../efi.img multiboot
+
+run_iso: $(ISO) $(EFI_IMG)
 	$(QEMU) $(QEMUFLAGS) -cdrom $(ISO)
 
 clean:

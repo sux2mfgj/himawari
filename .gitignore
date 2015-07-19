@@ -8,3 +8,4 @@ src/asm_himawari
 src/tags
 *.tmp
 dump
+efi.img
