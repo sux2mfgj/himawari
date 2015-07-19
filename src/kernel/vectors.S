@@ -90,6 +90,14 @@ hardware_interrupt14:
 hardware_interrupt15:
     PIC_SLAVE_INTERRUPT(15)
 
+.align 16
+# TODO: when intterrup occured(system -> kernel), how change kernel stack to system stack.
+# --- save ---
+# save:
+#     pusha
+
+
+
 # ----- exception -----
 
 #define IS_INT_IN_KERNEL(displ, label)    \

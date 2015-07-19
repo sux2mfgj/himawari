@@ -1,3 +1,4 @@
+#define _ASM_FILE_
 .file "entry.S"
 
 .extern kernel_entry

@@ -1,7 +1,6 @@
 #ifndef _INCLUDED_MAIN_H_
 #define _INCLUDED_MAIN_H_
 
-// #include <stdint.h>
 #include <stddef.h>
 
 #include "multiboot.h"

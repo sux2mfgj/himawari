@@ -1,9 +1,9 @@
 #include "trap.h"
-/* #include "graphic.h" */
 #include "asm.h"
 #include "vectors.h"
 #include "segment.h"
 #include "kernel.h"
+#include "process.h"
 /* #include "timer.h" */
 
 /* static gate_descriptor idt[INTERRUPT_DESCRIPTOR_TABLE_SIZE]; */
@@ -173,7 +173,7 @@ void irq_handler(IRQ_HANDLER_NUM irq)
     printk("irq_handler : %d", irq);
     switch (irq) {
         case IRQ_CLOCK:
-/*             timer_interrupt(); */
+            timer_interrupt_handler();
             break;
 
         case IRQ_KEYBOARD: {
@@ -191,3 +191,9 @@ void system_call_handler(system_call_number num)
     printk("in system call handler %d", num);
     return;
 }
+
+void timer_interrupt_handler(void)
+{
+    schedule();
+}
+
