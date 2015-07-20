@@ -1,43 +1,25 @@
 CC := clang
 AS := as
 LD := ld
+AR := ar
 
-CFLAGS := -ggdb3 -Wall --target=i686-elf -m32
-ASFLAGS := --32
-PPFLAGS := -E
-
-MAPFILE := kernel.map
-LD_SCRIPT := kernel.ld
+CFLAGS := -ggdb3 -Wall --target=i686-elf -I../include
 
 LDFLAGS := -m elf_i386 --format elf32-i386 --oformat elf32-i386 \
-		  -Map $(MAPFILE) -T$(LD_SCRIPT) -nostdlib
+		  -nostdlib -I../include 
 
-C_OBJS := segment.o main.o graphic.o trap.o kmemory.o process.o system.o
-ASM_OBJS := entry.o functions.o vectors.o
+LIBRARYS := libstring.a
 
-OBJS := $(ASM_OBJS) $(C_OBJS)
-
-IMAGE := himawari
-DUMP_FILE := dump
-
-.SUFFIXES: .o .s .S .c
-.s.o:
-	$(AS) $(ASFLAGS) -o $@ $<
-.S.o:
-	$(CC) $(PPFLAGS) $< > $(join $<, .tmp)
-	$(AS) $(ASFLAGS) -o $@ $(join $<, .tmp)
+.SUFFIXES: .o .c
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
 .PHONY: all
-all: $(IMAGE) $(DUMP_FILE)
+all: $(LIBRARYS)
 
-$(IMAGE): $(OBJS) $(LD_SCRIPT)
-	$(LD) $(LDFLAGS) $(OBJS) -o $@
-
-$(DUMP_FILE): $(IMAGE)
-	objdump -d $(IMAGE) > $(DUMP_FILE)
+libstring.a: string.o
+	ar r $@ string.o
 
 clean:
-	rm -f *.o *.tmp $(IMAGE)
+	rm -f *.o 
 
