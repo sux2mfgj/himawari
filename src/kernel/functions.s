@@ -75,7 +75,7 @@ system_stack_start:
 
 .data
 .align 8
-.globl test_stack_start
+.globl test_stack, test_stack_start
 test_stack:
     .space 4096
 test_stack_start:

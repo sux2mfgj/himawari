@@ -82,6 +82,8 @@ static inline void _set_gatedesc(gate_descriptor *gd, uint32_t offset,
                                  uint8_t descriptor_privilege_level,
                                  uint8_t present);
 
+extern void restart1(void);
+
 // pic asmblly handlers
 extern void hardware_interrupt0(void);
 extern void hardware_interrupt1(void);

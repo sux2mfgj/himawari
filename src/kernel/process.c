@@ -37,7 +37,6 @@ bool init_process(void)
     current_task->context.eip = (uintptr_t)system;
     current_task->context.esp = (uintptr_t)NULL;
     strcpy(current_task->name, "system");
-    /*         current_task->name = ""; */
 
     /*     task_struct_head.next_ptr = &task_struct_head; */
 
@@ -57,15 +56,15 @@ bool init_process(void)
      * (task_struct*)kmalloc(sizeof(task_struct)); */
 
     test_thread_struct->page_directory_table = (uintptr_t)NULL;
-/*     test_thread_struct->context.eip = (uintptr_t)restart1; */
+    test_thread_struct->context.eip = (uintptr_t)restart1;
 
-    *(uint32_t*)(test_stack_start - 9) = (uintptr_t)0x10;
-    *(uint32_t*)(test_stack_start - 8) = (uintptr_t)test_thread;
-    test_thread_struct->context.esp = (uintptr_t)test_stack_start - 7;
+/*     *(uint32_t*)(test_stack_start - 9) = (uintptr_t)0x10; */
+/*     *(uint32_t*)(test_stack_start - 8) = (uintptr_t)test_thread; */
+/*     test_thread_struct->context.esp = (uintptr_t)test_stack_start - 7; */
 
-    for (int i = 0; i < 8; ++i) {
-        *(uint32_t*)(test_stack_start - i) = i;
-    }
+/*     for (int i = 0; i < 8; ++i) { */
+/*         *(uint32_t*)(test_stack_start - i) = i; */
+/*     } */
 
     printk("stack 0x%x", test_thread_struct->context.esp);
     printk("addr 0x%x", test_thread);
@@ -112,7 +111,7 @@ void schedule(void)
     current_task = current_task->next_ptr;
     /*     static int f = 0;  */
     /*     if(f == 0){ */
-/*     task_switch(prev, next); */
+    task_switch(prev, next);
     /*         f = 1; */
     /*     } */
     /*     else{ */

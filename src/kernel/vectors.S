@@ -4,46 +4,58 @@
 # ----- pic -----
 #define PIC_IRQ_HANDLER(irq) \
     pushl $irq    ;\
-    call irq_handler ;\
-    add $4, %esp
+    call irq_handler 
+
 
 #define PIC_MASTER_INTERRUPT(irq) \
     pusha ;\
     PIC_IRQ_HANDLER(irq) ;\
-    movb $PIC_OCW2_EOI, %al ;\
-    outb $PIC_MASTER_CMD_STATE_PORT ;\
-    popa ;\
+    add $4, %esp ;\
+    jmp restart1
+
+.globl restart1
+restart1: 
+    movb $PIC_OCW2_EOI, %al 
+    outb $PIC_MASTER_CMD_STATE_PORT 
+    popa 
     iret
 
-
+.align 16
 .globl hardware_interrupt0
 hardware_interrupt0:    # clock
     PIC_MASTER_INTERRUPT(0)
 
+.align 16
 .globl hardware_interrupt1
 hardware_interrupt1:    # keyboard
     PIC_MASTER_INTERRUPT(1)
 
+.align 16
 .globl hardware_interrupt2
 hardware_interrupt2:    # cascade!
     PIC_MASTER_INTERRUPT(2)
 
+.align 16
 .globl hardware_interrupt3
 hardware_interrupt3:    # second serial
     PIC_MASTER_INTERRUPT(3)
 
+.align 16
 .globl hardware_interrupt4
 hardware_interrupt4:    # first serial
     PIC_MASTER_INTERRUPT(4)
 
+.align 16
 .globl hardware_interrupt5
 hardware_interrupt5:    # XT winchester
     PIC_MASTER_INTERRUPT(5)
 
+.align 16
 .globl hardware_interrupt6
 hardware_interrupt6:    # floppy
     PIC_MASTER_INTERRUPT(6)
 
+.align 16
 .globl hardware_interrupt7
 hardware_interrupt7:    # printer
     PIC_MASTER_INTERRUPT(7)
@@ -58,39 +70,46 @@ hardware_interrupt7:    # printer
     popa ;\
     iret
 
+.align 16
 .globl hardware_interrupt8
 hardware_interrupt8:
     PIC_SLAVE_INTERRUPT(8)
 
+.align 16
 .globl hardware_interrupt9
 hardware_interrupt9:
     PIC_SLAVE_INTERRUPT(9)
 
+.align 16
 .globl hardware_interrupt10
 hardware_interrupt10:
     PIC_SLAVE_INTERRUPT(10)
 
+.align 16
 .globl hardware_interrupt11
 hardware_interrupt11:
     PIC_SLAVE_INTERRUPT(11)
 
+.align 16
 .globl hardware_interrupt12
 hardware_interrupt12:
     PIC_SLAVE_INTERRUPT(12)
 
+.align 16
 .globl hardware_interrupt13
 hardware_interrupt13:
     PIC_SLAVE_INTERRUPT(13)
 
+.align 16
 .globl hardware_interrupt14
 hardware_interrupt14:
     PIC_SLAVE_INTERRUPT(14)
 
+.align 16
 .globl hardware_interrupt15
 hardware_interrupt15:
     PIC_SLAVE_INTERRUPT(15)
 
-.align 16
 # TODO: when intterrup occured(system -> kernel), how change kernel stack to system stack.
 # --- save ---
 # save:

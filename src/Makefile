@@ -34,5 +34,6 @@ run_iso: $(ISO) $(EFI_IMG)
 
 clean:
 	cd kernel && $(MAKE) clean
+	cd lib && $(MAKE) clean
 	rm  $(ISO)
 

@@ -21,5 +21,5 @@ libstring.a: string.o
 	ar r $@ string.o
 
 clean:
-	rm -f *.o 
+	rm -f *.o *.a
 
