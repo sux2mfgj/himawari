@@ -9,3 +9,7 @@ src/tags
 *.tmp
 dump
 efi.img
+.gdb_history
+*.a
+src/peda-session-himawari.txt
+src/peda-session-unknown.txt
