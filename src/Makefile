@@ -8,14 +8,19 @@ ISO := ../himawari.iso
 DIASM := asm_himawari
 EFI_IMG := ../efi.img
 
-.PHONY: all $(KERNEL)
+LIBRARYS :=./lib
+
+.PHONY: all $(KERNEL) librarys
 all: $(ISO)
 
 $(ISO): $(KERNEL)
 	cp $(KERNEL) ../boot
 	grub-mkrescue -o $(ISO) ../
 
-$(KERNEL): $(KERNEL_NEED_FILES)
+librarys:
+	$(MAKE) -C ./lib
+
+$(KERNEL): librarys
 	$(MAKE) -C ./kernel
 
 run_debug: $(ISO)

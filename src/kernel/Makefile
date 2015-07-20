@@ -2,7 +2,9 @@ CC := clang
 AS := as
 LD := ld
 
-CFLAGS := -ggdb3 -Wall --target=i686-elf -m32
+CHECKSUM := md5sum
+
+CFLAGS := -ggdb3 -Wall --target=i686-elf -m32 -I../include
 ASFLAGS := --32
 PPFLAGS := -E
 
@@ -10,8 +12,7 @@ MAPFILE := kernel.map
 LD_SCRIPT := kernel.ld
 
 LDFLAGS := -m elf_i386 --format elf32-i386 --oformat elf32-i386 \
-		  -Map $(MAPFILE) -T$(LD_SCRIPT) -nostdlib
-
+		  -Map $(MAPFILE) -T$(LD_SCRIPT) -nostdlib 
 C_OBJS := segment.o main.o graphic.o trap.o kmemory.o process.o system.o
 ASM_OBJS := entry.o functions.o vectors.o
 
@@ -33,7 +34,9 @@ DUMP_FILE := dump
 all: $(IMAGE) $(DUMP_FILE)
 
 $(IMAGE): $(OBJS) $(LD_SCRIPT)
-	$(LD) $(LDFLAGS) $(OBJS) -o $@
+	$(CHECKSUM) *.c *.s *.S *.h Makefile kernel.map kernel.ld > checksum
+	$(LD) $(LDFLAGS) $(OBJS) -o $@ -I../include -L../lib -lstring
+
 
 $(DUMP_FILE): $(IMAGE)
 	objdump -d $(IMAGE) > $(DUMP_FILE)
