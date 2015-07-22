@@ -2,7 +2,6 @@ CC := clang
 AS := as
 LD := ld
 
-CHECKSUM := md5sum
 
 CFLAGS := -ggdb3 -Wall --target=i686-elf -m32 -I../include
 ASFLAGS := --32
@@ -34,7 +33,6 @@ DUMP_FILE := dump
 all: $(IMAGE) $(DUMP_FILE)
 
 $(IMAGE): $(OBJS) $(LD_SCRIPT)
-	$(CHECKSUM) *.c *.s *.S *.h Makefile kernel.map kernel.ld > checksum
 	$(LD) $(LDFLAGS) $(OBJS) -o $@ -I../include -L../lib -lstring
 
 
