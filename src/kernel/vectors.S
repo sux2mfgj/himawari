@@ -1,22 +1,28 @@
 #include "vectors.h"
 .text
+.align 16
+.globl start_tasks
+start_tasks: #void start_tasks(uint32_t* system_esp);
+    movl 4(%esp), %eax
+    movl %eax, %esp
+    jmp restart1
 
 # ----- pic -----
 #define PIC_IRQ_HANDLER(irq) \
     pushl $irq    ;\
     call irq_handler 
 
-
 #define PIC_MASTER_INTERRUPT(irq) \
     pusha ;\
     PIC_IRQ_HANDLER(irq) ;\
     add $4, %esp ;\
-    jmp restart1
+    jmp restart
 
-.globl restart1
-restart1: 
+.globl restart
+restart: 
     movb $PIC_OCW2_EOI, %al 
     outb $PIC_MASTER_CMD_STATE_PORT 
+restart1:
     popa 
     iret
 

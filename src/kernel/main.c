@@ -33,10 +33,14 @@ void kernel_entry(const uint32_t magic, const multiboot_info *mb_info)
 
     printk("start himawari");
 
-/*     io_sti(); */
-/*     system(); */
-    start_other_process();
-/*     while (true) {} */
+    if(!start()){
+        kernel_panic("start");
+    }
+    else{
+        //TODO shutdown?
+        io_hlt();
+    }
+/*     start_tasks();  */
     return;
 }
 

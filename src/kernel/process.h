@@ -22,6 +22,7 @@ typedef struct _task_struct{
     char name[0x10];
 } task_struct;
 
+bool start(void);
 bool init_process(void);
 void task_switch(task_struct *prev, task_struct *next);
 void __switch_to(void);
@@ -35,7 +36,5 @@ void __switch_to(void);
 
 void schedule(void);
 void append_take_node(task_struct* head, task_struct* node);
-
-void start_other_process(void);
 
 #endif
