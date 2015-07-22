@@ -13,18 +13,13 @@ static task_struct* current_task;
 void test_thread(void)
 {
     printk("start test thread");
-    /*     io_sti(); */
 
-    /*     test_count(0); */
     while (true) {
-        /*         static int a = 0; */
-        /*             a++; */
-        /*         } */
+        io_hlt();
     }
 }
 
 extern uint32_t test_stack_start;
-/* extern uintptr_t* test_stack; */
 
 bool init_process(void)
 {
@@ -38,12 +33,14 @@ bool init_process(void)
     current_task->context.eip = (uintptr_t)NULL;
     current_task->context.esp = (uintptr_t)&system_stack_start;
 
-    *(uint32_t*)(current_task->context.esp - 0) = 0x0000202; //TODO: this flags is not collect. //eflags
-    *(uint32_t*)(current_task->context.esp - 0x4) = KERNEL_CODE_SEGMENT_INDEX * 0x8; //cs
-    *(uint32_t*)(current_task->context.esp - 0x8) = system; //eip
+    *(uint32_t*)(current_task->context.esp - 0) =
+        0x0000202;  // eflags //TODO: this flags is not collect.
+    *(uint32_t*)(current_task->context.esp - 0x4) =
+        KERNEL_CODE_SEGMENT_INDEX * 0x8;                     // cs
+    *(uint32_t*)(current_task->context.esp - 0x8) = system;  // eip
 
-    *(uint32_t*)(current_task->context.esp - 0xc) = 0x77777777; 
-    *(uint32_t*)(current_task->context.esp - 0x10) = 0x66666666; 
+    *(uint32_t*)(current_task->context.esp - 0xc) = 0x77777777;
+    *(uint32_t*)(current_task->context.esp - 0x10) = 0x66666666;
     *(uint32_t*)(current_task->context.esp - 0x14) = 0x55555555;
     *(uint32_t*)(current_task->context.esp - 0x18) = 0x44444444;
     *(uint32_t*)(current_task->context.esp - 0x1c) = 0x33333333;
@@ -52,31 +49,39 @@ bool init_process(void)
     *(uint32_t*)(current_task->context.esp - 0x28) = 0x00000000;
 
     strcpy(current_task->name, "system");
-    
+
     printk("system_stack :0x%x", &system_stack_start);
 
     // below code is sample
-/*     task_struct* test_thread_struct = (task_struct*)kmalloc(sizeof(task_struct)); */
-/*     test_thread_struct->page_directory_table = (uintptr_t)NULL; */
-/*     test_thread_struct->context.eip = (uintptr_t)start_tasks; */
-/*     test_thread_struct->context.esp = (uintptr_t)&test_stack_start; */
+    task_struct* test_thread_struct =
+        (task_struct*)kmalloc(sizeof(task_struct));
+    test_thread_struct->page_directory_table = (uintptr_t)NULL;
+    test_thread_struct->context.eip = (uintptr_t)restart;
+    test_thread_struct->context.esp = (uintptr_t)&test_stack_start;
 
-/*     *(uint32_t*)(test_thread_struct->context.esp - 0) = 0x0000202; //TODO: this flags is not collect. //eflags */
-/*     *(uint32_t*)(test_thread_struct->context.esp - 0x4) = KERNEL_CODE_SEGMENT_INDEX * 0x8; //cs */
-/*     *(uint32_t*)(test_thread_struct->context.esp - 0x8) = test_thread; //eip */
+    *(uint32_t*)(test_thread_struct->context.esp - 0) = 0x0000202;
+    // TODO: this flags is not collect. //eflags
+    *(uint32_t*)(test_thread_struct->context.esp - 0x4) =
+        KERNEL_CODE_SEGMENT_INDEX * 0x8;  // cs
+    *(uint32_t*)(test_thread_struct->context.esp - 0x8) = test_thread;
+    // eip */
 
-/*     *(uint32_t*)(test_thread_struct->context.esp - 0xc) = 0x77777777;  */
-/*     *(uint32_t*)(test_thread_struct->context.esp - 0x10) = 0x66666666;  */
-/*     *(uint32_t*)(test_thread_struct->context.esp - 0x14) = 0x55555555; */
-/*     *(uint32_t*)(test_thread_struct->context.esp - 0x18) = 0x44444444; */
-/*     *(uint32_t*)(test_thread_struct->context.esp - 0x1c) = 0x33333333; */
-/*     *(uint32_t*)(test_thread_struct->context.esp - 0x20) = 0x22222222; */
-/*     *(uint32_t*)(test_thread_struct->context.esp - 0x24) = 0x11111111; */
-/*     *(uint32_t*)(test_thread_struct->context.esp - 0x28) = 0x00000000; */
-/*     strcpy(test_thread_struct->name, "test"); */
+    *(uint32_t*)(test_thread_struct->context.esp - 0xc) = 0x77777777;
+    *(uint32_t*)(test_thread_struct->context.esp - 0x10) = 0x66666666;
+    *(uint32_t*)(test_thread_struct->context.esp - 0x14) = 0x55555555;
+    *(uint32_t*)(test_thread_struct->context.esp - 0x18) = 0x44444444;
+    *(uint32_t*)(test_thread_struct->context.esp - 0x1c) = 0x33333333;
+    *(uint32_t*)(test_thread_struct->context.esp - 0x20) = 0x22222222;
+    *(uint32_t*)(test_thread_struct->context.esp - 0x24) = 0x11111111;
+    *(uint32_t*)(test_thread_struct->context.esp - 0x28) = 0x00000000;
+    strcpy(test_thread_struct->name, "test");
 
-/*     append_take_node(current_task, test_thread_struct); */
-/*   */
+    printk("system_stack :0x%x", test_thread_struct->context.esp);
+    test_thread_struct->context.esp -= 0x28;
+    printk("system_stack :0x%x", test_thread_struct->context.esp);
+
+
+    append_take_node(current_task, test_thread_struct);
 
 
     return true;
@@ -86,7 +91,7 @@ bool start(void)
 {
     start_tasks(current_task->context.esp - 0x28);
 
-    //never reached 
+    // never reached
     return false;
 }
 
