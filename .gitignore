@@ -13,3 +13,7 @@ efi.img
 *.a
 src/peda-session-himawari.txt
 src/peda-session-unknown.txt
+
+boot/*
+!boot/grub
+
