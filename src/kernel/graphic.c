@@ -2,6 +2,17 @@
 #include "kernel.h"
 #include <stdarg.h>
 
+static const uintptr_t vram_textmove_addr = VRAM_TEXTMODE;
+static uint32_t print_line_number = 0;
+static uint32_t integer_puts(uint32_t number,
+                             const uint32_t x,
+                             const uint32_t y);
+static uint32_t hexadecimal_puts(uint32_t number,
+                                 const uint32_t x,
+                                 const uint32_t y);
+
+static void slide_screen(void);
+
 bool init_text_screen(void)
 {
     for (int i = 0; i < TEXT_MODE_WIDTH; ++i) {

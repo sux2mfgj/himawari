@@ -232,5 +232,6 @@ void init_pit(void);
 void set_pit_count(uint16_t count, uint8_t counter, uint8_t mode);
 
 void timer_interrupt_handler(void);
+bool init_interrupt(void);
 
 #endif

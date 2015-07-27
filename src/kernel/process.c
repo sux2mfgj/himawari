@@ -3,6 +3,7 @@
 #include "system.h"
 #include "trap.h"
 #include "segment.h"
+#include "asm.h"
 
 #include "kernel.h"
 #include <string.h>
@@ -37,7 +38,7 @@ bool init_process(void)
         0x0000202;  // eflags //TODO: this flags is not collect.
     *(uint32_t*)(current_task->context.esp - 0x4) =
         KERNEL_CODE_SEGMENT_INDEX * 0x8;                     // cs
-    *(uint32_t*)(current_task->context.esp - 0x8) = system;  // eip
+    *(uint32_t*)(current_task->context.esp - 0x8) = (uintptr_t)system;  // eip
 
     *(uint32_t*)(current_task->context.esp - 0xc) = 0x77777777;
     *(uint32_t*)(current_task->context.esp - 0x10) = 0x66666666;
@@ -48,7 +49,7 @@ bool init_process(void)
     *(uint32_t*)(current_task->context.esp - 0x24) = 0x11111111;
     *(uint32_t*)(current_task->context.esp - 0x28) = 0x00000000;
 
-    strcpy(current_task->name, "system");
+    h_strcpy(current_task->name, "system");
 
     printk("system_stack :0x%x", &system_stack_start);
 
@@ -63,7 +64,7 @@ bool init_process(void)
     // TODO: this flags is not collect. //eflags
     *(uint32_t*)(test_thread_struct->context.esp - 0x4) =
         KERNEL_CODE_SEGMENT_INDEX * 0x8;  // cs
-    *(uint32_t*)(test_thread_struct->context.esp - 0x8) = test_thread;
+    *(uint32_t*)(test_thread_struct->context.esp - 0x8) = (uintptr_t)test_thread;
     // eip */
 
     *(uint32_t*)(test_thread_struct->context.esp - 0xc) = 0x77777777;
@@ -74,7 +75,7 @@ bool init_process(void)
     *(uint32_t*)(test_thread_struct->context.esp - 0x20) = 0x22222222;
     *(uint32_t*)(test_thread_struct->context.esp - 0x24) = 0x11111111;
     *(uint32_t*)(test_thread_struct->context.esp - 0x28) = 0x00000000;
-    strcpy(test_thread_struct->name, "test");
+    h_strcpy(test_thread_struct->name, "test");
 
     printk("system_stack :0x%x", test_thread_struct->context.esp);
     test_thread_struct->context.esp -= 0x28;
@@ -89,7 +90,7 @@ bool init_process(void)
 
 bool start(void)
 {
-    start_tasks(current_task->context.esp - 0x28);
+    start_tasks((uint32_t *)((current_task->context.esp) - 0x28));
 
     // never reached
     return false;
