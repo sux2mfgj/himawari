@@ -1,5 +1,6 @@
-himawari is simple and clear kernel.
-==
+himawari is simple kernel.
+---
+
 
 ---
 #License
