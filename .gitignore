@@ -1,19 +1,5 @@
-*.elf
+*.efi
 *.o
-himawari
-kernel.map
-*.iso
-test
-src/asm_himawari
-src/tags
-*.tmp
-dump
-efi.img
-.gdb_history
-*.a
-src/peda-session-himawari.txt
-src/peda-session-unknown.txt
+*.so
 
-boot/*
-!boot/grub
-
+run
