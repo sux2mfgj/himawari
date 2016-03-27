@@ -1,4 +1,4 @@
-TARGET	:= 
+TARGET	:= src/kernel/kernel.elf
 BOOT_LOADER	:= src/boot/BOOTX64.efi
 
 QEMU	:= qemu-system-x86_64
@@ -20,6 +20,10 @@ run: run/$(OVMF) $(TARGET) $(EFI_BOOT) $(BOOT_LOADER)
 $(BOOT_LOADER):
 	cd src/boot; $(MAKE)
 
+.PHONY:$(TARGET)
+$(TARGET):
+	cd src/kernel; $(MAKE)
+
 $(EFI_BOOT):
 	mkdir -p $(HDA)/EFI/BOOT
 
@@ -31,3 +35,4 @@ run/$(OVMF):
 
 clean:
 	cd src/boot; $(MAKE) clean
+	cd src/kernel; $(MAKE) clean
