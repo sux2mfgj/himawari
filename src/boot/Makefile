@@ -1,15 +1,15 @@
-ARCH	:= x86_64
+#  ARCH	:= x86_64
 
-CC		:= clang
-LD		:= ld
+#  CC		:= clang
+#  LD		:= ld
 OBJCOPY	:= objcopy
 
-CFLAGS		:= -Wall
-EFI_CFLAGS	:= -fno-stack-protector -fpic -fshort-wchar -mno-red-zone -DEFI_FUNCTION_WRAPER $(CFLAGS)
+#  CFLAGS		:= -Wall
+#  EFI_CFLAGS	:= -fno-stack-protector -fpic -fshort-wchar -mno-red-zone -DEFI_FUNCTION_WRAPER $(CFLAGS)
 
-LIB_PATH	:= /usr/lib
-EFI_PATH:= /usr/include/efi
-EFI_INCLUDES := -I $(EFI_PATH) -I $(EFI_PATH)/$(ARCH)
+#  LIB_PATH	:= /usr/lib
+#  EFI_PATH:= /usr/include/efi
+#  EFI_INCLUDES := -I $(EFI_PATH) -I $(EFI_PATH)/$(ARCH)
 EFI_LDS		:= $(LIB_PATH)/elf_x86_64_efi.lds
 CRT0_EFI	:= $(LIB_PATH)/crt0-efi-x86_64.o
 
@@ -52,4 +52,4 @@ main.o: main.c Makefile
 
 .PHONY:clean
 clean:
-	rm -f *.zip $(TARGET) $(OBJS) $(MAIN_SO)
+	$(RM) *.zip $(TARGET) $(OBJS) $(MAIN_SO)
