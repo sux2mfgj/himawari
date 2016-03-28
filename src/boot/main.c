@@ -9,7 +9,7 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable)
     EFI_LOADED_IMAGE* LoadedImageParent;
     EFI_LOADED_IMAGE* LoadedImage;
     EFI_HANDLE Image;
-    CHAR16* Options = L"root=/dev/sda2 rootfstype=btrfs rw quiet splash";
+/*     CHAR16* Options = L"root=/dev/sda2 rootfstype=btrfs rw quiet splash"; */
     EFI_STATUS Status = EFI_SUCCESS;
 
     InitializeLib(ImageHandle, SystemTable);
@@ -24,19 +24,18 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable)
         return Status;
     }
 
-    Path = FileDevicePath(LoadedImageParent->DeviceHandle, L"\\kernel.elf");
+    Path = FileDevicePath(LoadedImageParent->DeviceHandle, L"\\kernel.efi");
     if (Path == NULL) {
         Print(L"Could not get device path.");
         return EFI_INVALID_PARAMETER;
     }
 
-    uintptr_t kernel_base_addr = 0x00100000;
-    Status = uefi_call_wrapper(BS->LoadImage, 6, FALSE, ImageHandle, Path,
-                               (void*) kernel_base_addr, 0, &Image);
+/*     uintptr_t kernel_base_addr = 0x00100000; */
 
-    /*     Status = uefi_call_wrapper(BS->LoadImage, 6, FALSE, ImageHandle,
-     * Path, NULL, */
-    /*                                0, &Image); */
+    Status = uefi_call_wrapper(BS->LoadImage, 6, FALSE, ImageHandle,
+            Path, NULL, 
+            0, &Image);
+
     if (EFI_ERROR(Status)) {
         Print(L"Could not load %r", Status);
         FreePool(Path);
@@ -52,9 +51,9 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable)
         FreePool(Path);
         return Status;
     }
-    LoadedImage->LoadOptions = Options;
-    LoadedImage->LoadOptionsSize =
-        (StrLen(LoadedImage->LoadOptions) + 1) * sizeof(CHAR16);
+/*     LoadedImage->LoadOptions = Options; */
+/*     LoadedImage->LoadOptionsSize = */
+/*         (StrLen(LoadedImage->LoadOptions) + 1) * sizeof(CHAR16); */
 
     Status = uefi_call_wrapper(BS->StartImage, 3, Image, NULL, NULL);
     uefi_call_wrapper(BS->UnloadImage, 1, Image);

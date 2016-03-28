@@ -2,7 +2,7 @@
 
 #  CC		:= clang
 #  LD		:= ld
-OBJCOPY	:= objcopy
+#  OBJCOPY	:= objcopy
 
 #  CFLAGS		:= -Wall
 #  EFI_CFLAGS	:= -fno-stack-protector -fpic -fshort-wchar -mno-red-zone -DEFI_FUNCTION_WRAPER $(CFLAGS)
@@ -10,8 +10,8 @@ OBJCOPY	:= objcopy
 #  LIB_PATH	:= /usr/lib
 #  EFI_PATH:= /usr/include/efi
 #  EFI_INCLUDES := -I $(EFI_PATH) -I $(EFI_PATH)/$(ARCH)
-EFI_LDS		:= $(LIB_PATH)/elf_x86_64_efi.lds
-CRT0_EFI	:= $(LIB_PATH)/crt0-efi-x86_64.o
+#  EFI_LDS		:= $(LIB_PATH)/elf_x86_64_efi.lds
+#  CRT0_EFI	:= $(LIB_PATH)/crt0-efi-x86_64.o
 
 TARGET 	:= BOOTX64.efi
 
@@ -35,6 +35,7 @@ $(TARGET): $(MAIN_SO)
 		--target=efi-app-x86_64 \
 		$< $@
 	
+
 $(MAIN_SO): $(OBJS) $(CRT0_EFI)
 	$(LD) $^ 			\
 		-nostdlib		\
@@ -46,6 +47,7 @@ $(MAIN_SO): $(OBJS) $(CRT0_EFI)
 		-l:libgnuefi.a	\
 		-l:libefi.a		\
 		-o $@
+
 
 main.o: main.c Makefile
 	$(CC) $< $(EFI_CFLAGS) $(EFI_INCLUDES) -c -o $@
