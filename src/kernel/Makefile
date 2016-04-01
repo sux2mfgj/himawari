@@ -1,9 +1,6 @@
-TARGET	:= kernel.efi
+TARGET	:= BOOTX64.efi
 
 MEMMAP	:= memory.map
-
-#  LD_SCRIPT	:= kernel.ld
-#  LDFLAGS	+= -Map $(MEMMAP) -T $(LD_SCRIPT)
 
 INIT	:= main.o
 INIT_OBJS	:= $(foreach file, $(INIT), init/$(file))
