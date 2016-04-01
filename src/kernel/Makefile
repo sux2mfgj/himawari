@@ -1,4 +1,4 @@
-TARGET	:= kernel.efi
+TARGET	:= BOOTX64.efi
 
 MEMMAP	:= memory.map
 

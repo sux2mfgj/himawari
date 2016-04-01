@@ -1,5 +1,5 @@
-TARGET	:= src/kernel/kernel.efi
-BOOT_LOADER	:= src/boot/BOOTX64.efi
+TARGET	:= src/kernel/BOOTX64.efi
+#  BOOT_LOADER	:= src/boot/BOOTX64.efi
 
 ARCH	:= x86_64
 
@@ -28,18 +28,18 @@ EFI_BOOT:= $(HDA)/EFI/BOOT/
 QEMUFLAGS	:= -L ./run -bios $(OVMF) -hda fat:$(HDA) -m 64M
 
 .PHONY:all
-all: $(BOOT_LOADER) $(TARGET)
+all: $(TARGET)
 
 .PHONY:run
-run: run/$(OVMF) $(TARGET) $(EFI_BOOT) $(BOOT_LOADER) Makefile
-	cp $(BOOT_LOADER) $(EFI_BOOT)
-	cp $(TARGET) $(HDA)
+run: run/$(OVMF) $(TARGET) $(EFI_BOOT) Makefile
+	cp $(TARGET) $(EFI_BOOT)
+#      cp $(TARGET) $(HDA)
 #      $(QEMU) -L ./run -bios $(OVMF) -hda fat:$(HDA)
 	$(QEMU) $(QEMUFLAGS)
 
-.PHONY:$(BOOT_LOADER)
-$(BOOT_LOADER):
-	cd src/boot; $(MAKE)
+#  .PHONY:$(BOOT_LOADER)
+#  $(BOOT_LOADER):
+#      cd src/boot; $(MAKE)
 
 .PHONY:$(TARGET)
 $(TARGET):

@@ -53,39 +53,7 @@ retry:
         return Status;
     }
 
-    Print(L"pages: %d\n", pages);
-
-    return EFI_SUCCESS;
-}
-
-EFI_STATUS
-EFIAPI
-efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable)
-{
-    EFI_DEVICE_PATH* Path;
-    EFI_LOADED_IMAGE* LoadedImageParent;
-    EFI_LOADED_IMAGE* LoadedImage;
-    EFI_HANDLE Image;
-    EFI_STATUS Status = EFI_SUCCESS;
-
-    InitializeLib(ImageHandle, SystemTable);
-    Print(L"Hello, EFI!\n");
-    Print(L"boot loader 0x%08x\n", ImageHandle);
-
-    EFI_MEMORY_DESCRIPTOR* memory_map;
-    uintmax_t memory_map_size, map_key;
-
-    Status = get_memory_map(memory_map, &memory_map_size, &map_key);
-    if(EFI_ERROR(Status)) {
-        Print(L"get_memory_map: %r\n", Status);
-        while(1) {
-
-        }
-        return Status;
-    }
-    Print(L"memory_map: 0x%08x\n", memory_map);
-
-    for (int i = 0; i < memory_map_size; ++i) {
+    for (int i = 0; i < *memory_map_size; ++i) {
 
         switch (memory_map[i].Type) {
             case EfiLoaderCode:
@@ -115,7 +83,51 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable)
                 break;
         }
     }
-    /*
+
+    Print(L"pages: %d\n", pages);
+
+    return EFI_SUCCESS;
+}
+
+
+EFI_STATUS
+EFIAPI
+efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable)
+{
+    EFI_DEVICE_PATH* Path;
+    EFI_LOADED_IMAGE* LoadedImageParent;
+    EFI_LOADED_IMAGE* LoadedImage;
+    EFI_HANDLE Image;
+    EFI_STATUS Status = EFI_SUCCESS;
+
+    InitializeLib(ImageHandle, SystemTable);
+    Print(L"Hello, EFI!\n");
+    Print(L"boot loader 0x%08x\n", ImageHandle);
+
+    EFI_MEMORY_DESCRIPTOR* memory_map;
+    uint64_t memory_map_size, map_key;
+
+/*     Status = get_memory_map(memory_map, &memory_map_size, &map_key); */
+/*     if(EFI_ERROR(Status)) { */
+/*         Print(L"get_memory_map: %r\n", Status); */
+/*         while(1) { */
+
+/*         } */
+/*         return Status; */
+/*     } */
+/*     Print(L"memory_map: 0x%08x\n", memory_map); */
+/*     Print(L"map_key: %d\n", map_key); */
+
+//typedef EFI_STATUS(EFIAPI * EFI_EXIT_BOOT_SERVICES)
+//  (   IN EFI_HANDLE ImageHandle,
+//      IN UINTN MapKey)
+/*     Status = uefi_call_wrapper(BS->ExitBootServices, 2, ImageHandle, map_key); */
+/*     if(EFI_ERROR(Status)) { */
+/*         Print(L"exit: %r\n", Status); */
+/*         while(1){} */
+/*         return Status; */
+/*     } */
+
     Status = uefi_call_wrapper(
         BS->OpenProtocol, 6, ImageHandle, &LoadedImageProtocol,
         &LoadedImageParent, ImageHandle, NULL, EFI_OPEN_PROTOCOL_GET_PROTOCOL);
@@ -152,10 +164,17 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable)
         return Status;
     }
 
-    Status = uefi_call_wrapper(BS->StartImage, 3, Image, NULL, NULL);
-    uefi_call_wrapper(BS->UnloadImage, 1, Image);
-    FreePool(Path);
-    */
+/*     Status = get_memory_map(memory_map, &memory_map_size, &map_key); */
+/*     if(EFI_ERROR(Status)) { */
+/*         Print(L"get_memory_map: %r\n", Status); */
+/*         while(1) { */
+
+/*         } */
+/*         return Status; */
+/*     } */
+/*     Status = uefi_call_wrapper(BS->StartImage, 3, Image, NULL, NULL); */
+/*     uefi_call_wrapper(BS->UnloadImage, 1, Image); */
+/*     FreePool(Path); */
 
     while(1){}
     return EFI_SUCCESS;
