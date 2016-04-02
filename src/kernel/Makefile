@@ -2,8 +2,12 @@ TARGET	:= BOOTX64.efi
 
 MEMMAP	:= memory.map
 
-INIT	:= main.o
+INIT	:= main.o init.o
 INIT_OBJS	:= $(foreach file, $(INIT), init/$(file))
+
+INCLUDE	:= -I../include
+EFI_CFLAGS += $(INCLUDE)
+CFLAGS += $(INCLUDE)
 
 OBJS	:= $(INIT_OBJS)
 MAIN_SO	:= main.so 
@@ -13,9 +17,9 @@ all: $(TARGET)
 init/main.o: init/main.c Makefile
 	$(CC) $< $(EFI_CFLAGS) $(EFI_INCLUDES) -c -o $@
 
-#  .SUFFIXES: .c.o
-#  %.o: %.c Makefile
-#      $(CC) $(CFLAGS) -c -o $@ $<
+.SUFFIXES: .c.o
+%.o: %.c Makefile
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(TARGET): $(MAIN_SO)
 	$(OBJCOPY) 					\

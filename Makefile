@@ -6,8 +6,8 @@ CC		:= clang
 LD		:= ld
 OBJCOPY	:= objcopy
 
-CFLAGS	:= -Wall -ggdb3
-EFI_CFLAGS	:= -fno-stack-protector -fpic -fshort-wchar -mno-red-zone -DEFI_FUNCTION_WRAPER $(CFLAGS)
+CFLAGS	:= -Wall -ggdb3 -fpic -std=c11
+EFI_CFLAGS	:= -fno-stack-protector -fshort-wchar -mno-red-zone -DEFI_FUNCTION_WRAPER $(CFLAGS)
 
 QEMU	:= qemu-system-x86_64
 
@@ -31,6 +31,10 @@ all: $(TARGET)
 run: run/$(OVMF) $(TARGET) $(EFI_BOOT) Makefile
 	cp $(TARGET) $(EFI_BOOT)
 	$(QEMU) $(QEMUFLAGS)
+
+debug: run/$(OVMF) $(TARGET) $(EFI_BOOT) Makefile
+	cp $(TARGET) $(EFI_BOOT)
+	$(QEMU) $(QEMUFLAGS) -gdb tcp::9999 -S
 
 .PHONY:$(TARGET)
 $(TARGET):
