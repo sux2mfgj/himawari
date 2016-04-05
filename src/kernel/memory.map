@@ -1,0 +1,58 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+                0x0000000000100000                . = 0x100000
+
+.text           0x0000000000100000        0xe load address 0x0000000000000000
+ *(.text)
+ .text          0x0000000000100000        0xe init/main.o
+                0x0000000000100000                start_kernel
+
+.eh_frame       0x0000000000100010       0x38 load address 0x0000000000000010
+ .eh_frame      0x0000000000100010       0x38 init/main.o
+
+.data           0x0000000000100048        0x0 load address 0x0000000000000048
+ *(.data)
+ .data          0x0000000000100048        0x0 init/main.o
+LOAD init/main.o
+OUTPUT(kernel.elf elf64-x86-64)
+
+.bss            0x0000000000100048        0x0 load address 0x0000000000000048
+ .bss           0x0000000000100048        0x0 init/main.o
+
+.debug_str      0x0000000000000000       0x6b
+ .debug_str     0x0000000000000000       0x6b init/main.o
+
+.debug_loc      0x0000000000000000        0x0
+ .debug_loc     0x0000000000000000        0x0 init/main.o
+
+.debug_abbrev   0x0000000000000000       0x29
+ .debug_abbrev  0x0000000000000000       0x29 init/main.o
+
+.debug_info     0x0000000000000000       0x40
+ .debug_info    0x0000000000000000       0x40 init/main.o
+
+.debug_ranges   0x0000000000000000        0x0
+ .debug_ranges  0x0000000000000000        0x0 init/main.o
+
+.debug_pubnames
+                0x0000000000000000       0x23
+ .debug_pubnames
+                0x0000000000000000       0x23 init/main.o
+
+.comment        0x0000000000000000       0x2d
+ .comment       0x0000000000000000       0x2d init/main.o
+                                         0x2e (size before relaxing)
+
+.note.GNU-stack
+                0x0000000000000000        0x0
+ .note.GNU-stack
+                0x0000000000000000        0x0 init/main.o
+
+.debug_line     0x0000000000000000       0x47
+ .debug_line    0x0000000000000000       0x47 init/main.o
