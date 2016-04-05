@@ -1,60 +1,38 @@
+ARCH		:= x86_64
+TARGET		:= src/boot/kernel.elf
 
-BOOT	:= src/boot/BOOTX64.efi
-KERNEL 	:= src/kernel/kernel.elf
-TARGET 	:= $(BOOT) $(KERNEL)
+ISO			:= himawari.iso
 
-ARCH	:= x86_64
+CC			:= clang
+#  CC			:= gcc
+LD 			:= ld
 
-CC		:= clang
-LD		:= ld
-OBJCOPY	:= objcopy
+QEMU		:= qemu-system-x86_64
+QEMU_FLAGS 	:= -m 16M -S -gdb tcp::10000
 
-CFLAGS	:= -Wall -ggdb3 -fpic -std=c11
-EFI_CFLAGS	:= -fno-stack-protector -fshort-wchar -mno-red-zone -DEFI_FUNCTION_WRAPER $(CFLAGS)
+SRC			:= ./src
+ISO_ROOT	:= ./root
+CONFIG		:= $(SRC)/config
 
-QEMU	:= qemu-system-x86_64
-
-OVMF	:= OVMF.fd
-
-LIB_PATH	:= /usr/lib
-EFI_PATH	:= /usr/include/efi
-EFI_INCLUDES := -I $(EFI_PATH) -I $(EFI_PATH)/$(ARCH)
-EFI_LDS		:= $(LIB_PATH)/elf_x86_64_efi.lds
-CRT0_EFI	:= $(LIB_PATH)/crt0-efi-x86_64.o
-
-HDA		:= run/hda-contents
-EFI_BOOT:= $(HDA)/EFI/BOOT/
-
-QEMUFLAGS	:= -L ./run -bios $(OVMF) -hda fat:$(HDA) -m 64M
-
-.PHONY:all
 all: $(TARGET)
 
-.PHONY:run
-run: run/$(OVMF) $(TARGET) $(EFI_BOOT) Makefile
-	cp $(BOOT) $(EFI_BOOT)
-	$(QEMU) $(QEMUFLAGS)
+.PHONY: $(TARGET)
+$(TARGET): 
+	cd src/; $(MAKE) 
 
-debug: run/$(OVMF) $(TARGET) $(EFI_BOOT) Makefile
-	cp $(BOOT) $(EFI_BOOT)
-	$(QEMU) $(QEMUFLAGS) -gdb tcp::9999 -S
+$(ISO): $(TARGET)
+	mkdir -p $(ISO_ROOT)/boot/grub
+	cp $(CONFIG)/grub.cfg $(ISO_ROOT)/boot/grub/grub.cfg
+	cp $(TARGET) $(ISO_ROOT)/boot
+	grub-mkrescue -o $@ $(ISO_ROOT)
 
-.PHONY:$(TARGET)
-$(TARGET):
-	cd src/boot; $(MAKE)
-	cd src/kernel; $(MAKE)
-
-$(EFI_BOOT):
-	mkdir -p $(HDA)/EFI/BOOT
-
-run/$(OVMF):
-	mkdir -p run
-	wget https://sourceforge.net/projects/edk2/files/OVMF/OVMF-X64-r15214.zip 
-	unzip OVMF-X64-r15214.zip OVMF.fd
-	mv OVMF.fd $@
-
+.PHONY: run
+run: $(ISO)
+	$(QEMU)	$(QEMU_FLAGS) -cdrom $<
+	
+.PHONY: clean
 clean:
-	cd src/kernel; $(MAKE) clean
-	cd src/boot; $(MAKE) clean
+	cd src/; $(MAKE) clean
+	rm -rf $(ISO)
 
-export CC LD CFLAGS EFI_CFLAGS LIB_PATH EFI_PATH EFI_INCLUDES ARCH EFI_LDS CRT0_EFI OBJCOPY 
+export CC LD

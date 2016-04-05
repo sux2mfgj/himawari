@@ -1,48 +1,25 @@
-TARGET	:= BOOTX64.efi
+TARGET := kernel.elf
 
-MEMMAP	:= memory.map
+MULTIBOOT_OBJ	:= boot_header.o
+OBJS	:= $(MULTIBOOT_OBJ)
 
-#  INCLUDE	:= -I../include
-EFI_CFLAGS += $(INCLUDE)
-#  CFLAGS += $(INCLUDE)
+MEMMAP		:= kernel.map
+LD_SCRIPT	:= link.ld
+LDFLAGS		:= -T$(LD_SCRIPT) -Map $(MEMMAP) -nostdlib 
+LDFLAGS 	+= -z max-page-size=0x1000
 
-OBJS	:= main.o
-MAIN_SO	:= main.so 
+INCLUDE	:= -I./
+ASM_CFLAGS := $(INCLUDE)
 
+.SUFFIXES: .o .S
+.S.o:
+	$(CC) $(ASM_CFLAGS) -c -o $@  $<
+
+.PHONY: all
 all: $(TARGET)
 
-main.o: main.c Makefile
-	$(CC) $< $(EFI_CFLAGS) $(EFI_INCLUDES) -c -o $@
+$(TARGET): $(OBJS) $(LD_SCRIPT) Makefile
+	$(LD) $(LDFLAGS) $(OBJS) -o $@ 
 
-.SUFFIXES: .c.o
-%.o: %.c Makefile
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-$(TARGET): $(MAIN_SO)
-	$(OBJCOPY) 					\
-		-j .text                \
-		-j .sdata               \
-		-j .data                \
-		-j .dynamic             \
-		-j .dynsym              \
-		-j .rel                 \
-		-j .rela                \
-		-j .reloc               \
-		--target=efi-app-x86_64 \
-		$< $@
-
-$(MAIN_SO): $(OBJS) $(CRT0_EFI)
-	$(LD) $^ 			\
-		-nostdlib		\
-		-znocombreloc	\
-		-T $(EFI_LDS)	\
-		-shared			\
-		-Bsymbolic		\
-		-L $(LIB_PATH)	\
-		-l:libgnuefi.a	\
-		-l:libefi.a		\
-		-o $@
-
-.PHONY: clean
 clean:
-	$(RM) $(OBJS) $(MAIN_SO) $(TARGET)
+	rm -f $(OBJS) $(TARGET)

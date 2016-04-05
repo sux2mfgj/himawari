@@ -1,5 +1,6 @@
-*.efi
 *.o
-*.so
+*.iso
+*.elf
+*.map
+root/
 
-run
