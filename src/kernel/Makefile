@@ -1,7 +1,6 @@
-TARGET := kernel.elf
+TARGET := kernel.o
 
-MULTIBOOT_OBJ	:= boot_header.o
-OBJS	:= $(MULTIBOOT_OBJ) ../kernel/main.o
+OBJS	:= main.o
 
 MEMMAP		:= kernel.map
 LD_SCRIPT	:= link.ld

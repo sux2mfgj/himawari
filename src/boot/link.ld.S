@@ -18,7 +18,6 @@ SECTIONS
         *(.boot)
     }
 
-
     . += START_KERNEL_MAP;
     .text : AT(ADDR(.text) - START_KERNEL_MAP)
     {

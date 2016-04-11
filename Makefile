@@ -4,6 +4,7 @@ TARGET		:= src/boot/kernel.elf
 ISO			:= himawari.iso
 
 export CC			:= clang
+GDB			:= ./gdb
 #  CC			:= gcc
 export LD 			:= ld
 
@@ -36,7 +37,7 @@ run: $(ISO)
 
 .PHONY: debug
 debug: $(CONFIG)/gdb.conf
-	gdb -x $<
+	$(GDB) -x $<
 	
 .PHONY: clean
 clean:

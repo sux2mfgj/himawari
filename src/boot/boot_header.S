@@ -67,9 +67,19 @@ entry:
     orl $0x7, %eax
     movl %eax, pre_pml4 
 
+    movl $(pre_kern_pdpt), %eax
+    orl $0x7, %eax
+    movl $(pre_pml4), %ebx
+    movl %eax, 8*511(%ebx)
+
     movl $(pre_pd), %eax
     orl $0x7, %eax
     movl %eax, pre_pdpt 
+
+    movl $(pre_kern_pd), %eax
+    orl $0x7, %eax
+    movl $(pre_kern_pdpt), %ebx
+    movl %eax, 8*510(%ebx)
 
     //EFER
     // specified by ecx
@@ -87,15 +97,30 @@ entry:
 
     movl %eax, %cr0
 
-    ljmp $KERNEL_CODE_SEGMENT, $long_mode_entry
+    ljmp $KERNEL_CODE_SEGMENT, $(long_mode_entry)
 
 .code64
+.extern start_kernel
 long_mode_entry:
 
+    //stack
+    movq $(stack + STACK_SIZE + START_KERNEL_MAP), %rsp
+
+    // setup segment register
+    movl $KERNEL_DATA_SEGMENT, %eax
+    movl %eax, %ds
+    movl %eax, %ss
+    movl %eax, %es
+
+    movq $start_kernel, %rax
+    jmp *%rax
+    
 loop:
     hlt
     jmp loop
 
+
+.section .boot, "ax"
 .code32
 stack:
     .space STACK_SIZE
@@ -113,8 +138,8 @@ gdt_table:
     .quad 0x0000000000000000    // null descriptor
     .quad 0x00af9a000000ffff    // kernel code segment
     .quad 0x00cf92000000ffff    // kernel data segment
-    .quad 0x00cff2000000ffff  // user data segment
-    .quad 0x00affa000000ffff  // user code segment
+    .quad 0x00cff2000000ffff    // user data segment
+    .quad 0x00affa000000ffff    // user code segment
 gdt_end:
 
 .align 0x1000
@@ -149,4 +174,33 @@ pre_pd:
     .quad 0x0000000002400183
     .quad 0x0000000002600183
     .fill 492, 8, 0
+
+.align 0x1000
+pre_kern_pdpt:
+    .zero PAGE_SIZE
+
+.align 0x1000
+pre_kern_pd:
+    .quad 0x0000000000000183
+    .quad 0x0000000000200183
+    .quad 0x0000000000400183
+    .quad 0x0000000000600183
+    .quad 0x0000000000800183
+    .quad 0x0000000000a00183
+    .quad 0x0000000000c00183
+    .quad 0x0000000000e00183
+    .quad 0x0000000001000183
+    .quad 0x0000000001200183
+    .quad 0x0000000001400183
+    .quad 0x0000000001600183
+    .quad 0x0000000001800183
+    .quad 0x0000000001a00183
+    .quad 0x0000000001c00183
+    .quad 0x0000000001e00183
+    .quad 0x0000000002000183
+    .quad 0x0000000002200183
+    .quad 0x0000000002400183
+    .quad 0x0000000002600183
+    .fill 492, 8, 0
+   
 
