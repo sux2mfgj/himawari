@@ -3,12 +3,16 @@ TARGET		:= src/boot/kernel.elf
 
 ISO			:= himawari.iso
 
-CC			:= clang
+export CC			:= clang
 #  CC			:= gcc
-LD 			:= ld
+export LD 			:= ld
+
+export CFLAGS		:= -Wall -g -ffreestanding -mcmodel=large -m64 -mno-red-zone -mno-mmx -mno-sse -mno-sse2
 
 QEMU		:= qemu-system-x86_64
-QEMU_FLAGS 	:= -m 16M -S -gdb tcp::10000
+QEMU_FLAGS 	:= -m 128M  -monitor stdio -gdb tcp::10000
+QEMU_DEBUG	:= -S 
+
 
 SRC			:= ./src
 ISO_ROOT	:= ./root
@@ -28,11 +32,14 @@ $(ISO): $(TARGET)
 
 .PHONY: run
 run: $(ISO)
-	$(QEMU)	$(QEMU_FLAGS) -cdrom $<
+	$(QEMU)	$(QEMU_FLAGS) $(QEMU_DEBUG) -cdrom $<
+
+.PHONY: debug
+debug: $(CONFIG)/gdb.conf
+	gdb -x $<
 	
 .PHONY: clean
 clean:
 	cd src/; $(MAKE) clean
 	rm -rf $(ISO)
 
-export CC LD
