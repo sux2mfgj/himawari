@@ -1,8 +1,8 @@
 ENTRY(entry)
 //ENTRY(phy_entry)
 
+#define ASM_FILE
 #include <page.h>
-
 
 SECTIONS
 {
@@ -19,12 +19,11 @@ SECTIONS
     }
 
     . += START_KERNEL_MAP;
+    _kernel_start = .;
     .text : AT(ADDR(.text) - START_KERNEL_MAP)
     {
         *(.text)
     }
-
-    /*
 
     .data : AT(ADDR(.data) - START_KERNEL_MAP)
     {
@@ -35,7 +34,7 @@ SECTIONS
     {
         *(.bss)
     }
-    */
 
+    _kernel_end = .;
 }
 

@@ -3,4 +3,4 @@
 *.elf
 *.map
 root/
-
+link.ld

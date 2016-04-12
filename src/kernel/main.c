@@ -1,4 +1,5 @@
 #include <boot/multiboot2.h>
+#include <page.h>
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -129,6 +130,7 @@ void start_kernel(uintptr_t bootinfo_addr)
                             puts("reserved: ");
                             uintptr_t addr = mmap->addr;
                             uint64_t len = mmap->len; 
+
                             char buf[32];
                             itoa(addr, buf, 16);
                             puts(buf);
@@ -155,6 +157,19 @@ void start_kernel(uintptr_t bootinfo_addr)
         bootinfo_addr += size;
 
     } while(tag->type != MULTIBOOT_TAG_TYPE_END) ;
+
+    {
+        char buf[32];
+        itoa((uintptr_t)&_kernel_start, buf, 16);
+        puts("start kenrel addr: 0x");
+        puts(buf);
+        puts("\n");
+
+        itoa((uintptr_t)&_kernel_end, buf, 16);
+        puts("end kenrel addr: 0x");
+        puts(buf);
+        puts("\n");
+    }
 
     while(1) {
 
