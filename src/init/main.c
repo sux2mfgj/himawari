@@ -1,5 +1,7 @@
 #include <boot/multiboot2.h>
 #include <page.h>
+#include <init.h>
+#include <util.h>
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -15,8 +17,6 @@ static const uint16_t max_collum = 80;
 static const uint16_t max_row    = 25;
 uint16_t vram_position = 0;
 
-#define ALIGN(x, a) __ALIGN_MASK(x, (typeof(x))(a)-1)
-#define __ALIGN_MASK(x, mask) (((x) + (mask)&~(mask)))
 void putc(const char c)
 {
     uint16_t* vram_tmode = (uint16_t*)0x000b8000;
@@ -85,12 +85,9 @@ void start_kernel(uintptr_t bootinfo_addr)
 
     struct multiboot_tag *tag;
 
-
-/*     uint32_t tag, size; */
+    uintptr_t available_end = 0;
     do{
         tag = (struct multiboot_tag*)(bootinfo_addr + 8);
-/*         tag = *(uint32_t *)(bootinfo_addr + 8); */
-/*         size = *(uint32_t *)(bootinfo_addr + 12); */
 
         uint32_t size = tag->size;
         //alignment size 8
@@ -122,6 +119,11 @@ void start_kernel(uintptr_t bootinfo_addr)
                             itoa(len, buf, 16);
                             puts(buf);
                             puts("\n");
+
+
+							available_end = max(
+                                    available_end, (uintptr_t)(addr + len));
+
                             break;
                         }
 
@@ -170,6 +172,11 @@ void start_kernel(uintptr_t bootinfo_addr)
         puts(buf);
         puts("\n");
     }
+
+    init_early_memory_allocator(
+            (uintptr_t)&_kernel_end - START_KERNEL_MAP, available_end);
+
+    uintptr_t allocated = early_malloc(1);
 
     while(1) {
 

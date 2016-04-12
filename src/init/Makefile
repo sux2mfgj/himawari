@@ -1,6 +1,6 @@
 TARGET := kernel.o
 
-OBJS	:= main.o
+OBJS	:= main.o early_memory.o
 
 INCLUDE	:= -I../include
 

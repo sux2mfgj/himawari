@@ -4,10 +4,10 @@ all: $(TARGET)
 
 .PHONY: $(TARGET)
 $(TARGET): 
-	cd kernel/; $(MAKE)
+	cd init/; $(MAKE)
 	cd boot/; $(MAKE)
 	
 .PHONY: clean
 clean:
-	cd kernel/; $(MAKE) clean
+	cd init/; $(MAKE) clean
 	cd boot/; $(MAKE) clean
