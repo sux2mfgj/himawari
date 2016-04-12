@@ -2,26 +2,17 @@ TARGET := kernel.o
 
 OBJS	:= main.o
 
-MEMMAP		:= kernel.map
-LD_SCRIPT	:= link.ld
-LDFLAGS		:= -T$(LD_SCRIPT) -Map $(MEMMAP) -nostdlib -nostdinc
-LDFLAGS 	+= -z max-page-size=0x1000 
-
 INCLUDE	:= -I../include
-ASM_CFLAGS := $(INCLUDE) $(CFLAGS)
 
 .PHONY: all
 all: $(TARGET)
 
-$(LD_SCRIPT): $(LD_SCRIPT).S 
-	$(CC) -E $(INCLUDE) $< | grep -v '^#' > $@
+.SUFFIXES: .o .c
+.c.o:
+	$(CC) $(CFLAGS) $(INCLUDE) -c -o $@  $<
 
-.SUFFIXES: .o .S
-.S.o:
-	$(CC) $(ASM_CFLAGS) -c -o $@  $<
-
-$(TARGET): $(OBJS) $(LD_SCRIPT) Makefile
-	$(LD) $(LDFLAGS) $(OBJS) -o $@ 
+$(TARGET): $(OBJS) Makefile
+	$(LD) $(LDFLAGS) -r $(OBJS) -o $@ 
 
 clean:
-	rm -f $(OBJS) $(TARGET) $(LD_SCRIPT)
+	rm -f $(OBJS) $(TARGET)

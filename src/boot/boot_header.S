@@ -43,7 +43,7 @@ entry:
 
     // save the pointer to the multiboot infomation struct ,and grub magic number
     movl $(multiboot_info), %ecx
-    movl %eax, (%ecx)
+    movl %ebx, (%ecx)
 
     // grub setup segment register(cs = 0x10, ds, 0x18)
     movl $KERNEL_DATA_SEGMENT, %eax
@@ -111,6 +111,11 @@ long_mode_entry:
     movl %eax, %ds
     movl %eax, %ss
     movl %eax, %es
+
+    movl $(multiboot_info), %eax
+    movl 0(%eax), %edi
+    //pushq %rax
+//    pushq $(multiboot_info + START_KERNEL_MAP)
 
     movq $start_kernel, %rax
     jmp *%rax

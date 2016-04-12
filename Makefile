@@ -3,16 +3,16 @@ TARGET		:= src/boot/kernel.elf
 
 ISO			:= himawari.iso
 
-export CC			:= clang
+export CC	:= clang
 GDB			:= ./gdb
 #  CC			:= gcc
-export LD 			:= ld
+export LD 	:= ld
 
 export CFLAGS		:= -Wall -g -ffreestanding -mcmodel=large -m64 -mno-red-zone -mno-mmx -mno-sse -mno-sse2
 
 QEMU		:= qemu-system-x86_64
-QEMU_FLAGS 	:= -m 128M  -monitor stdio -gdb tcp::10000
-QEMU_DEBUG	:= -S 
+QEMU_FLAGS 	:= -m 128M -monitor stdio -gdb tcp::10000
+QEMU_DEBUG	:= -S
 
 
 SRC			:= ./src
