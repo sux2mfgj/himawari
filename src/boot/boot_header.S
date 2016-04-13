@@ -50,7 +50,6 @@ entry:
     movl %eax, %ds
 
     //setup gdt
-    //lgdt pre_gdt - START_KERNEL_MAP
     lgdt pre_gdt_descr
 
     //setup for long mode
@@ -114,8 +113,6 @@ long_mode_entry:
 
     movl $(multiboot_info), %eax
     movl 0(%eax), %edi
-    //pushq %rax
-//    pushq $(multiboot_info + START_KERNEL_MAP)
 
     movq $start_kernel, %rax
     jmp *%rax
@@ -147,6 +144,7 @@ gdt_table:
     .quad 0x00affa000000ffff    // user code segment
 gdt_end:
 
+.globl pre_pml4, pre_pdpt, pre_kern_pdpt, pre_pd, pre_kern_pd
 .align 0x1000
 pre_pml4:
     .zero PAGE_SIZE

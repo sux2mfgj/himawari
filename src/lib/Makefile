@@ -1,6 +1,6 @@
-TARGET := init.o
+TARGET := lib.o
 
-OBJS	:= main.o early_memory.o pagetable.o vram_text.o
+OBJS	:= string.o
 
 INCLUDE	:= -I../include
 
