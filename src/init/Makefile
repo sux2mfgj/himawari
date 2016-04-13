@@ -1,6 +1,6 @@
 TARGET := init.o
 
-OBJS	:= main.o early_memory.o pagetable.o vram_text.o
+OBJS	:= main.o early_memory.o pagetable.o vram_text.o trap.o
 
 INCLUDE	:= -I../include
 
