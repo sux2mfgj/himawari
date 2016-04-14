@@ -1,15 +1,17 @@
 TARGET := init.o
 
-OBJS	:= main.o early_memory.o pagetable.o vram_text.o trap.o
+OBJS	:= main.o early_memory.o pagetable.o vram_text.o trap.o entry.o
 
 INCLUDE	:= -I../include
 
 .PHONY: all
 all: $(TARGET)
 
-.SUFFIXES: .o .c
+.SUFFIXES: .o .c .S
 .c.o:
-	$(CC) $(CFLAGS) $(INCLUDE) -c -o $@  $<
+	$(CC) $(CFLAGS) $(INCLUDE) -c -o $@ $<
+.c.o:
+	$(CC) $(CFLAGS) $(INCLUDE) -c -o $@ $<
 
 $(TARGET): $(OBJS) Makefile
 	$(LD) $(LDFLAGS) -r $(OBJS) -o $@ 

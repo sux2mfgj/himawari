@@ -22,8 +22,15 @@ void set_gate_descriptor(int descriptor_num,
 
 bool init_trap(void)
 {
-
+    
 
     return true;
 }
 
+void trap(uintptr_t stack_head) 
+{
+
+    while(true){
+
+    }
+}
