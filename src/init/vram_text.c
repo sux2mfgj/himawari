@@ -6,7 +6,7 @@ uint16_t vram_position = 0;
 
 void putc(const char c)
 {
-    uint16_t* vram_tmode = (uint16_t*)0x000b8000;
+    uint16_t* vram_tmode = (uint16_t*)0xffffffff800b8000;
 
     if('\n' == c)
     {
