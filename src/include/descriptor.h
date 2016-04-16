@@ -8,6 +8,9 @@ enum {
     GATE_CALL = 0xC,
 };
 
+#define IDT_ENTRY_NUM 256
+#define VECTOR_ENTRY_NUM 256
+
 
 struct gate_descriptor {
     uint16_t offset_low;
