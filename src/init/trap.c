@@ -5,7 +5,7 @@
 #include <x86_64.h>
 
 
-
+extern struct descriptor_ptr idt_desc;
 
 
 /* uint32_t* idt_table; */
@@ -61,11 +61,6 @@ bool init_trap(void)
 {
 
     //idt_table = (struct gate_descriptor*)early_malloc(1);
-    for (int i = 0; i < IDT_ENTRY_NUM; ++i) {
-        //uintptr_t addr = vectors[i];// - (uintptr_t)START_KERNEL_MAP;
-        //set_gate_descriptor(i, GATE_INTERRUPT, addr, 0, 0);
-        //make_gate(idt_table, i, vectors[i], 0, GATE_INTERRUPT);
-    }
     //make_gate(idt_table, 64, vectors[64] - (uintptr_t)START_KERNEL_MAP, 3, GATE_TRAP);
 
     set_intr_gate(0, &divide_error_exception);
@@ -90,10 +85,12 @@ bool init_trap(void)
     //TODO setup entry for system call
     
     cli();
-    lidt(
-            (struct gate_descriptor*)
-            ((uintptr_t)idt_table),// - (uintptr_t)START_KERNEL_MAP),
-            sizeof(struct gate_descriptor) * IDT_ENTRY_NUM);
+/*     lidt( */
+/*             (struct gate_descriptor*) */
+/*             ((uintptr_t)idt_table),// - (uintptr_t)START_KERNEL_MAP), */
+/*             sizeof(struct gate_descriptor) * IDT_ENTRY_NUM); */
+
+    //__asm__ volatile("lidt %0" :: "m"(idt_desc));
     //sti();
     //cli();
 
