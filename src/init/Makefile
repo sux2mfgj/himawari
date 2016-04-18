@@ -1,6 +1,6 @@
 TARGET := init.o
 
-OBJS	:= main.o early_memory.o pagetable.o vram_text.o trap.o entry.o
+OBJS	:= main.o early_memory.o pagetable.o vram_text.o trap.o entry.o local_apic.o
 
 INCLUDE	:= -I../include
 
@@ -10,7 +10,7 @@ all: $(TARGET)
 .SUFFIXES: .o .c .S
 .c.o:
 	$(CC) $(CFLAGS) $(INCLUDE) -c -o $@ $<
-.c.o:
+.S.o:
 	$(CC) $(CFLAGS) $(INCLUDE) -c -o $@ $<
 
 $(TARGET): $(OBJS) Makefile

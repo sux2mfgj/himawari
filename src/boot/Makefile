@@ -1,6 +1,6 @@
 TARGET := kernel.elf
 
-MULTIBOOT_OBJ	:= boot_header.o
+MULTIBOOT_OBJ	:= boot_header.o pre_kernel.o
 OBJS	:= $(MULTIBOOT_OBJ) ../init/init.o ../lib/lib.o
 
 MEMMAP		:= kernel.map
@@ -17,9 +17,12 @@ all: $(TARGET)
 $(LD_SCRIPT): $(LD_SCRIPT).S 
 	$(CC) -E $(INCLUDE) $< | grep -v '^#' > $@
 
-.SUFFIXES: .o .S
+.SUFFIXES: .o .S .c
 .S.o:
 	$(CC) $(ASM_CFLAGS) -c -o $@  $<
+
+.c.o:
+	$(CC) $(CFLAGS) $(INCLUDE) -c -o $@ $<
 
 $(TARGET): $(OBJS) $(LD_SCRIPT) Makefile
 	$(LD) $(LDFLAGS) $(OBJS) -o $@ 

@@ -2,6 +2,7 @@
 #include <page.h>
 #include <init.h>
 #include <util.h>
+#include <x86_64.h>
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -101,6 +102,7 @@ void start_kernel(uintptr_t bootinfo_addr)
         puts("\n");
     }
 
+    bool status = true;
     uintptr_t kernel_end_include_heap;
     init_early_memory_allocator(
             (uintptr_t)&_kernel_end - START_KERNEL_MAP, available_end, &kernel_end_include_heap);
@@ -108,7 +110,21 @@ void start_kernel(uintptr_t bootinfo_addr)
     init_pagetable(kernel_end_include_heap);
     init_trap();
 
-    while(1) {
+    //status = init_local_apic();
+    if(!status) 
+    {
+        puts("panic!! at init_local_apic");
+        //panic();
+    }
 
+    uint64_t *test_page_fault = (uint64_t*)0x0123456701234567;
+    uint64_t test_value = *test_page_fault;
+/*     __asm__ volatile( */
+/*             "movq $64, %rax;" */
+/*             "syscall;" */
+/*             ); */
+
+    while(1) {
+        hlt();
     }
 }

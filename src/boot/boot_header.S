@@ -34,6 +34,7 @@ header_end:
 // entry code
 entry:
 
+    cli
     // initialize stack
     movl $(stack + STACK_SIZE), %esp
 
@@ -87,7 +88,9 @@ entry:
     rdmsr
 
     // write efer
-    btsl $IA32_EFER_LMA, %eax
+#btsl $IA32_EFER_LME, %eax
+    btsl $IA32_EFER_LME, %eax
+    or $IA32_EFER_SCE, %eax
     wrmsr
 
     xorl %eax, %eax
@@ -99,8 +102,9 @@ entry:
     ljmp $KERNEL_CODE_SEGMENT, $(long_mode_entry)
 
 .code64
-.extern start_kernel
+.extern pre_start_kernel
 long_mode_entry:
+    cli
 
     //stack
     movq $(stack + STACK_SIZE + START_KERNEL_MAP), %rsp
@@ -110,16 +114,26 @@ long_mode_entry:
     movl %eax, %ds
     movl %eax, %ss
     movl %eax, %es
+    //test
+    movl %eax, %fs
+    movl %eax, %gs
+
+    mov $0xc0000082, %ecx
+    mov $early_idt_handler, %rax
+    wrmsr
 
     movl $(multiboot_info), %eax
     movl 0(%eax), %edi
 
-    movq $start_kernel, %rax
+    movq $pre_start_kernel, %rax
     jmp *%rax
     
-loop:
-    hlt
-    jmp loop
+    jmp 1f
+
+.globl early_idt_handler
+early_idt_handler:
+1:
+    jmp 1b
 
 
 .section .boot, "ax"
@@ -136,12 +150,14 @@ pre_gdt_descr:
 
 .align 0x1000
 //64bit gdt
+.globl gdt_table
 gdt_table:
     .quad 0x0000000000000000    // null descriptor
     .quad 0x00af9a000000ffff    // kernel code segment
     .quad 0x00cf92000000ffff    // kernel data segment
     .quad 0x00cff2000000ffff    // user data segment
     .quad 0x00affa000000ffff    // user code segment
+    .quad 0,0                   // task state segment
 gdt_end:
 
 .globl pre_pml4, pre_pdpt, pre_kern_pdpt, pre_pd, pre_kern_pd
@@ -206,4 +222,7 @@ pre_kern_pd:
     .quad 0x0000000002600183
     .fill 492, 8, 0
    
-
+.align 0x1000
+.globl idt_table
+idt_table:
+    .zero PAGE_SIZE

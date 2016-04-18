@@ -1,4 +1,4 @@
-
+#define ASM_FILE
 .text
 .code64
 
