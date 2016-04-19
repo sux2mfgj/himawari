@@ -5,7 +5,6 @@
 #include <page.h>
 #include <x86_64.h>
 
-//.section .bcode, "ax"
 .section .boot, "ax"
 .code32
 .globl entry 
@@ -88,7 +87,6 @@ entry:
     rdmsr
 
     // write efer
-#btsl $IA32_EFER_LME, %eax
     btsl $IA32_EFER_LME, %eax
     or $IA32_EFER_SCE, %eax
     wrmsr
@@ -128,10 +126,6 @@ long_mode_entry:
     movq $pre_start_kernel, %rax
     jmp *%rax
     
-//     jmp 1f
-
-//.globl early_idt_handler
-//early_idt_handler:
 1:
     jmp 1b
 

@@ -1,20 +1,14 @@
 ENTRY(entry)
-//ENTRY(phy_entry)
 
 #define ASM_FILE
 #include <page.h>
 
 SECTIONS
 {
-//    . = PHYSICAL_START + START_KERNEL_MAP;
-
 
     . = PHYSICAL_START;
-//    .boot : AT(ADDR(.boot) - START_KERNEL_MAP)
     .boot :
     {
-        //*(.bcode)
-        //*(.bdata)
         *(.boot)
     }
 

@@ -8,15 +8,19 @@ uintptr_t allocate_base_addr = 0;
 
 bool is_enable = false;
 
-bool init_early_memory_allocator(uintptr_t kernel_end_addr, uintptr_t available_end, uintptr_t* kernel_end_include_heap)
+bool init_early_memory_allocator(uintptr_t kernel_end_addr, 
+        uintptr_t available_end,
+        uintptr_t* kernel_end_include_heap)
 {
     uintptr_t round_kernel_end = round_up(kernel_end_addr, PAGE_SIZE);
     uintptr_t round_available_end = round_down(available_end, PAGE_SIZE);
 
     allocate_base_addr = round_kernel_end;
 
-    *kernel_end_include_heap = allocate_base_addr + (EARLY_MEMORY_PAGE_NUM * PAGE_SIZE);
-    if(round_available_end < allocate_base_addr + (EARLY_MEMORY_PAGE_NUM * PAGE_SIZE))
+    *kernel_end_include_heap = 
+        allocate_base_addr + (EARLY_MEMORY_PAGE_NUM * PAGE_SIZE);
+    if(round_available_end < allocate_base_addr + 
+            (EARLY_MEMORY_PAGE_NUM * PAGE_SIZE))
     {
         return false;
     }

@@ -10,8 +10,6 @@
 void start_kernel(uintptr_t bootinfo_addr) 
 {
 
-    //uint32_t total_size = *(uint64_t *)bootinfo_addr;
-
     struct multiboot_tag *tag;
 
     uintptr_t available_end = 0;
@@ -76,7 +74,6 @@ void start_kernel(uintptr_t bootinfo_addr)
                         default:
                             break;
                     }
-
                 }
 
                 break;
@@ -120,10 +117,6 @@ void start_kernel(uintptr_t bootinfo_addr)
     }
 
 //    *(uint64_t*)0x0123456701234567;
-/*     __asm__ volatile( */
-/*             "movq $64, %rax;" */
-/*             "syscall;" */
-/*             ); */
 
     while(1) {
         hlt();

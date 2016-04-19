@@ -3,18 +3,12 @@ ENTRY(entry)
 
 
 
-
 SECTIONS
 {
 
-
-
     . = 0x0000000001000000;
-
     .boot :
     {
-
-
         *(.boot)
     }
 

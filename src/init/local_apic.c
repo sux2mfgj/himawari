@@ -3,13 +3,9 @@
 #include <page.h>
 #include <apic.h>
 #include <descriptor.h>
+#include <kernel.h>
 
 static uintptr_t local_apic_addr = 0;
-
-void nothing(void *ptr)
-{
-
-}
 
 static uint32_t apic_read(enum APIC_MAP map) 
 {
@@ -40,18 +36,6 @@ bool init_local_apic(void)
     if(!(edx & CPUID_FLAG_APIC)) {
         return false;
     }
-
-
-//    read_msr(IA32_APIC_BASE_MSR, &eax, &edx);
-//    {
-//        char buf[32];
-//        itoa((uint64_t)eax, buf, 16);
-//        puts("cpuid: 0x");
-//        puts(buf);
-//        puts("\n");
-//    }
-//
-//    uintptr_t apic_base = (eax & 0xfffff000);
 
     uintptr_t new_apic_phys_base_addr = early_malloc(1);
 

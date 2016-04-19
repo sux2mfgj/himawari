@@ -46,10 +46,6 @@ trap_exit:
     add $16, %rsp
     iretq
 
-//TODO
-//trap_exit:
-
-
 #define exception_not_error_code(name, number) \
         .text;\
         .globl name;\

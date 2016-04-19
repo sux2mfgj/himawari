@@ -17,4 +17,4 @@ $(TARGET): $(OBJS) Makefile
 	$(LD) $(LDFLAGS) -r $(OBJS) -o $@ 
 
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(TARGET) *.o
