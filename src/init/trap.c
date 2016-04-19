@@ -30,18 +30,18 @@ extern uintptr_t vectors[VECTOR_ENTRY_NUM];
 /*     idt_table[descriptor_num].reserved = 0; */
 /* } */
 
-static void lidt(struct gate_descriptor *p, int size)
-{
-    volatile uint16_t descriptor[5];
+/* static void lidt(struct gate_descriptor *p, int size) */
+/* { */
+/*     volatile uint16_t descriptor[5]; */
 
-    descriptor[0] = size - 1;
-    descriptor[1] = (uintptr_t)p;
-    descriptor[2] = (uintptr_t)p >> 16;
-    descriptor[3] = (uintptr_t)p >> 32;
-    descriptor[4] = (uintptr_t)p >> 48;
+/*     descriptor[0] = size - 1; */
+/*     descriptor[1] = (uintptr_t)p; */
+/*     descriptor[2] = (uintptr_t)p >> 16; */
+/*     descriptor[3] = (uintptr_t)p >> 32; */
+/*     descriptor[4] = (uintptr_t)p >> 48; */
 
-    __asm__ volatile("lidt (%0)" : : "r" (descriptor));
-}
+/*     __asm__ volatile("lidt (%0)" : : "r" (descriptor)); */
+/* } */
 
 /* static void make_gate(uint32_t *idt,  */
 /*         int n,  */

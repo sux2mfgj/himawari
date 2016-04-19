@@ -6,6 +6,11 @@
 
 static uintptr_t local_apic_addr = 0;
 
+void nothing(void *ptr)
+{
+
+}
+
 static uint32_t apic_read(enum APIC_MAP map) 
 {
     return *(uint32_t*)(local_apic_addr + LOCAL_APIC_ID);
@@ -16,6 +21,7 @@ static void apic_write(enum APIC_MAP map, uint32_t value)
    *(uint32_t*)(local_apic_addr + map) = value;
    //wait for next, by reading ID
    volatile uint32_t id = apic_read(LOCAL_APIC_ID);
+   nothing((void *)&id);
 }
 
 bool init_local_apic(void)

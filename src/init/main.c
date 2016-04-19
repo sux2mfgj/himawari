@@ -10,7 +10,7 @@
 void start_kernel(uintptr_t bootinfo_addr) 
 {
 
-    uint32_t total_size = *(uint64_t *)bootinfo_addr;
+    //uint32_t total_size = *(uint64_t *)bootinfo_addr;
 
     struct multiboot_tag *tag;
 
@@ -119,8 +119,7 @@ void start_kernel(uintptr_t bootinfo_addr)
         //panic();
     }
 
-    uint64_t *test_page_fault = (uint64_t*)0x0123456701234567;
-    uint64_t test_value = *test_page_fault;
+//    *(uint64_t*)0x0123456701234567;
 /*     __asm__ volatile( */
 /*             "movq $64, %rax;" */
 /*             "syscall;" */

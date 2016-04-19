@@ -8,7 +8,7 @@ GDB			:= ./gdb
 #  CC			:= gcc
 export LD 	:= ld
 
-export CFLAGS		:= -Wall -g -ffreestanding -mcmodel=large -m64 -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -std=c11
+export CFLAGS		:= -Wall -g -ffreestanding -mcmodel=large -m64 -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -std=c11 -nostdlib
 
 QEMU		:= qemu-system-x86_64
 QEMU_FLAGS 	:= -m 128M -monitor stdio -gdb tcp::10000

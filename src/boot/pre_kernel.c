@@ -26,7 +26,7 @@ void pre_start_kernel(uintptr_t bootinfo_addr)
     for(int i=0; i < 256; ++i)
     {
         set_intr_gate(i,
-                (void *)((uintptr_t)early_idt_handler));// + START_KERNEL_MAP));
+                (void *)((uintptr_t)early_idt_handler));
     }
 
     struct tss_struct *t = &init_tss;

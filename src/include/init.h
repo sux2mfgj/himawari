@@ -23,7 +23,7 @@ extern void set_gate_descriptor(int descriptor_num,
                          unsigned dpl);
 
 // vram text (vram_text.c)
-extern void puts(const char const* text);
+extern void puts(const char * text);
 extern bool itoa(
         uint64_t num,
         char* buf,
