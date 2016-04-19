@@ -85,14 +85,6 @@ bool init_trap(void)
     //TODO setup entry for system call
     
     cli();
-    lidt(
-            (struct gate_descriptor*)
-            ((uintptr_t)idt_table),// + (uintptr_t)START_KERNEL_MAP),
-            sizeof(struct gate_descriptor) * IDT_ENTRY_NUM);
-
-/*     __asm__ volatile("lidt %0" :: "m"(idt_desc)); */
-    //sti();
-    //cli();
 
     return true;
 }

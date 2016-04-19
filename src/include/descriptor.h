@@ -130,7 +130,7 @@ static inline void set_intr_gate(int nr, void* func)
     _set_gate(
             (struct gate_descriptor*)
             //((uintptr_t)&idt_table[nr] + (uintptr_t)START_KERNEL_MAP),
-            (uintptr_t)&idt_table[nr],// + (uintptr_t)START_KERNEL_MAP),
+            ((uintptr_t)(&idt_table[nr]) + START_KERNEL_MAP),
               GATE_INTERRUPT, (uintptr_t)func, 0, 0);
 }
 

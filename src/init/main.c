@@ -110,7 +110,7 @@ void start_kernel(uintptr_t bootinfo_addr)
             &kernel_end_include_heap);
 
     init_pagetable(kernel_end_include_heap);
-    //init_trap();
+    init_trap();
 
     //status = init_local_apic();
     if(!status) 
