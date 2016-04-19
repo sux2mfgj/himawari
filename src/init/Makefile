@@ -1,6 +1,7 @@
 TARGET := init.o
 
-OBJS	:= main.o early_memory.o pagetable.o vram_text.o trap.o entry.o local_apic.o pic.o
+# remove local_apic.o
+OBJS	:= main.o early_memory.o pagetable.o vram_text.o trap.o entry.o pic.o
 
 INCLUDE	:= -I../include
 
