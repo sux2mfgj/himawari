@@ -105,10 +105,12 @@ void start_kernel(uintptr_t bootinfo_addr)
     bool status = true;
     uintptr_t kernel_end_include_heap;
     init_early_memory_allocator(
-            (uintptr_t)&_kernel_end - START_KERNEL_MAP, available_end, &kernel_end_include_heap);
+            (uintptr_t)&_kernel_end - START_KERNEL_MAP,
+            available_end,
+            &kernel_end_include_heap);
 
-    //init_pagetable(kernel_end_include_heap);
-    init_trap();
+    init_pagetable(kernel_end_include_heap);
+    //init_trap();
 
     //status = init_local_apic();
     if(!status) 

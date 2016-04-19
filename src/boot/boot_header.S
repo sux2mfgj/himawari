@@ -128,10 +128,10 @@ long_mode_entry:
     movq $pre_start_kernel, %rax
     jmp *%rax
     
-    jmp 1f
+//     jmp 1f
 
-.globl early_idt_handler
-early_idt_handler:
+//.globl early_idt_handler
+//early_idt_handler:
 1:
     jmp 1b
 
@@ -144,6 +144,7 @@ stack:
 multiboot_info:
     .long 0x0
 
+.globl pre_gdt_descr
 pre_gdt_descr:
     .word gdt_end - gdt_table
     .long gdt_table

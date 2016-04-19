@@ -69,6 +69,7 @@ bool init_pagetable(uintptr_t rounded_kernel_memory_end)
         if (pt == 0) {
             return false;
         }
+        memset(pt, 0, 0x1000);
         for (int i = 0; i < 512; ++i) {
             pt[i] = 
                 PAGE_PRESENT | PAGE_READ_WRITE | 
