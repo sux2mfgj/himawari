@@ -4,6 +4,7 @@
 #include <apic.h>
 #include <descriptor.h>
 #include <kernel.h>
+#include <string.h>
 
 static uintptr_t local_apic_addr = 0;
 
@@ -18,6 +19,12 @@ static void apic_write(enum APIC_MAP map, uint32_t value)
    //wait for next, by reading ID
    volatile uint32_t id = apic_read(LOCAL_APIC_ID);
    nothing((void *)&id);
+}
+
+void apic_timer_handler(void)
+{
+    while(true)
+    {}
 }
 
 bool init_local_apic(void)
@@ -42,7 +49,8 @@ bool init_local_apic(void)
     local_apic_addr = new_apic_phys_base_addr;
     new_apic_phys_base_addr -= START_KERNEL_MAP;
 
-    uint32_t apic_msr_value = 
+
+    uint64_t apic_msr_value = 
         (new_apic_phys_base_addr & 0xfffffffffffff000) |
         APIC_MSR_BSP |
         APIC_MSR_GLOBAL_ENABLE;
@@ -57,25 +65,30 @@ bool init_local_apic(void)
     }
 
 
+    //setup local apic base addr 
     eax = apic_msr_value;
     edx = 0;
     write_msr(IA32_APIC_BASE_MSR, &eax, &edx);
 
+
+    apic_write(LOCAL_APIC_SPURIOUS_IVR, 
+            (apic_read(LOCAL_APIC_SPURIOUS_IVR) | 0x100));
     //setup local apic timer
     // stop local APIC timer
     apic_write(LOCAL_APIC_INITIAL_COUNT, 0);
     apic_write(LOCAL_APIC_DIVIDE_CONFIG, 0x3); // divieded by 16
 
-    uint64_t lvt_timer_value 
-        = TIMER_MODE_PERIODIC | TIMER_DELIVERY_SEND | IDT_ENTRY_TIMER;
+/*     uint32_t lvt_timer_value  */
+/*         = TIMER_MODE_PERIODIC | IDT_ENTRY_TIMER; */
 
-    apic_write(LOCAL_APIC_LVT_TIMER, lvt_timer_value);
+    //apic_write(LOCAL_APIC_LVT_TIMER, lvt_timer_value);
 
     //TODO setup 10ms by using pit
     // 
     apic_write(LOCAL_APIC_INITIAL_COUNT, 10000000);
 
+    //set_intr_gate(IDT_ENTRY_TIMER, &apic_timer_handler);
+
     return true;
 }
-
 

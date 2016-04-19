@@ -24,11 +24,10 @@ extern void set_gate_descriptor(int descriptor_num,
 
 // vram text (vram_text.c)
 extern void puts(const char * text);
-extern bool itoa(
-        uint64_t num,
-        char* buf,
-        const uint64_t decimal);
 extern void enable_virtual_memory(void);
 
 // local apic (local_apic.c)
 extern bool init_local_apic(void);
+
+// pic & pit (pic.c)
+extern bool init_pic(void);

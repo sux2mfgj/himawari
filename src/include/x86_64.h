@@ -43,12 +43,16 @@ static inline void write_msr(uint32_t msr, uint32_t* eax, uint32_t* edx)
 
 static inline void outb(uint16_t port, uint8_t val)
 {
-    __asm__ volatile("out dx, al"::"d"(port), "a"(val));
+//     __asm__ volatile("movb %0, %%ax", )
+    __asm__ volatile("outb %%dx"::"d"(port), "a"(val));
 }
 
 static inline void inb(uint16_t port, uint8_t *val)
 {
-    __asm__ volatile("in dx, al": "=a"(*val):"d"(port));
+    __asm__ volatile( "mov %%dx, %%ax" : : "a"(port) );
+    __asm__ volatile( "in %al, %dx" );
+    __asm__ volatile( "mov %%bl, %%al" : "=b"(*val) );
+
 }
 
 static inline void sti(void)

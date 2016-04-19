@@ -35,7 +35,7 @@ void pre_start_kernel(uintptr_t bootinfo_addr)
     //set_tss_desc((uintptr_t)t);
     
     __asm__ volatile("lgdt %0" :: "m"(gdt_desc));
-    __asm__ volatile("lidt %0" :: "m" (idt_desc));
+    __asm__ volatile("lidt %0" :: "m"(idt_desc));
 /*     __asm__ volatile("ltr %w0" :: "r" (TASK_STATE_SEGMENT)); */
 
     start_kernel(bootinfo_addr);

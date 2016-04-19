@@ -3,6 +3,7 @@
 #include <init.h>
 #include <util.h>
 #include <x86_64.h>
+#include <string.h>
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -109,14 +110,19 @@ void start_kernel(uintptr_t bootinfo_addr)
     init_pagetable(kernel_end_include_heap);
     init_trap();
 
-    //status = init_local_apic();
-    if(!status) 
-    {
-        puts("panic!! at init_local_apic");
-        //panic();
+/*     status = init_local_apic(); */
+/*     if(!status)  */
+/*     { */
+/*         puts("panic!! at init_local_apic"); */
+/*         //panic(); */
+/*     } */
+    status = init_pic();
+    if(!status) {
+        //panic("panic!!")
     }
 
-    uint64_t a = *(uint64_t*)0x0123456701234567;
+    //uint64_t a = *(uint64_t*)0x0123456701234567;
+    sti();
 
     while(1) {
         hlt();

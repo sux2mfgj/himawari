@@ -1,8 +1,5 @@
 #include <string.h>
 
-#include <stdbool.h>
-#include <stdint.h>
-
 void * memset(void * s,int c, size_t count)
 {
     char *xs = (char *) s;

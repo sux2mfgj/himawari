@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef ASM_FILE
+
 #include <stdint.h>
 #include <segment.h>
 #include <page.h>
@@ -156,8 +158,10 @@ extern void machine_check_exception(void);
 extern void simd_floating_point_exception(void);
 extern void virtualization_exception(void);
 
-enum {
+
+#endif
+
     // 32 ~ 255 is availabel
-    // IDT_ENTRY_SYSTEM_CALL = 32,
-    IDT_ENTRY_TIMER = 32,
-};
+#define IDT_ENTRY_PIC_MASTER 0x20
+#define IDT_ENTRY_PIC_SLAVE 0x28
+#define IDT_ENTRY_PIC_TIMER 0x20

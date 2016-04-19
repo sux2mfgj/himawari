@@ -4,6 +4,7 @@
 #include <page.h>
 #include <x86_64.h>
 #include <trap.h>
+#include <string.h>
 
 extern struct descriptor_ptr idt_desc;
 
@@ -39,14 +40,49 @@ bool init_trap(void)
     return true;
 }
 
+static char* fault_list[] = {
+    "DE",
+    "DB",
+    "NMI" ,
+    "BP",
+    "OF",
+    "BR",
+    "UD",
+    "NM",
+    "DF",
+    "CSO",
+    "TS",
+    "NP",
+    "SS",
+    "GP",
+    "PF",
+    "MF",
+    "AC",
+    "MC",
+    "XM",
+    "VE",
+};
+
 void trap(struct trap_frame_struct* trap_frame)
 {
     {
         char buf[32];
-        itoa(trap_frame->trap_number, buf, 10);
         puts("trap_number: ");
+        if(trap_frame->trap_number < 20) {
+            puts(fault_list[trap_frame->trap_number]);
+        } 
+        else {
+            puts("user definition handler: ");
+            itoa(trap_frame->trap_number, buf, 16);
+            puts(buf);
+            puts("\n");
+        }
+        puts(", 0x");
+        itoa(trap_frame->ret_rip, buf, 16);
         puts(buf);
         puts("\n");
+
+
     }
 
     while (true) {
