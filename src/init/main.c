@@ -116,7 +116,7 @@ void start_kernel(uintptr_t bootinfo_addr)
         //panic();
     }
 
-//    *(uint64_t*)0x0123456701234567;
+    uint64_t a = *(uint64_t*)0x0123456701234567;
 
     while(1) {
         hlt();
