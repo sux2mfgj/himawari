@@ -77,7 +77,7 @@ void irq(int idt_entry_num)
 
     switch(idt_entry_num) {
         case IDT_ENTRY_PIC_TIMER:
-            puts("timer!");
+/*             puts("timer!"); */
             break;
         default:
             puts("who are you?????");

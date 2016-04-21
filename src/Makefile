@@ -6,6 +6,7 @@ all: $(TARGET)
 $(TARGET): 
 	cd init/; $(MAKE)
 	cd lib/; $(MAKE)
+#	cd kernel/; $(MAKE)
 	cd boot/; $(MAKE)
 	
 .PHONY: clean

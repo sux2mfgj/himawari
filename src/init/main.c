@@ -4,9 +4,22 @@
 #include <util.h>
 #include <x86_64.h>
 #include <string.h>
+#include <process.h>
 
 #include <stdint.h>
 #include <stdbool.h>
+
+void test_thread(void)
+{
+    sti();
+    while(true){}
+}
+
+void test_thread2(void)
+{
+    while(true){}
+}
+
 
 void start_kernel(uintptr_t bootinfo_addr) 
 {
@@ -121,9 +134,36 @@ void start_kernel(uintptr_t bootinfo_addr)
         //panic("panic!!")
     }
 
-    //uint64_t a = *(uint64_t*)0x0123456701234567;
-    sti();
+    struct task_struct first_thread, second_thread;
+    uintptr_t stack_end_addr = early_malloc(1);
+    if(stack_end_addr){
+        //panic("")  ;
+    }
+    memset((void *)stack_end_addr, 0, 0x1000);
+    status = create_kernel_thread(
+            (uintptr_t)&test_thread,
+            stack_end_addr, 
+            0x1000,
+            &first_thread);
 
+    stack_end_addr = early_malloc(1);
+    if(stack_end_addr){
+        //panic("")  ;
+    }
+    memset((void *)stack_end_addr, 0, 0x1000);
+    status = create_kernel_thread(
+            (uintptr_t)&test_thread2,
+            stack_end_addr, 
+            0x1000,
+            &second_thread);
+
+    init_scheduler(&first_thread, &second_thread);
+
+    //uint64_t a = *(uint64_t*)0x0123456701234567;
+
+    start_kernel_thread();
+
+    //sti();
     while(1) {
         hlt();
     }

@@ -85,6 +85,9 @@ void trap(struct trap_frame_struct* trap_frame)
 
     }
 
+    //when page fault occured, you should read cr2 and print display.
+    //this is setted about try to access memory addres 
+
     while (true) {
     }
 }

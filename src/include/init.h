@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+
 // early memory early_memory.c
 // should be 64 * n
 #define EARLY_MEMORY_PAGE_NUM   64
@@ -31,3 +32,7 @@ extern bool init_local_apic(void);
 
 // pic & pit (pic.c)
 extern bool init_pic(void);
+
+#include <process.h>
+// schduler (process.c)
+extern bool init_scheduler(struct task_struct* first, struct task_struct* second);

@@ -22,6 +22,10 @@ enum {
     APIC_MSR_GLOBAL_ENABLE  = 0x1 << 11,
 };
 
+enum {
+    RFLAGS_IF = 1UL << 9,
+};
+
 static inline void cpuid(int code, uint32_t *eax, uint32_t* edx)
 {
     __asm__ volatile(
