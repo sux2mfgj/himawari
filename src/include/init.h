@@ -3,12 +3,15 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <page.h>
+
 
 // early memory early_memory.c
 // should be 64 * n
 #define EARLY_MEMORY_PAGE_NUM   64
 
-bool init_early_memory_allocator(uintptr_t kernel_end_addr, uintptr_t available_end, uintptr_t* kernel_end_include_heap);
+// bool init_early_memory_allocator(uintptr_t kernel_end_addr, uintptr_t available_end, uintptr_t* kernel_end_include_heap);
+extern bool init_early_memory_allocator(struct memory_info* m_info) ;
 
 extern uintptr_t early_malloc(uintmax_t page_num);
 

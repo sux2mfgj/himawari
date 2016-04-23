@@ -6,11 +6,12 @@
 #define START_KERNEL_MAP    0xffffffff80000000
 //#define START_KERNEL_MAP    0xffff800000000000
 
-
 #define PAGE_SIZE   0x1000
 
 #ifndef ASM_FILE
+
 #include <stdint.h>
+#include <stdbool.h>
 extern char _kernel_start, _kernel_end;
 extern uint64_t *pre_pml4, *pre_pdpt, *pre_kern_pdpt, *pre_pd, *pre_kern_pd;
 
@@ -23,6 +24,19 @@ enum {
     PAGE_ACCESSED        =   0x0000000000000020UL, 
 };
 
+#define FREE_PAGE_INFO_MAX 64
+struct free_page{
+    uintptr_t head;
+    uint64_t length;
+};
+
+struct memory_info {
+    struct free_page free_pages[FREE_PAGE_INFO_MAX];
+    uintptr_t available_end;
+    uintptr_t kernel_end;
+    uintptr_t kernel_start;
+    uintptr_t kernel_end_include_heap;
+};
 
 #endif // ASM_FILE
 

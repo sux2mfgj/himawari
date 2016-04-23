@@ -1,4 +1,9 @@
 #pragma once
+#include <init.h>
+enum {
+    MEMORY,
+    BOOT_MODULES_NUM,
+};
 
 void nothing(void* ptr)
 {

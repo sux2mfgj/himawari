@@ -6,20 +6,23 @@ uint64_t *kernel_pml4, *kernel_pdpt, *kernel_pd, *kernel_pt;
 
 bool init_pagetable(uintptr_t rounded_kernel_memory_end)
 {
-    kernel_pml4 = (uint64_t*)early_malloc(1);
-    if (kernel_pml4 == 0) {
+    kernel_pml4 = (uint64_t *)early_malloc(1);
+    if (kernel_pml4 == 0)
+    {
         return false;
     }
     memset(kernel_pml4, 0, 0x1000);
 
-    kernel_pdpt = (uint64_t*)early_malloc(1);
-    if (kernel_pdpt == 0) {
+    kernel_pdpt = (uint64_t *)early_malloc(1);
+    if (kernel_pdpt == 0)
+    {
         return false;
     }
     memset(kernel_pdpt, 0, 0x1000);
 
-    kernel_pd = (uint64_t*)early_malloc(1);
-    if (kernel_pd == 0) {
+    kernel_pd = (uint64_t *)early_malloc(1);
+    if (kernel_pd == 0)
+    {
         return false;
     }
     memset(kernel_pd, 0, 0x1000);
@@ -64,20 +67,22 @@ bool init_pagetable(uintptr_t rounded_kernel_memory_end)
         puts("\n");
     }
 
-    for (int j = 0; j <= kernel_page_directory_num; ++j) {
-        uint64_t* pt = (uint64_t*)early_malloc(1);
-        if (pt == 0) {
+    for (int j = 0; j <= kernel_page_directory_num; ++j)
+    {
+        uint64_t *pt = (uint64_t *)early_malloc(1);
+        if (pt == 0)
+        {
             return false;
         }
         memset(pt, 0, 0x1000);
-        for (int i = 0; i < 512; ++i) {
-            pt[i] = 
-                PAGE_PRESENT | PAGE_READ_WRITE | PAGE_USER_SUPER|
-                ((uintptr_t)i << 12) + (j * 0x200000);
+        for (int i = 0; i < 512; ++i)
+        {
+            pt[i] = PAGE_PRESENT | PAGE_READ_WRITE | PAGE_USER_SUPER |
+                    ((uintptr_t)i << 12) + (j * 0x200000);
         }
 
-        kernel_pd[j] =
-            PAGE_PRESENT | PAGE_READ_WRITE |PAGE_USER_SUPER| (uintptr_t)pt - START_KERNEL_MAP;
+        kernel_pd[j] = PAGE_PRESENT | PAGE_READ_WRITE | PAGE_USER_SUPER |
+                       (uintptr_t)pt - START_KERNEL_MAP;
     }
 
     {

@@ -13,8 +13,9 @@ extern struct descriptor_ptr idt_desc;
 bool init_trap(void)
 {
 
-    //idt_table = (struct gate_descriptor*)early_malloc(1);
-    //make_gate(idt_table, 64, vectors[64] - (uintptr_t)START_KERNEL_MAP, 3, GATE_TRAP);
+    // idt_table = (struct gate_descriptor*)early_malloc(1);
+    // make_gate(idt_table, 64, vectors[64] - (uintptr_t)START_KERNEL_MAP, 3,
+    // GATE_TRAP);
 
     set_intr_gate(0, &divide_error_exception);
     set_intr_gate(1, &debug_exception);
@@ -34,44 +35,27 @@ bool init_trap(void)
     set_intr_gate(16, &coprocessor_segment_overrun);
     set_intr_gate(17, &alignment_check_exception);
 
-
-    //TODO setup for MSR
+    // TODO setup for MSR
 
     return true;
 }
 
-static char* fault_list[] = {
-    "DE",
-    "DB",
-    "NMI" ,
-    "BP",
-    "OF",
-    "BR",
-    "UD",
-    "NM",
-    "DF",
-    "CSO",
-    "TS",
-    "NP",
-    "SS",
-    "GP",
-    "PF",
-    "MF",
-    "AC",
-    "MC",
-    "XM",
-    "VE",
+static char *fault_list[] = {
+    "DE", "DB", "NMI", "BP", "OF", "BR", "UD", "NM", "DF", "CSO",
+    "TS", "NP", "SS",  "GP", "PF", "MF", "AC", "MC", "XM", "VE",
 };
 
-void trap(struct trap_frame_struct* trap_frame)
+void trap(struct trap_frame_struct *trap_frame)
 {
     {
         char buf[32];
         puts("trap_number: ");
-        if(trap_frame->trap_number < 20) {
+        if (trap_frame->trap_number < 20)
+        {
             puts(fault_list[trap_frame->trap_number]);
-        } 
-        else {
+        }
+        else
+        {
             puts("user definition handler: ");
             itoa(trap_frame->trap_number, buf, 16);
             puts(buf);
@@ -81,13 +65,12 @@ void trap(struct trap_frame_struct* trap_frame)
         itoa(trap_frame->ret_rip, buf, 16);
         puts(buf);
         puts("\n");
-
-
     }
 
-    //when page fault occured, you should read cr2 and print display.
-    //this is setted about try to access memory addres 
+    // when page fault occured, you should read cr2 and print display.
+    // this is setted about try to access memory addres
 
-    while (true) {
+    while (true)
+    {
     }
 }

@@ -8,23 +8,24 @@
 
 static uintptr_t local_apic_addr = 0;
 
-static uint32_t apic_read(enum APIC_MAP map) 
+static uint32_t apic_read(enum APIC_MAP map)
 {
-    return *(uint32_t*)(local_apic_addr + LOCAL_APIC_ID);
+    return *(uint32_t *)(local_apic_addr + LOCAL_APIC_ID);
 }
 
 static void apic_write(enum APIC_MAP map, uint32_t value)
 {
-   *(uint32_t*)(local_apic_addr + map) = value;
-   //wait for next, by reading ID
-   volatile uint32_t id = apic_read(LOCAL_APIC_ID);
-   nothing((void *)&id);
+    *(uint32_t *)(local_apic_addr + map) = value;
+    // wait for next, by reading ID
+    volatile uint32_t id = apic_read(LOCAL_APIC_ID);
+    nothing((void *)&id);
 }
 
 void apic_timer_handler(void)
 {
-    while(true)
-    {}
+    while (true)
+    {
+    }
 }
 
 bool init_local_apic(void)
@@ -40,7 +41,8 @@ bool init_local_apic(void)
         puts("\n");
     }
 
-    if(!(edx & CPUID_FLAG_APIC)) {
+    if (!(edx & CPUID_FLAG_APIC))
+    {
         return false;
     }
 
@@ -49,13 +51,10 @@ bool init_local_apic(void)
     local_apic_addr = new_apic_phys_base_addr;
     new_apic_phys_base_addr -= START_KERNEL_MAP;
 
+    uint64_t apic_msr_value = (new_apic_phys_base_addr & 0xfffffffffffff000) |
+                              APIC_MSR_BSP | APIC_MSR_GLOBAL_ENABLE;
 
-    uint64_t apic_msr_value = 
-        (new_apic_phys_base_addr & 0xfffffffffffff000) |
-        APIC_MSR_BSP |
-        APIC_MSR_GLOBAL_ENABLE;
-
-    //XXX APIC_MSR_BSP (bootstrap processor)
+    // XXX APIC_MSR_BSP (bootstrap processor)
     {
         char buf[32];
         itoa((uint64_t)apic_msr_value, buf, 16);
@@ -64,31 +63,28 @@ bool init_local_apic(void)
         puts("\n");
     }
 
-
-    //setup local apic base addr 
+    // setup local apic base addr
     eax = apic_msr_value;
     edx = 0;
     write_msr(IA32_APIC_BASE_MSR, &eax, &edx);
 
-
-    apic_write(LOCAL_APIC_SPURIOUS_IVR, 
-            (apic_read(LOCAL_APIC_SPURIOUS_IVR) | 0x100));
-    //setup local apic timer
+    apic_write(LOCAL_APIC_SPURIOUS_IVR,
+               (apic_read(LOCAL_APIC_SPURIOUS_IVR) | 0x100));
+    // setup local apic timer
     // stop local APIC timer
     apic_write(LOCAL_APIC_INITIAL_COUNT, 0);
     apic_write(LOCAL_APIC_DIVIDE_CONFIG, 0x3); // divieded by 16
 
-/*     uint32_t lvt_timer_value  */
-/*         = TIMER_MODE_PERIODIC | IDT_ENTRY_TIMER; */
+    /*     uint32_t lvt_timer_value  */
+    /*         = TIMER_MODE_PERIODIC | IDT_ENTRY_TIMER; */
 
-    //apic_write(LOCAL_APIC_LVT_TIMER, lvt_timer_value);
+    // apic_write(LOCAL_APIC_LVT_TIMER, lvt_timer_value);
 
-    //TODO setup 10ms by using pit
-    // 
+    // TODO setup 10ms by using pit
+    //
     apic_write(LOCAL_APIC_INITIAL_COUNT, 10000000);
 
-    //set_intr_gate(IDT_ENTRY_TIMER, &apic_timer_handler);
+    // set_intr_gate(IDT_ENTRY_TIMER, &apic_timer_handler);
 
     return true;
 }
-

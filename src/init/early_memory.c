@@ -8,25 +8,27 @@ uintptr_t allocate_base_addr = 0;
 
 bool is_enable = false;
 
-bool init_early_memory_allocator(uintptr_t kernel_end_addr, 
-        uintptr_t available_end,
-        uintptr_t* kernel_end_include_heap)
+bool init_early_memory_allocator(struct memory_info *m_info)
+/* bool init_early_memory_allocator(uintptr_t kernel_end_addr,  */
+/*         uintptr_t available_end, */
+/*         uintptr_t* kernel_end_include_heap) */
 {
-    uintptr_t round_kernel_end = round_up(kernel_end_addr, PAGE_SIZE);
-    uintptr_t round_available_end = round_down(available_end, PAGE_SIZE);
+    uintptr_t round_kernel_end = round_up(m_info->kernel_end, PAGE_SIZE);
+    uintptr_t round_available_end =
+        round_down(m_info->available_end, PAGE_SIZE);
 
-    allocate_base_addr = round_kernel_end;
+    allocate_base_addr = round_kernel_end - START_KERNEL_MAP;
 
-    *kernel_end_include_heap = 
+    m_info->kernel_end_include_heap =
         allocate_base_addr + (EARLY_MEMORY_PAGE_NUM * PAGE_SIZE);
-    if(round_available_end < allocate_base_addr + 
-            (EARLY_MEMORY_PAGE_NUM * PAGE_SIZE))
+    if (round_available_end <
+        (allocate_base_addr + (EARLY_MEMORY_PAGE_NUM * PAGE_SIZE)))
     {
         return false;
     }
 
-    //clear bitmap
-    for(int i=0; i<bitmap_size; ++i)
+    // clear bitmap
+    for (int i = 0; i < bitmap_size; ++i)
     {
         bitmap[i] = 0;
     }
@@ -37,29 +39,33 @@ bool init_early_memory_allocator(uintptr_t kernel_end_addr,
 
 uintptr_t early_malloc(uintmax_t page_num)
 {
-    if(!is_enable) {
-        //TODO
-        //panic("")
-        return 0;
-    }
-
-    //TODO
-    // alloc sequence page
-    if(page_num != 1) {
-        return 0;
-    }
-
-    for(int i=0; i<bitmap_size; ++i)
+    if (!is_enable)
     {
-        if(bitmap[i] != 0xffffffffffffffff) 
+        // TODO
+        // panic("")
+        return 0;
+    }
+
+    // TODO
+    // alloc sequence page
+    if (page_num != 1)
+    {
+        return 0;
+    }
+
+    for (int i = 0; i < bitmap_size; ++i)
+    {
+        if (bitmap[i] != 0xffffffffffffffff)
         {
             uint64_t mask = 0xf000000000000000;
-            for(int j=0; j<64; ++j, mask >>= 1)
+            for (int j = 0; j < 64; ++j, mask >>= 1)
             {
-                if(!(bitmap[i] & mask))
+                if (!(bitmap[i] & mask))
                 {
                     bitmap[i] |= mask;
-                    return allocate_base_addr + (i * 64 * PAGE_SIZE) + (j * PAGE_SIZE) + START_KERNEL_MAP;
+
+                    return allocate_base_addr + (i * 64 * PAGE_SIZE) +
+                           (j * PAGE_SIZE) + START_KERNEL_MAP;
                 }
             }
         }

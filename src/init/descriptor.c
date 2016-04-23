@@ -2,7 +2,4 @@
 
 struct tss_struct tss;
 
-bool init_descriptor(void)
-{
-
-}
+bool init_descriptor(void) {}

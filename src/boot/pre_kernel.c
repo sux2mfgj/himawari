@@ -12,7 +12,8 @@ struct descriptor_ptr idt_desc = {256 * 16,
 
 void early_idt_handler(void)
 {
-    while (true) {
+    while (true)
+    {
     }
 }
 
@@ -23,21 +24,22 @@ uint8_t ist_0[0x1000 / 8];
 struct tss_struct tss;
 void pre_start_kernel(uintptr_t bootinfo_addr)
 {
-    for (int i = 0; i < 256; ++i) {
-        set_intr_gate(i, (void*)((uintptr_t)early_idt_handler));
+    for (int i = 0; i < 256; ++i)
+    {
+        set_intr_gate(i, (void *)((uintptr_t)early_idt_handler));
     }
 
-/*     struct tss_struct *t = &init_tss; */
+    /*     struct tss_struct *t = &init_tss; */
 
     tss.ist[0] = (uintptr_t)ist_0 + 0x1000 + START_KERNEL_MAP;
-    tss.rsp0 = (uintptr_t)ist_0 + 0x1000 + START_KERNEL_MAP;
+    tss.rsp0   = (uintptr_t)ist_0 + 0x1000 + START_KERNEL_MAP;
 
     set_tss_desc((uintptr_t)&tss + START_KERNEL_MAP);
 
     __asm__ volatile("lgdt %0" ::"m"(gdt_desc));
     __asm__ volatile("lidt %0" ::"m"(idt_desc));
 
-    __asm__ volatile("ltr %w0" :: "r" (TASK_STATE_SEGMENT));
+    __asm__ volatile("ltr %w0" ::"r"(TASK_STATE_SEGMENT));
 
     start_kernel(bootinfo_addr);
 }
