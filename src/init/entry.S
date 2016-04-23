@@ -124,3 +124,15 @@ irq_exit:
 
 define_irq_hander(timer_handler, IDT_ENTRY_PIC_TIMER)
 
+#include <segment.h>
+.globl user_entry
+user_entry:
+    movl $USER_DATA_SEGMENT, %eax
+    movl %eax, %ds
+    movl %eax, %es
+    movl %eax, %gs
+    movl %eax, %fs
+1: 
+    jmp 1b
+
+

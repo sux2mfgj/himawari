@@ -143,16 +143,30 @@ pre_gdt_descr:
     .word gdt_end - gdt_table
     .long gdt_table
 
+
+
+    // +------------+
+    // |   user     | 3
+    // +------------+
+    // |   not use  | 2
+    // +------------+
+    // |   server   | 1
+    // +------------+
+    // |   kernel   | 0
+    // +------------+
+
 .align 0x1000
 //64bit gdt
 .globl gdt_table
 gdt_table:
-    .quad 0x0000000000000000    // null descriptor
-    .quad 0x00af9a000000ffff    // kernel code segment
-    .quad 0x00cf92000000ffff    // kernel data segment
-    .quad 0x00cff2000000ffff    // user data segment
-    .quad 0x00affa000000ffff    // user code segment
-    .quad 0,0                   // task state segment
+    .quad 0x0000000000000000    // 0x00 null descriptor
+    .quad 0x00af9a000000ffff    // 0x08 kernel code segment
+    .quad 0x00cf92000000ffff    // 0x10 kernel data segment
+    .quad 0x00afba000000ffff    // 0x18 set server code segment
+    .quad 0x00cfb2000000ffff    // 0x20 set server data segment
+    .quad 0x00affa000000ffff    // 0x28 user code segment
+    .quad 0x00cff2000000ffff    // 0x30 user data segment
+    .quad 0,0                   // 0x38 task state segment
 gdt_end:
 
 .globl pre_pml4, pre_pdpt, pre_kern_pdpt, pre_pd, pre_kern_pd

@@ -24,7 +24,7 @@ bool init_pagetable(uintptr_t rounded_kernel_memory_end)
     }
     memset(kernel_pd, 0, 0x1000);
 
-    kernel_pml4[511] = PAGE_PRESENT | PAGE_READ_WRITE |
+    kernel_pml4[511] = PAGE_PRESENT | PAGE_READ_WRITE | PAGE_USER_SUPER |
                        (uintptr_t)kernel_pdpt - START_KERNEL_MAP;
 
     {
@@ -35,7 +35,7 @@ bool init_pagetable(uintptr_t rounded_kernel_memory_end)
         puts("\n");
     }
 
-    kernel_pdpt[510] = PAGE_PRESENT | PAGE_READ_WRITE |
+    kernel_pdpt[510] = PAGE_PRESENT | PAGE_READ_WRITE | PAGE_USER_SUPER |
                        (uintptr_t)kernel_pd - START_KERNEL_MAP;
     // 0xffffffff80000000 - 0xffffffffb0000000 (1GB)
 
@@ -72,12 +72,12 @@ bool init_pagetable(uintptr_t rounded_kernel_memory_end)
         memset(pt, 0, 0x1000);
         for (int i = 0; i < 512; ++i) {
             pt[i] = 
-                PAGE_PRESENT | PAGE_READ_WRITE | 
+                PAGE_PRESENT | PAGE_READ_WRITE | PAGE_USER_SUPER|
                 ((uintptr_t)i << 12) + (j * 0x200000);
         }
 
         kernel_pd[j] =
-            PAGE_PRESENT | PAGE_READ_WRITE | (uintptr_t)pt - START_KERNEL_MAP;
+            PAGE_PRESENT | PAGE_READ_WRITE |PAGE_USER_SUPER| (uintptr_t)pt - START_KERNEL_MAP;
     }
 
     {

@@ -9,6 +9,15 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+void user_function(void)
+{
+    puts("I am Legend");
+    puts("\n");
+    while(true){
+
+    }
+}
+
 void test_thread(void)
 {
     sti();
@@ -19,7 +28,6 @@ void test_thread2(void)
 {
     while(true){}
 }
-
 
 void start_kernel(uintptr_t bootinfo_addr) 
 {
@@ -134,37 +142,58 @@ void start_kernel(uintptr_t bootinfo_addr)
         //panic("panic!!")
     }
 
-    struct task_struct first_thread, second_thread;
+    struct task_struct* first_thread;
+    struct task_struct* second_thread;
+    struct task_struct* user_task;
+
+    first_thread = (struct task_struct*)early_malloc(1);
+    second_thread = (struct task_struct*)(first_thread + (((sizeof(struct task_struct) + sizeof(struct task_struct) - 1) >> 4) << 4));
+    user_task = (struct task_struct*)(second_thread + (((sizeof(struct task_struct) + sizeof(struct task_struct) - 1) >> 4) << 4));
+
     uintptr_t stack_end_addr = early_malloc(1);
     if(stack_end_addr){
         //panic("")  ;
     }
     memset((void *)stack_end_addr, 0, 0x1000);
-    status = create_kernel_thread(
+    status = create_first_thread(
             (uintptr_t)&test_thread,
-            stack_end_addr, 
+            stack_end_addr,
             0x1000,
-            &first_thread);
+            first_thread);
 
     stack_end_addr = early_malloc(1);
     if(stack_end_addr){
         //panic("")  ;
     }
     memset((void *)stack_end_addr, 0, 0x1000);
-    status = create_kernel_thread(
+    create_kernel_thread(
             (uintptr_t)&test_thread2,
-            stack_end_addr, 
+            stack_end_addr,
             0x1000,
-            &second_thread);
+            second_thread);
 
-    init_scheduler(&first_thread, &second_thread);
 
-    //uint64_t a = *(uint64_t*)0x0123456701234567;
+//    start_kernel_thread(first_thread);
+//
+    stack_end_addr = early_malloc(1);
+    if(stack_end_addr){
+        //panic("")  ;
+    }
+    memset((void *)stack_end_addr, 0, 0x1000);
 
-    start_kernel_thread();
+    extern void user_entry(void);
+    create_user_process((uintptr_t)&user_entry, 
+            stack_end_addr,
+            0x1000,
+            user_task);
 
-    //sti();
-    while(1) {
+    init_scheduler(user_task, first_thread);
+    //start_task(user_task);
+
+    //don't reach this
+    //puts("Aiee?!");
+    sti();
+    while (true) {
         hlt();
     }
 }

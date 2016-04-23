@@ -1,6 +1,7 @@
 #include <init.h>
 #include <x86_64.h>
 #include <descriptor.h>
+#include <process.h>
 
 // macro for PIC
 #define PIC_MASTER_COMMAND 0x20
@@ -72,12 +73,17 @@
 
 extern void timer_handler(void);
 
+static bool test_switch = false;
 void irq(int idt_entry_num)
 {
-
     switch(idt_entry_num) {
         case IDT_ENTRY_PIC_TIMER:
 /*             puts("timer!"); */
+            //schedule();
+            if(!test_switch) {
+                test_switch = true;
+                start_first_task();
+            }
             break;
         default:
             puts("who are you?????");

@@ -1,5 +1,12 @@
 ARCH		:= x86_64
-TARGET		:= src/boot/kernel.elf
+KERNEL_PATH	:= src/boot
+export KERNEL		:= kernel.elf 
+
+BUILTIN_SERVERS	:= memory.elf
+#BUILTIN_DEVICE_DRIVER :=
+BUILTINS	:= $(foreach dir, $(BUILTIN_SERVERS), src/server/$(dir)/$(dir).elf)
+
+TARGET 	:= $(KERNEL) $(BUILTIN_SERVERS)
 
 ISO			:= himawari.iso
 
@@ -8,28 +15,30 @@ GDB			:= ./gdb
 #  CC			:= gcc
 export LD 	:= ld
 
-export CFLAGS		:= -Wall -g -ffreestanding -mcmodel=large -m64 -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -std=c11 -nostdlib
+export CFLAGS		:= -Wall -g -ffreestanding -mcmodel=large -m64 \
+	-mno-red-zone -mno-mmx -mno-sse -mno-sse2 -std=c11 -nostdlib
 
 QEMU		:= qemu-system-x86_64
 QEMU_FLAGS 	:= -m 128M -monitor stdio -gdb tcp::10000
 #QEMU_FLAGS 	:= -m 128M -serial mon:stdio -gdb tcp::10000
 QEMU_DEBUG	:= -S
 
-
 SRC			:= ./src
 ISO_ROOT	:= ./root
 CONFIG		:= $(SRC)/config
 
-all: $(TARGET)
+all: $(TARGET) 
 
 .PHONY: $(TARGET)
 $(TARGET): 
-	cd src/; $(MAKE) 
+	cd src/; $(MAKE) all
 
-$(ISO): $(TARGET)
+$(ISO): $(KERNEL) $(BUILTIN_SERVERS)
 	mkdir -p $(ISO_ROOT)/boot/grub
 	cp $(CONFIG)/grub.cfg $(ISO_ROOT)/boot/grub/grub.cfg
-	cp $(TARGET) $(ISO_ROOT)/boot
+	cp $(KERNEL_PATH)/$(KERNEL) $(ISO_ROOT)/boot
+
+
 	grub-mkrescue -o $@ $(ISO_ROOT)
 
 .PHONY: run

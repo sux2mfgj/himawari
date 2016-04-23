@@ -1,16 +1,30 @@
-TARGET	:= boot/kernel.elf
+TARGET_PATH	:= boot
 
-all: $(TARGET)
+LINK_DIR := init lib kernel 
+export LINK_OBJS = $(foreach dir, $(LINK_DIR), $(dir)/$(dir).o)
+
+SERVER	:= server
+
+all: $(TARGET) $(SERVER)
+
+.SUFFIXES: .o
 
 .PHONY: $(TARGET)
 $(TARGET): 
-	cd init/; $(MAKE)
-	cd lib/; $(MAKE)
-#	cd kernel/; $(MAKE)
+	for dir in $(LINK_DIR); do\
+		(cd $$dir; $(MAKE);)\
+	done
 	cd boot/; $(MAKE)
-	
+
+.PHONY: $(SERVER)
+$(SERVER):
+	cd $@; $(MAKE)
+
 .PHONY: clean
 clean:
-	cd init/; $(MAKE) clean
-	cd lib/; $(MAKE) clean
+	for dir in $(LINK_DIR); do\
+		(cd $$dir; $(MAKE) clean;)\
+	done
+
+	cd $(SERVER); $(MAKE) clean
 	cd boot/; $(MAKE) clean

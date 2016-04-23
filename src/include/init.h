@@ -36,3 +36,5 @@ extern bool init_pic(void);
 #include <process.h>
 // schduler (process.c)
 extern bool init_scheduler(struct task_struct* first, struct task_struct* second);
+extern void start_first_task(void);
+
