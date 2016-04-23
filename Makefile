@@ -2,7 +2,7 @@ ARCH		:= x86_64
 KERNEL_PATH	:= src/boot
 export KERNEL		:= kernel.elf 
 
-BUILTIN_SERVERS	:= memory.elf
+BUILTIN_SERVERS	:= memory
 #BUILTIN_DEVICE_DRIVER :=
 BUILTINS	:= $(foreach dir, $(BUILTIN_SERVERS), src/server/$(dir)/$(dir).elf)
 
@@ -37,8 +37,9 @@ $(ISO): $(KERNEL) $(BUILTIN_SERVERS)
 	mkdir -p $(ISO_ROOT)/boot/grub
 	cp $(CONFIG)/grub.cfg $(ISO_ROOT)/boot/grub/grub.cfg
 	cp $(KERNEL_PATH)/$(KERNEL) $(ISO_ROOT)/boot
-
-
+	for file in $(BUILTINS); do\
+		cp $$file $(ISO_ROOT)/boot;\
+	done
 	grub-mkrescue -o $@ $(ISO_ROOT)
 
 .PHONY: run

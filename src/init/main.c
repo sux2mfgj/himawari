@@ -13,53 +13,50 @@ void user_function(void)
 {
     puts("I am Legend");
     puts("\n");
-    while(true){
-
+    while (true) {
     }
 }
 
 void test_thread(void)
 {
     sti();
-    while(true){}
+    while (true) {
+    }
 }
 
 void test_thread2(void)
 {
-    while(true){}
+    while (true) {
+    }
 }
 
-void start_kernel(uintptr_t bootinfo_addr) 
+void start_kernel(uintptr_t bootinfo_addr)
 {
-
-    struct multiboot_tag *tag;
+    struct multiboot_tag* tag;
 
     uintptr_t available_end = 0;
-    do{
+    do {
         tag = (struct multiboot_tag*)(bootinfo_addr + 8);
 
         uint32_t size = tag->size;
-        //alignment size 8
+        // alignment size 8
         size = (size + 7) & ~7;
 
-        switch(tag->type) {
-
-            case MULTIBOOT_TAG_TYPE_MMAP:
-            {
-
-                multiboot_memory_map_t *mmap;
-                for(
-                    mmap = ((struct multiboot_tag_mmap *) tag)->entries;
-                    (uintptr_t)mmap < (uintptr_t)tag + tag->size;
-                    mmap = (multiboot_memory_map_t *)((uintptr_t)mmap 
-                        + ((struct multiboot_tag_mmap *)tag)->entry_size))
-                {
-                    switch(mmap->type) {
-                        case MULTIBOOT_MEMORY_AVAILABLE:
-                        {
+        switch (tag->type) {
+            case MULTIBOOT_TAG_TYPE_MMAP: {
+                multiboot_memory_map_t* mmap;
+                for (mmap = ((struct multiboot_tag_mmap*)tag)->entries;
+                     (uintptr_t)mmap < (uintptr_t)tag + tag->size;
+                     mmap =
+                         (multiboot_memory_map_t*)((uintptr_t)mmap +
+                                                   ((struct multiboot_tag_mmap*)
+                                                        tag)
+                                                       ->entry_size)) {
+                    switch (mmap->type) {
+                        case MULTIBOOT_MEMORY_AVAILABLE: {
                             puts("available: ");
                             uintptr_t addr = mmap->addr;
-                            uint64_t len = mmap->len; 
+                            uint64_t len = mmap->len;
 
                             char buf[32];
                             itoa(addr, buf, 16);
@@ -69,18 +66,16 @@ void start_kernel(uintptr_t bootinfo_addr)
                             puts(buf);
                             puts("\n");
 
-
-							available_end = max(
-                                    available_end, (uintptr_t)(addr + len));
+                            available_end =
+                                max(available_end, (uintptr_t)(addr + len));
 
                             break;
                         }
 
-                        case MULTIBOOT_MEMORY_RESERVED:
-                        {
+                        case MULTIBOOT_MEMORY_RESERVED: {
                             puts("reserved: ");
                             uintptr_t addr = mmap->addr;
-                            uint64_t len = mmap->len; 
+                            uint64_t len = mmap->len;
 
                             char buf[32];
                             itoa(addr, buf, 16);
@@ -100,13 +95,21 @@ void start_kernel(uintptr_t bootinfo_addr)
 
                 break;
             }
+            case MULTIBOOT_TAG_TYPE_MODULE: {
+                struct multiboot_tag_module* module =
+                    (struct multiboot_tag_module*)tag;
+
+                puts(module->cmdline);
+
+                break;
+            }
 
             default:
                 break;
         }
         bootinfo_addr += size;
 
-    } while(tag->type != MULTIBOOT_TAG_TYPE_END) ;
+    } while (tag->type != MULTIBOOT_TAG_TYPE_END);
 
     {
         char buf[32];
@@ -123,23 +126,21 @@ void start_kernel(uintptr_t bootinfo_addr)
 
     bool status = true;
     uintptr_t kernel_end_include_heap;
-    init_early_memory_allocator(
-            (uintptr_t)&_kernel_end - START_KERNEL_MAP,
-            available_end,
-            &kernel_end_include_heap);
+    init_early_memory_allocator((uintptr_t)&_kernel_end - START_KERNEL_MAP,
+                                available_end, &kernel_end_include_heap);
 
     init_pagetable(kernel_end_include_heap);
     init_trap();
 
-/*     status = init_local_apic(); */
-/*     if(!status)  */
-/*     { */
-/*         puts("panic!! at init_local_apic"); */
-/*         //panic(); */
-/*     } */
+    /*     status = init_local_apic(); */
+    /*     if(!status)  */
+    /*     { */
+    /*         puts("panic!! at init_local_apic"); */
+    /*         //panic(); */
+    /*     } */
     status = init_pic();
-    if(!status) {
-        //panic("panic!!")
+    if (!status) {
+        // panic("panic!!")
     }
 
     struct task_struct* first_thread;
@@ -147,51 +148,50 @@ void start_kernel(uintptr_t bootinfo_addr)
     struct task_struct* user_task;
 
     first_thread = (struct task_struct*)early_malloc(1);
-    second_thread = (struct task_struct*)(first_thread + (((sizeof(struct task_struct) + sizeof(struct task_struct) - 1) >> 4) << 4));
-    user_task = (struct task_struct*)(second_thread + (((sizeof(struct task_struct) + sizeof(struct task_struct) - 1) >> 4) << 4));
+    second_thread = (struct task_struct*)(first_thread +
+                                          (((sizeof(struct task_struct) +
+                                             sizeof(struct task_struct) - 1) >>
+                                            4)
+                                           << 4));
+    user_task = (struct task_struct*)(second_thread +
+                                      (((sizeof(struct task_struct) +
+                                         sizeof(struct task_struct) - 1) >>
+                                        4)
+                                       << 4));
 
     uintptr_t stack_end_addr = early_malloc(1);
-    if(stack_end_addr){
-        //panic("")  ;
+    if (stack_end_addr) {
+        // panic("")  ;
     }
-    memset((void *)stack_end_addr, 0, 0x1000);
-    status = create_first_thread(
-            (uintptr_t)&test_thread,
-            stack_end_addr,
-            0x1000,
-            first_thread);
+    memset((void*)stack_end_addr, 0, 0x1000);
+    status = create_first_thread((uintptr_t)&test_thread, stack_end_addr,
+                                 0x1000, first_thread);
 
     stack_end_addr = early_malloc(1);
-    if(stack_end_addr){
-        //panic("")  ;
+    if (stack_end_addr) {
+        // panic("")  ;
     }
-    memset((void *)stack_end_addr, 0, 0x1000);
-    create_kernel_thread(
-            (uintptr_t)&test_thread2,
-            stack_end_addr,
-            0x1000,
-            second_thread);
+    memset((void*)stack_end_addr, 0, 0x1000);
+    create_kernel_thread((uintptr_t)&test_thread2, stack_end_addr, 0x1000,
+                         second_thread);
 
-
-//    start_kernel_thread(first_thread);
-//
+    //    start_kernel_thread(first_thread);
+    //
     stack_end_addr = early_malloc(1);
-    if(stack_end_addr){
-        //panic("")  ;
+    if (stack_end_addr) {
+        // panic("")  ;
     }
-    memset((void *)stack_end_addr, 0, 0x1000);
+    memset((void*)stack_end_addr, 0, 0x1000);
 
     extern void user_entry(void);
-    create_user_process((uintptr_t)&user_entry, 
-            stack_end_addr,
-            0x1000,
-            user_task);
+    create_user_process((uintptr_t)&user_entry, stack_end_addr, 0x1000,
+                        user_task);
 
     init_scheduler(user_task, first_thread);
-    //start_task(user_task);
+    // start_task(user_task);
 
-    //don't reach this
-    //puts("Aiee?!");
+    // don't reach this
+    // puts("Aiee?!");
     sti();
     while (true) {
         hlt();

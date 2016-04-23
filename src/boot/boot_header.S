@@ -18,12 +18,17 @@ multiboot_header:
             + (header_end - multiboot_header))  // check sum
 .align MULTIBOOT_HEADER_ALIGN
 information_request:
-    .word MULTIBOOT_HEADER_TAG_INFORMATION_REQUEST
-    .word 1
+    .short MULTIBOOT_HEADER_TAG_INFORMATION_REQUEST
+    .short MULTIBOOT_HEADER_TAG_OPTIONAL
     .long request_end - information_request
     .long MULTIBOOT_TAG_TYPE_MMAP
+    .long MULTIBOOT_TAG_TYPE_MODULE
 request_end:
-.align MULTIBOOT_HEADER_ALIGN
+module_alignment:
+    .short MULTIBOOT_HEADER_TAG_MODULE_ALIGN
+#.short MULTIBOOT_HEADER_TAG_OPTIONAL
+    .short 0
+    .long 12
 end_tag:
     .word MULTIBOOT_TAG_TYPE_END
     .word 0

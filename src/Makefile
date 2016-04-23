@@ -1,16 +1,16 @@
-TARGET_PATH	:= boot
+KERNEL_PATH	:= boot
 
 LINK_DIR := init lib kernel 
 export LINK_OBJS = $(foreach dir, $(LINK_DIR), $(dir)/$(dir).o)
 
 SERVER	:= server
 
-all: $(TARGET) $(SERVER)
+all: $(KERNEL) $(SERVER)
 
 .SUFFIXES: .o
 
-.PHONY: $(TARGET)
-$(TARGET): 
+.PHONY: $(KERNEL)
+$(KERNEL): 
 	for dir in $(LINK_DIR); do\
 		(cd $$dir; $(MAKE);)\
 	done
