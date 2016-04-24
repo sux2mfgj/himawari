@@ -55,7 +55,7 @@ void test_thread2(void)
 bool parse_bootinfo(uintptr_t bootinfo_addr, struct memory_info *m_info)
 {
     struct multiboot_tag *tag;
-    int free_page_index = 0;
+    int page_info_index = 0;
     do
     {
         tag = (struct multiboot_tag *)(bootinfo_addr + 8);
@@ -81,11 +81,13 @@ bool parse_bootinfo(uintptr_t bootinfo_addr, struct memory_info *m_info)
                         case MULTIBOOT_MEMORY_AVAILABLE:
                         {
 
-                            m_info->free_pages[free_page_index].head =
+                            m_info->pages_info[page_info_index].type =
+                                MEMORY_USABLE;
+                            m_info->pages_info[page_info_index].head =
                                 mmap->addr;
-                            m_info->free_pages[free_page_index].length =
+                            m_info->pages_info[page_info_index].length =
                                 mmap->len;
-                            free_page_index++;
+                            page_info_index++;
 
                             m_info->available_end =
                                 max(m_info->available_end,
@@ -110,10 +112,13 @@ bool parse_bootinfo(uintptr_t bootinfo_addr, struct memory_info *m_info)
             case MULTIBOOT_TAG_TYPE_MODULE:
             {
                 // TODO
-                //                struct multiboot_tag_module*
-                //                module =
-                //                    (struct
-                //                    multiboot_tag_module*)tag;
+                struct multiboot_tag_module *module =
+                    (struct multiboot_tag_module *)tag;
+
+                m_info->pages_info[page_info_index].type   = MEMORY_MODULE;
+                m_info->pages_info[page_info_index].head   = module->mod_start;
+                m_info->pages_info[page_info_index].length = module->mod_end;
+                page_info_index++;
 
                 break;
             }
@@ -171,6 +176,32 @@ void start_kernel(uintptr_t bootinfo_addr)
     {
         panic("init_pic");
     }
+
+    for (int i = 0, j = 0; i < BOOT_MODULES_NUM; ++i)
+    {
+
+        for (; j < PAGE_INFO_MAX; ++j)
+        {
+            if (m_info.pages_info[j].type == MEMORY_MODULE)
+            {
+                break;
+            }
+        }
+        if (j == PAGE_INFO_MAX)
+        {
+            panic("boot module is not enough!");
+        }
+        status =
+            setup_server_process(m_info.pages_info[j].head + START_KERNEL_MAP,
+                                 &startup_processes[i]);
+        if(!status)
+        {
+            panic("setup_server_process");
+        }
+    }
+
+    start_task(&startup_processes[0]);
+
 
     /*     struct task_struct* first_thread; */
     /*     struct task_struct* second_thread; */

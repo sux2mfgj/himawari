@@ -2,7 +2,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-
+#include <process.h>
 
 struct task_struct {
 
@@ -28,8 +28,12 @@ struct task_struct {
     uintptr_t rsp;
     uint64_t ss;
 
+    uint64_t* pml4;
+
     //pid, etc...
 };
+
+extern struct task_struct startup_processes[];
 
 struct task_struct* start_task_array[2];
 int current_task_num;

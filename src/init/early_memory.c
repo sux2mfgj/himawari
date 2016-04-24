@@ -2,7 +2,8 @@
 #include <init.h>
 #include <util.h>
 
-#define bitmap_size ((EARLY_MEMORY_PAGE_NUM + (sizeof(uint64_t) * 8) + 1) >> 6)  // >> 6 is divide sizeof(uint64_t)
+#define bitmap_size ((EARLY_MEMORY_PAGE_NUM + (sizeof(uint64_t) * 8) + 1) >> 6)
+// >> 6 is divide sizeof(uint64_t)
 uint64_t bitmap[bitmap_size];
 uintptr_t allocate_base_addr = 0;
 

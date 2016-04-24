@@ -1,7 +1,7 @@
 TARGET := $(notdir $(shell pwd)).elf
 
-OBJS	:= entry.o main.o
-
+CRT_OBJ	:= ../../lib/c_run_time_startup.o
+OBJS	:= $(CRT_OBJ) main.o
 INCLUDE	:= -I../include
 
 .PHONY: all

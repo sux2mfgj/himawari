@@ -1,7 +1,7 @@
 TARGET := init.o
 
 # remove local_apic.o
-OBJS	:= main.o early_memory.o pagetable.o vram_text.o trap.o entry.o irq.o process.o
+OBJS	:= main.o early_memory.o pagetable.o vram_text.o trap.o entry.o irq.o process.o elf.o
 
 INCLUDE	:= -I../include
 

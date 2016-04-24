@@ -1,6 +1,6 @@
 KERNEL_PATH	:= boot
 
-LINK_DIR := init lib kernel 
+LINK_DIR := init lib #kernel 
 export LINK_OBJS = $(foreach dir, $(LINK_DIR), $(dir)/$(dir).o)
 
 SERVER	:= server

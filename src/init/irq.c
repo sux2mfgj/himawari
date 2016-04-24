@@ -81,11 +81,6 @@ void irq(int idt_entry_num)
         case IDT_ENTRY_PIC_TIMER:
             /*             puts("timer!"); */
             // schedule();
-            if (!test_switch)
-            {
-                test_switch = true;
-                start_first_task();
-            }
             break;
         default:
             puts("who are you?????");

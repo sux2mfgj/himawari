@@ -17,6 +17,7 @@ extern uintptr_t early_malloc(uintmax_t page_num);
 
 // paging (pagetable.c)
 extern bool init_pagetable(uintptr_t rounded_kernel_memory_end);
+extern uint64_t* create_pml4(void);
 
 // interrupt (trap.c)
 extern bool init_trap(void);
@@ -40,4 +41,5 @@ extern bool init_pic(void);
 // schduler (process.c)
 extern bool init_scheduler(struct task_struct* first, struct task_struct* second);
 extern void start_first_task(void);
+extern bool setup_server_process(uintptr_t elf_header, struct task_struct *task);
 

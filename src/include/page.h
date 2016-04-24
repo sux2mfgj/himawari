@@ -24,19 +24,27 @@ enum {
     PAGE_ACCESSED        =   0x0000000000000020UL, 
 };
 
-#define FREE_PAGE_INFO_MAX 64
-struct free_page{
+#define PAGE_INFO_MAX 128
+enum memory_type{
+    MEMORY_USABLE,
+    MEMORY_MODULE,
+};
+struct page_info{
+    enum memory_type type;
     uintptr_t head;
     uint64_t length;
+    //TODO added name(for the page used by module)
 };
 
 struct memory_info {
-    struct free_page free_pages[FREE_PAGE_INFO_MAX];
+    struct page_info pages_info[PAGE_INFO_MAX];
     uintptr_t available_end;
     uintptr_t kernel_end;
     uintptr_t kernel_start;
     uintptr_t kernel_end_include_heap;
 };
+
+extern uint64_t create_entry(uintptr_t physical_addr, uint64_t flags);
 
 #endif // ASM_FILE
 
