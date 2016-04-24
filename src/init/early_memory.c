@@ -2,7 +2,7 @@
 #include <init.h>
 #include <util.h>
 
-#define bitmap_size ((EARLY_MEMORY_PAGE_NUM + sizeof(uint64_t) + 1) >> 6)
+#define bitmap_size ((EARLY_MEMORY_PAGE_NUM + (sizeof(uint64_t) * 8) + 1) >> 6)  // >> 6 is divide sizeof(uint64_t)
 uint64_t bitmap[bitmap_size];
 uintptr_t allocate_base_addr = 0;
 
@@ -57,8 +57,8 @@ uintptr_t early_malloc(uintmax_t page_num)
     {
         if (bitmap[i] != 0xffffffffffffffff)
         {
-            uint64_t mask = 0xf000000000000000;
-            for (int j = 0; j < 64; ++j, mask >>= 1)
+            uint64_t mask = 0x0000000000000001;
+            for (int j = 0; j < sizeof(uint64_t) * 8; ++j, mask <<= 1)
             {
                 if (!(bitmap[i] & mask))
                 {
