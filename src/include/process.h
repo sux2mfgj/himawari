@@ -28,6 +28,8 @@ struct task_struct {
     uintptr_t rsp;
     uint64_t ss;
 
+    uintptr_t entry_addr;
+
     uint64_t* pml4;
 
     //pid, etc...
@@ -52,6 +54,7 @@ bool create_first_thread(
         );
 
 extern void schedule(void);
+extern void context_switch(struct task_struct* prev, struct task_struct* next);
 
 
 extern bool create_user_process(
@@ -59,3 +62,5 @@ extern bool create_user_process(
         uintptr_t stack_end_addr,
         uintmax_t stack_size,
         struct task_struct* task);
+
+

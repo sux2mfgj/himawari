@@ -29,28 +29,33 @@ void panic(char *text)
     }
 }
 
-void user_function(void)
-{
-    puts("I am Legend\n");
-    while (true)
-    {
-    }
-}
-
 void test_thread(void)
 {
-    sti();
     while (true)
     {
     }
 }
 
-void test_thread2(void)
+// tempolary code
+struct process_list {
+    struct task_struct* task;
+    struct process_list* next;
+};
+
+struct process_list pl_array[5];
+struct process_list* pl_head;
+
+void schedule(void)
 {
-    while (true)
-    {
-    }
+    struct process_list* current = pl_head; 
+    struct process_list* next = pl_head->next;
+
+    pl_head = next;
+    pl_head->next = current;
+
+    context_switch(current->task, next->task);
 }
+
 
 bool parse_bootinfo(uintptr_t bootinfo_addr, struct memory_info *m_info)
 {
@@ -200,7 +205,25 @@ void start_kernel(uintptr_t bootinfo_addr)
         }
     }
 
-    start_task(&startup_processes[0]);
+    struct task_struct kernel_thread;
+    uintptr_t kernel_stack = early_malloc(1);
+    if(kernel_stack == 0) {
+        panic("early_malloc");
+    }
+    memset((void*)kernel_stack, 0, 0x1000);
+    status = create_kernel_thread((uintptr_t)test_thread, kernel_stack + 0x1000, 0x1000, &kernel_thread);
+
+    pl_array[0].task= &kernel_thread;
+    pl_array[1].task= &startup_processes[0];
+
+
+    pl_head = &pl_array[0];
+    pl_head->next = &pl_array[1];
+
+    pl_head->next->next = pl_head;
+
+    sti();
+    //start_task(&startup_processes[0]);
 
 
     /*     struct task_struct* first_thread; */
