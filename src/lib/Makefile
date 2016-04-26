@@ -7,9 +7,12 @@ INCLUDE	:= -I../include
 .PHONY: all
 all: $(TARGET) c_run_time_startup.o
 
-.SUFFIXES: .o .c
+.SUFFIXES: .o .c .S
 .c.o:
 	$(CC) $(CFLAGS) $(INCLUDE) -c -o $@  $<
+.S.o:
+	$(CC) $(CFLAGS) $(INCLUDE) -c -o $@  $<
+
 
 $(TARGET): $(OBJS) Makefile
 	$(LD) $(LDFLAGS) -r $(OBJS) -o $@ 

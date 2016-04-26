@@ -74,4 +74,9 @@ static inline void hlt(void)
     __asm__ volatile("hlt");
 }
 
+static inline void load_cr3(uint64_t* pml4)
+{
+    __asm__ volatile("movq %0, %%cr3" ::"r"((uintptr_t)pml4 - START_KERNEL_MAP));
+}
+
 #endif

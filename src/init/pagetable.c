@@ -12,6 +12,19 @@ uint64_t create_entry(uintptr_t physical_addr, uint64_t flags)
 
 bool init_pagetable(uintptr_t rounded_kernel_memory_end)
 {
+    kernel_page_directory_num = rounded_kernel_memory_end / 0x200000;
+    kernel_pml4 = create_pml4();
+
+    __asm__ volatile(
+        "movq %0, %%cr3" ::"r"((uintptr_t)kernel_pml4 - START_KERNEL_MAP)
+        : "memory");
+
+    return true;
+}
+
+/*
+bool init_pagetable(uintptr_t rounded_kernel_memory_end)
+{
     kernel_pml4 = (uint64_t *)early_malloc(1);
     if (kernel_pml4 == 0)
     {
@@ -87,10 +100,11 @@ bool init_pagetable(uintptr_t rounded_kernel_memory_end)
 
     return true;
 }
+*/
 
 uint64_t *create_pml4(void)
 {
-    uint64_t *pml4, *pdpt, *pd, *pt;
+    uint64_t *pml4, *pdpt, *pd;
 
     pml4 = (uint64_t *)early_malloc(1);
     if (pml4 == 0)
@@ -133,7 +147,7 @@ uint64_t *create_pml4(void)
                     ((uintptr_t)i << 12) + (j * 0x200000);
         }
 
-        kernel_pd[j] = PAGE_PRESENT | PAGE_READ_WRITE | 
+        pd[j] = PAGE_PRESENT | PAGE_READ_WRITE | 
                        (uintptr_t)pt - START_KERNEL_MAP;
     }
 

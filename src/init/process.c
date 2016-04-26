@@ -20,6 +20,7 @@ void start_first_task() { start_task(start_task_array[0]); }
 
 void start_task(struct task_struct *tsk)
 {
+    load_cr3(tsk->pml4);
     __asm__ volatile("pushq %0;\n\t"
                      "pushq %1;\n\t"
                      "pushq %2;\n\t"
@@ -143,7 +144,17 @@ bool setup_server_process(uintptr_t elf_header, struct task_struct *task)
         uint64_t offset       = p_header[i].p_offset;
         uintptr_t load_v_addr = p_header[i].p_vaddr;
         int size              = p_header[i].p_memsz;
-        if(size == 0) {
+
+        switch (p_header[i].p_type)
+        {
+            case PT_LOAD:
+                break;
+            default:
+                continue;
+        }
+
+        if (size == 0)
+        {
             continue;
         }
 
@@ -186,10 +197,10 @@ bool setup_server_process(uintptr_t elf_header, struct task_struct *task)
         pdpt[0] =
             create_entry((uintptr_t)pd, PAGE_READ_WRITE | PAGE_USER_SUPER);
 
-        int pd_index            = load_v_addr / 0x200000;
-        //int pd_num              = (load_v_addr + size) / 0x200000;
-        int pd_num              = (size / 0x200000) + 1;
-        uintptr_t v_addr_flower = round_down(load_v_addr, 0x1000);
+        int pd_index = load_v_addr / 0x200000;
+        // int pd_num              = (load_v_addr + size) / 0x200000;
+        int pd_num             = (size / 0x200000) + 1;
+        uintptr_t v_addr_floor = round_down(load_v_addr, 0x1000);
         for (int j = 0; j < pd_num; ++j)
         {
             uint64_t *pt = (uint64_t *)early_malloc(1);
@@ -202,11 +213,18 @@ bool setup_server_process(uintptr_t elf_header, struct task_struct *task)
             for (int k = 0; k < 512; ++k)
             {
 
-                pt[i] = create_entry(early_malloc(1),
+                uintptr_t physical_addr = early_malloc(1);
+                uintptr_t load_to_addr =
+                    physical_addr + load_v_addr - v_addr_floor;
+
+                memcpy((void *)load_to_addr, (void *)(uintptr_t)header + offset,
+                       size);
+
+                pt[i] = create_entry(physical_addr,
                                      PAGE_READ_WRITE | PAGE_USER_SUPER);
 
                 // TODO below branch should replace above ?
-                if ((v_addr_flower + ((uintptr_t)k << 12) + (j * 0x200000)) >
+                if ((v_addr_floor + ((uintptr_t)k << 12) + (j * 0x200000)) >
                     (load_v_addr + size))
                 {
                     break;
@@ -223,5 +241,57 @@ bool setup_server_process(uintptr_t elf_header, struct task_struct *task)
     // You should change to 0x0000 7fff ffff f000
     // and setup page tables
     task->rsp = 0x1000;
+
+    // setup for stack
+    uint64_t *pdpt = 
+        (uint64_t *)((uintptr_t)(task->pml4[0] & (0xfffffffffffff000)) + START_KERNEL_MAP);
+    uint64_t *pd, *pt;
+
+    if (pdpt[0] == 0)
+    {
+        pd = (uint64_t *)early_malloc(1);
+        if (pd == 0)
+        {
+            return false;
+        }
+        memset(pd, 0, 0x1000);
+        pdpt[0] = create_entry((uintptr_t)pd, PAGE_READ_WRITE| PAGE_USER_SUPER);
+    }
+    else
+    {
+        pd = (uint64_t *)((uintptr_t)(pdpt[0] & 0xfffffffffffff000) + START_KERNEL_MAP);
+    }
+
+    if (pd[0] == 0)
+    {
+        pt = (uint64_t *)early_malloc(1);
+        if (pt == 0)
+        {
+            return false;
+        }
+        memset(pt, 0, 0x1000);
+        pd[0] = create_entry((uintptr_t)pt, PAGE_READ_WRITE | PAGE_USER_SUPER);
+    }
+    else
+    {
+        pt = (uint64_t *)(uintptr_t)((pd[0] & 0xfffffffffffff000) + START_KERNEL_MAP);
+    }
+
+    uint64_t* stack_addr = (uint64_t*)early_malloc(1);
+    if (stack_addr == 0)
+    {
+        return false;
+    }
+    memset(stack_addr, 0, 0x1000);
+    pt[0] = create_entry((uintptr_t)stack_addr, PAGE_READ_WRITE | PAGE_USER_SUPER);
+
+    stack_addr = (uint64_t*)early_malloc(1);
+    if (stack_addr == 0)
+    {
+        return false;
+    }
+    memset(stack_addr, 0, 0x1000);
+    pt[1] = create_entry((uintptr_t)stack_addr, PAGE_READ_WRITE | PAGE_USER_SUPER);
+
     return true;
 }

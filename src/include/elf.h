@@ -17,6 +17,17 @@ enum {
     EI_PAD,
 };
 
+enum {
+    PT_NULL = 0,
+    PT_LOAD,
+    PT_DYNAMIC,
+    PT_INTERP,
+    PT_NOTE,
+    PT_SHLIB,
+    PT_PHDR,
+    PT_TLS,
+};
+
 struct elf_header{
     uint8_t e_ident[EI_NIDENT];
     uint16_t e_type;
