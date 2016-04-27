@@ -89,8 +89,11 @@ static inline void set_tssldt_descriptor(uintptr_t ptr,
 
 static inline void set_tss_desc(uintptr_t addr)
 {
-    set_tssldt_descriptor((uintptr_t)(&gdt_table[TASK_STATE_SEGMENT >> 3]), addr, DESC_TSS,
+    set_tssldt_descriptor((uintptr_t)(&gdt_table[TASK_STATE_SEGMENT >> 3]) + START_KERNEL_MAP, addr, DESC_TSS,
                           sizeof(struct tss_struct) - 1);
+// set_tssldt_descriptor((uintptr_t)(&gdt_table[TASK_STATE_SEGMENT >> 3]), addr, DESC_TSS,
+//                           sizeof(struct tss_struct) - 1);
+
 }
 
 struct gate_descriptor {

@@ -37,25 +37,37 @@ void test_thread(void)
 }
 
 // tempolary code
-struct process_list {
-    struct task_struct* task;
-    struct process_list* next;
+struct process_list
+{
+    struct task_struct *task;
+    struct process_list *next;
 };
 
 struct process_list pl_array[5];
-struct process_list* pl_head;
+struct process_list *pl_head;
 
-void schedule(void)
+void schedule(struct trap_frame_struct *trap_frame)
 {
-    struct process_list* current = pl_head; 
-    struct process_list* next = pl_head->next;
+    struct process_list *current = pl_head;
+    struct process_list *next    = pl_head->next;
 
-    pl_head = next;
-    pl_head->next = current;
+    pl_head       = next;
+    //pl_head->next = current;
+    struct process_list* s_current = pl_head;
+    while (s_current->next != pl_head) {
+        s_current = s_current->next;
+    }
 
-    context_switch(current->task, next->task);
+    s_current->next = current;
+    current->next = pl_head;
+
+    //TODO
+    // think about where I save context
+
+    //memcpy(&current->task->context, trap_frame, sizeof(struct trap_frame_struct));
+    
+    context_switch(current->task, next->task, trap_frame);
 }
-
 
 bool parse_bootinfo(uintptr_t bootinfo_addr, struct memory_info *m_info)
 {
@@ -123,6 +135,19 @@ bool parse_bootinfo(uintptr_t bootinfo_addr, struct memory_info *m_info)
                 m_info->pages_info[page_info_index].type   = MEMORY_MODULE;
                 m_info->pages_info[page_info_index].head   = module->mod_start;
                 m_info->pages_info[page_info_index].length = module->mod_end;
+
+                memset(m_info->pages_info[page_info_index].name, 0, MODULE_NAME_SIZE);
+                for(int i=0; i<MODULE_NAME_SIZE; ++i)
+                {
+                    char c = *(char*)((uintptr_t)&(module->cmdline) + i);
+                    
+                    m_info->pages_info[page_info_index].name[i] = c;
+                    if(c == '\0')
+                    {
+                        break;
+                    }
+                }
+
                 page_info_index++;
 
                 break;
@@ -182,7 +207,7 @@ void start_kernel(uintptr_t bootinfo_addr)
         panic("init_pic");
     }
 
-    for (int i = 0, j = 0; i < BOOT_MODULES_NUM; ++i)
+    for (int i = 0, j = 0; i < BOOT_MODULES_NUM; ++i, ++j)
     {
 
         for (; j < PAGE_INFO_MAX; ++j)
@@ -198,8 +223,8 @@ void start_kernel(uintptr_t bootinfo_addr)
         }
         status =
             setup_server_process(m_info.pages_info[j].head + START_KERNEL_MAP,
-                                 &startup_processes[i]);
-        if(!status)
+                                 &startup_processes[i], m_info.pages_info[i].name);
+        if (!status)
         {
             panic("setup_server_process");
         }
@@ -207,24 +232,29 @@ void start_kernel(uintptr_t bootinfo_addr)
 
     struct task_struct kernel_thread;
     uintptr_t kernel_stack = early_malloc(1);
-    if(kernel_stack == 0) {
+    if (kernel_stack == 0)
+    {
         panic("early_malloc");
     }
-    memset((void*)kernel_stack, 0, 0x1000);
-    status = create_kernel_thread((uintptr_t)test_thread, kernel_stack + 0x1000, 0x1000, &kernel_thread);
+    memset((void *)kernel_stack, 0, 0x1000);
+    status = create_kernel_thread((uintptr_t)test_thread, kernel_stack + 0x1000,
+                                  0x1000, &kernel_thread);
 
-    pl_array[0].task= &kernel_thread;
-    pl_array[1].task= &startup_processes[0];
+    pl_array[0].task = &kernel_thread;
+    pl_array[1].task = &startup_processes[0];
+    if(pl_array[2].task == NULL)
+    {
+        pl_array[2].task = &startup_processes[1];
+    }
 
-
-    pl_head = &pl_array[0];
+    pl_head       = &pl_array[0];
     pl_head->next = &pl_array[1];
+    pl_head->next->next = &pl_array[2];
 
-    pl_head->next->next = pl_head;
+    pl_head->next->next->next = pl_head;
 
     sti();
-    //start_task(&startup_processes[0]);
-
+    // start_task(&startup_processes[0]);
 
     /*     struct task_struct* first_thread; */
     /*     struct task_struct* second_thread; */
@@ -287,7 +317,8 @@ void start_kernel(uintptr_t bootinfo_addr)
 
     // don't reach this
     // puts("Aiee?!");
-    sti();
+
+    puts("kernel thread");
     while (true)
     {
         hlt();

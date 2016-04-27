@@ -4,6 +4,7 @@
 
 enum {
     MEMORY,
+    SCHEDULE,
     BOOT_MODULES_NUM,
 };
 
@@ -14,3 +15,4 @@ enum {
 // kernel/elf.c
 extern void load_elf_image(void);
 
+const static int MODULE_NAME_SIZE = 32;
