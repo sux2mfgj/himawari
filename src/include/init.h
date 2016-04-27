@@ -41,5 +41,5 @@ extern bool init_pic(void);
 // schduler (process.c)
 extern bool init_scheduler(struct task_struct* first, struct task_struct* second);
 extern void start_first_task(void);
-extern bool setup_server_process(uintptr_t elf_header, struct task_struct *task);
+extern bool setup_server_process(uintptr_t elf_header, struct task_struct *task, char* name);
 

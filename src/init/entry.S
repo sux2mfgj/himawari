@@ -53,7 +53,7 @@ trap_exit:
     add $16, %rsp
     iretq
 
-#define exception_not_error_code(name, number) \
+#define define_exception_not_error_code(name, number) \
         .text;\
         .globl name;\
         name:;\
@@ -65,7 +65,7 @@ trap_exit:
 //            .quad name
 
 
-#define exception_error_code(name, number) \
+#define define_exception_error_code(name, number) \
         .text;\
         .globl name;\
             name:;\
@@ -75,39 +75,47 @@ trap_exit:
 //       .data;\
 //            .quad name
 
-//.data 
-//.globl vectors
-//vectors:
-
-exception_not_error_code(divide_error_exception, 0)
-exception_not_error_code(debug_exception, 1)
-exception_not_error_code(nmi_interrupt, 2)
-exception_not_error_code(breakpoint_exception, 3)
-exception_not_error_code(overflow_exception, 4)
-exception_not_error_code(bound_range_exceeded_exception, 5)
-exception_not_error_code(invalid_opecode_exception, 6)
-exception_not_error_code(device_not_availabe_exception, 7)
-exception_error_code(double_fault_exceptin, 8)
-exception_not_error_code(coprocessor_segment_overrun, 9)
-exception_error_code(invalid_tss_exception, 10)
-exception_error_code(segment_not_present, 11)
-exception_error_code(stack_fault_exception, 12)
-exception_error_code(general_protection_exception, 13)
-exception_error_code(page_fault_exception, 14)
-exception_not_error_code(not_set_15, 15)
-exception_not_error_code(fpu_floating_point_error, 16)
-exception_error_code(alignment_check_exception, 17)
-exception_not_error_code(machine_check_exception, 18)
-exception_not_error_code(simd_floating_point_exception, 19)
-exception_not_error_code(virtualization_exception, 20)
-
 #define define_irq_hander(name, number) \
         .text;\
         .globl name;\
         name:;\
+            push $0;\
             push $number;\
-            jmp irq_entry
+            jmp trap_entry
 
+//.data 
+//.globl vectors
+//vectors:
+
+define_exception_not_error_code(divide_error_exception, 0)
+define_exception_not_error_code(debug_exception, 1)
+define_exception_not_error_code(nmi_interrupt, 2)
+define_exception_not_error_code(breakpoint_exception, 3)
+define_exception_not_error_code(overflow_exception, 4)
+define_exception_not_error_code(bound_range_exceeded_exception, 5)
+define_exception_not_error_code(invalid_opecode_exception, 6)
+define_exception_not_error_code(device_not_availabe_exception, 7)
+define_exception_error_code(double_fault_exceptin, 8)
+define_exception_not_error_code(coprocessor_segment_overrun, 9)
+define_exception_error_code(invalid_tss_exception, 10)
+define_exception_error_code(segment_not_present, 11)
+define_exception_error_code(stack_fault_exception, 12)
+define_exception_error_code(general_protection_exception, 13)
+define_exception_error_code(page_fault_exception, 14)
+define_exception_not_error_code(not_set_15, 15)
+define_exception_not_error_code(fpu_floating_point_error, 16)
+define_exception_error_code(alignment_check_exception, 17)
+define_exception_not_error_code(machine_check_exception, 18)
+define_exception_not_error_code(simd_floating_point_exception, 19)
+define_exception_not_error_code(virtualization_exception, 20)
+
+//#define define_irq_hander(name, number) \
+//        .text;\
+//        .globl name;\
+//        name:;\
+//            push $number;\
+//            jmp irq_entry
+/*
 .globl irq_entry
 irq_entry:
     PUSH_ALL
@@ -121,7 +129,7 @@ irq_exit:
 # ignore interrupt number 
     add $8, %rsp
     iretq
-
+*/
 define_irq_hander(timer_handler, IDT_ENTRY_PIC_TIMER)
 
 #include <segment.h>

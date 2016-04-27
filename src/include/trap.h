@@ -18,6 +18,9 @@ struct trap_frame_struct {
     uint64_t r13;
     uint64_t r14;
     uint64_t r15;
+    //TODO
+    // should I save fs, gs, es, ds?
+    // ...maybe...
 
     //push at interrupt hander
     uint64_t trap_number;

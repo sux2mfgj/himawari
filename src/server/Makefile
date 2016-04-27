@@ -1,6 +1,6 @@
 TARGET := $(notdir $(shell pwd))
 
-SERVERS	:= memory
+SERVERS	:= memory schedule
 export LDFLAGS := -nostdlib -nostdinc
 
 .PHONY: all
