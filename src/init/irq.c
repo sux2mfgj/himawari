@@ -2,7 +2,6 @@
 #include <x86_64.h>
 #include <descriptor.h>
 #include <process.h>
-#include <string.h>
 
 // macro for PIC
 #define PIC_MASTER_COMMAND 0x20
@@ -70,31 +69,27 @@
 #define DEF_PIT_COM_COUNTER1 0x40
 #define DEF_PIT_COM_COUNTER2 0x80
 
-//#define define_interrupt_handler(num, addr)
+#define define_interrupt_handler(num, addr)
 
 extern void timer_handler(void);
 
 static bool test_switch = false;
-/* void irq(int idt_entry_num) */
-/* { */
-/*     switch (idt_entry_num) */
-/*     { */
-/*         case IDT_ENTRY_PIC_TIMER: */
-/*             schedule(); */
-/*             break; */
-/*         default: */
-/*             puts("who are you?????"); */
-/*             while (true) */
-/*             { */
-/*             } */
-/*             break; */
-/*     } */
-
-/*     irq_eoi(); */
-/* } */
-
-void irq_eoi(void)
+void irq(int idt_entry_num)
 {
+    switch (idt_entry_num)
+    {
+        case IDT_ENTRY_PIC_TIMER:
+            /*             puts("timer!"); */
+            schedule();
+            break;
+        default:
+            puts("who are you?????");
+            while (true)
+            {
+            }
+            break;
+    }
+
     outb(0x20, 0x20);
     outb(0xA0, 0x20);
 }
@@ -116,32 +111,6 @@ bool init_pit(void)
     return true;
 }
 
-struct tss_struct tss;
-bool init_tss(void)
-{
-    uintptr_t stack = early_malloc(1);
-    if (stack == 0)
-    {
-        return false;
-    }
-    memset((void *)stack, 0, 0x1000);
-
-    tss.rsp0 = stack + 0x1000;
-
-    stack = early_malloc(1);
-    if (stack == 0)
-    {
-        return false;
-    }
-    memset((void *)stack, 0, 0x1000);
-    tss.ist[0] = stack + 0x1000;
-
-    set_tss_desc((uintptr_t)&tss);
-
-    __asm__ volatile("ltr %w0" ::"r"(TASK_STATE_SEGMENT));
-    return true;
-}
-
 bool init_pic(void)
 {
     outb(PIC_MASTER_COMMAND, PIC_ICW1);
@@ -160,17 +129,7 @@ bool init_pic(void)
     // outb(PIC_MASTER_IMR, PIC_IMR_MASK_ALL);
     outb(PIC_SLAVE_IMR, PIC_IMR_MASK_ALL);
 
-    bool state = true;
-    state = init_pit();
-    if(!state)
-    {
-        return false;
-    }
+    init_pit();
 
-    state = init_tss();
-    if(!state)
-    {
-        return false;
-    }
     return true;
 }

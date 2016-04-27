@@ -67,23 +67,10 @@ void trap(struct trap_frame_struct *trap_frame)
         puts("\n");
     }
 
-    switch (trap_frame->trap_number)
-    {
-        case IDT_ENTRY_PIC_TIMER:
-        {
-            schedule(trap_frame);
-            irq_eoi();
-            break;
-        }
-        default:
-        {
-            while (true)
-            {
-            }
-            break;
-        }
-    }
-
     // when page fault occured, you should read cr2 and print display.
     // this is setted about try to access memory addres
+
+    while (true)
+    {
+    }
 }

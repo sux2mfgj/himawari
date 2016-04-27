@@ -20,7 +20,7 @@ void start_first_task() { start_task(start_task_array[0]); }
 
 void start_task(struct task_struct *tsk)
 {
-    //    load_cr3(tsk->pml4);
+//    load_cr3(tsk->pml4);
     __asm__ volatile("pushq %0;\n\t"
                      "pushq %1;\n\t"
                      "pushq %2;\n\t"
@@ -29,7 +29,7 @@ void start_task(struct task_struct *tsk)
                      "iretq;"
                      : "=m"(tsk->ss), "=m"(tsk->rsp), "=m"(tsk->rflags),
                        "=m"(tsk->cs), "=m"(tsk->entry_addr));
-    //"=m"(tsk->cs), "=m"(tsk->rip));
+                       //"=m"(tsk->cs), "=m"(tsk->rip));
 
     /*         "movq %0, %%rsp;\n\t" */
     /*         "iretq;" */
@@ -38,43 +38,39 @@ void start_task(struct task_struct *tsk)
 
 void task_entry()
 {
-    struct task_struct *tsk;
+    struct task_struct* tsk;
 
-    __asm__ volatile("movq 8(%%rbp), %0;" : "=r"(tsk));
+    __asm__ volatile(
+            "movq 8(%%rbp), %0;"
+            :"=r"(tsk));
 
-    irq_eoi();
     __asm__ volatile("pushq %0;\n\t"
                      "pushq %1;\n\t"
                      "pushq %2;\n\t"
                      "pushq %3;\n\t"
                      "pushq %4;\n\t"
-                     "iretq;"
                      : "=m"(tsk->ss), "=m"(tsk->rsp), "=m"(tsk->rflags),
                        "=m"(tsk->cs), "=m"(tsk->entry_addr));
 }
 
 void _switch_to(void) { return; }
 
-void context_switch(struct task_struct *prev, struct task_struct *next,
-                    struct trap_frame_struct *trap_frame)
+void context_switch(struct task_struct* prev, struct task_struct* next)
 {
-    if (next->pml4 != NULL)
+    if(next->pml4 != NULL) 
     {
         load_cr3(next->pml4);
     }
 
-    
-    memcpy(&prev->context, trap_frame, sizeof(struct trap_frame_struct));
-    memcpy(trap_frame, &next->context, sizeof(struct trap_frame_struct));
-
-/*     __asm__ volatile("movq %%rsp, %0;\n\t" */
-/*                      "movq $1f, %1;\n\t" */
-/*                      "movq %2, %%rsp;\n\t" */
-/*                      "pushq %3;\n\t" */
-/*                      "jmp _switch_to;\n\t" */
-/*                      "1:;" */
-/*                      : "=m"(prev->rsp), "=m"(prev->rip) */
-/*                      : "m"(next->rsp), "m"(next->rip)); */
+    __asm__ volatile(
+        "movq %%rsp, %0;\n\t"
+        "movq $1f, %1;\n\t"
+        "movq %2, %%rsp;\n\t"
+        "pushq %3;\n\t"
+        "jmp _switch_to;\n\t"
+        "1:;"
+        : "=m"(prev->rsp), "=m"(prev->rip)
+        : "m"(next->rsp), "m"(next->rip));
 }
 
 bool create_first_thread(uintptr_t func_addr, uintptr_t stack_end_addr,
@@ -86,7 +82,7 @@ bool create_first_thread(uintptr_t func_addr, uintptr_t stack_end_addr,
     task->rflags         = 0x0UL | RFLAGS_IF;
     task->rsp            = stack_head;
     task->ss             = KERNEL_DATA_SEGMENT;
-    task->pml4           = NULL;
+    task->pml4 = NULL;
 
     return true;
 }
@@ -132,20 +128,16 @@ bool create_user_process(uintptr_t func_addr, uintptr_t stack_end_addr,
 }
 
 struct task_struct startup_processes[BOOT_MODULES_NUM];
-bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
-                          char *name)
+bool setup_server_process(uintptr_t elf_header, struct task_struct *task)
 {
-    // should be clear set
-    memcpy(task->name, name, 32);
+
     task->pml4 = create_pml4();
     if (task->pml4 == 0)
     {
         return false;
     }
-//    task->cs = SERVER_CODE_SEGMENT;
-//    task->ss = SERVER_DATA_SEGMENT;
-    task->context.ret_cs = SERVER_CODE_SEGMENT;
-    task->context.ret_ss = SERVER_DATA_SEGMENT;
+    task->cs = SERVER_CODE_SEGMENT;
+    task->ss = SERVER_DATA_SEGMENT;
 
     struct elf_header *header = (struct elf_header *)elf_header;
 
@@ -248,23 +240,18 @@ bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
         }
     }
 
-//    task->rip        = (uintptr_t)task_entry;
-//    task->entry_addr = header->e_entry;
-//    task->rflags     = 0x0UL | RFLAGS_IF;
-
-    task->context.ret_rip = (uintptr_t)header->e_entry;
-    task->context.ret_rflags = 0x0UL | RFLAGS_IF;
+    task->rip    = (uintptr_t)task_entry;
+    task->entry_addr = header->e_entry;
+    task->rflags = 0x0UL | RFLAGS_IF;
 
     // TODO this is tempolary stack address
     // You should change to 0x0000 7fff ffff f000
     // and setup page tables
-//    task->rsp = 0x1000;
-    task->context.ret_rsp = 0x1000;
+    task->rsp = 0x1000;
 
     // setup for stack
-    uint64_t *pdpt =
-        (uint64_t *)((uintptr_t)(task->pml4[0] & (0xfffffffffffff000)) +
-                     START_KERNEL_MAP);
+    uint64_t *pdpt = 
+        (uint64_t *)((uintptr_t)(task->pml4[0] & (0xfffffffffffff000)) + START_KERNEL_MAP);
     uint64_t *pd, *pt;
 
     if (pdpt[0] == 0)
@@ -275,13 +262,11 @@ bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
             return false;
         }
         memset(pd, 0, 0x1000);
-        pdpt[0] =
-            create_entry((uintptr_t)pd, PAGE_READ_WRITE | PAGE_USER_SUPER);
+        pdpt[0] = create_entry((uintptr_t)pd, PAGE_READ_WRITE| PAGE_USER_SUPER);
     }
     else
     {
-        pd = (uint64_t *)((uintptr_t)(pdpt[0] & 0xfffffffffffff000) +
-                          START_KERNEL_MAP);
+        pd = (uint64_t *)((uintptr_t)(pdpt[0] & 0xfffffffffffff000) + START_KERNEL_MAP);
     }
 
     if (pd[0] == 0)
@@ -296,39 +281,35 @@ bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
     }
     else
     {
-        pt = (uint64_t *)(uintptr_t)((pd[0] & 0xfffffffffffff000) +
-                                     START_KERNEL_MAP);
+        pt = (uint64_t *)(uintptr_t)((pd[0] & 0xfffffffffffff000) + START_KERNEL_MAP);
     }
 
-    uint64_t *stack_addr = (uint64_t *)early_malloc(1);
+    uint64_t* stack_addr = (uint64_t*)early_malloc(1);
     if (stack_addr == 0)
     {
         return false;
     }
     memset(stack_addr, 0, 0x1000);
-    pt[0] =
-        create_entry((uintptr_t)stack_addr, PAGE_READ_WRITE | PAGE_USER_SUPER);
+    pt[0] = create_entry((uintptr_t)stack_addr, PAGE_READ_WRITE | PAGE_USER_SUPER);
 
-    /*    stack_addr = (uint64_t*)early_malloc(1);
-        if (stack_addr == 0)
-        {
-            return false;
-        }
-        memset(stack_addr, 0, 0x1000);
-        pt[1] = create_entry((uintptr_t)stack_addr, PAGE_READ_WRITE |
-       PAGE_USER_SUPER);
+/*    stack_addr = (uint64_t*)early_malloc(1);
+    if (stack_addr == 0)
+    {
+        return false;
+    }
+    memset(stack_addr, 0, 0x1000);
+    pt[1] = create_entry((uintptr_t)stack_addr, PAGE_READ_WRITE | PAGE_USER_SUPER);
 
-        */
+    */
 
     uintptr_t stack_head = ((uintptr_t)stack_addr + 0x1000);
-//    task->rsp -= sizeof(uint64_t);
-//    task->rsp -= sizeof(uint64_t);
+    task->rsp -= sizeof(uint64_t);
     //*(stack_head--) = task->ss;
     //*(stack_head--) = task->rsp;
     //*(stack_head--) = task->rflags;
     //*(stack_head--) = task->cs;
     //*(stack_head--) = task->rip;
-//    *(struct task_struct **)(stack_head - sizeof(uint64_t)) = task;
+    *(struct task_struct**)(stack_head - sizeof(uint64_t)) = task;
 
     return true;
 }

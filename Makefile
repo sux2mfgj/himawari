@@ -2,7 +2,7 @@ ARCH		:= x86_64
 KERNEL_PATH	:= src/boot
 export KERNEL		:= kernel.elf 
 
-BUILTIN_SERVERS	:= memory schedule
+BUILTIN_SERVERS	:= memory
 #BUILTIN_DEVICE_DRIVER :=
 BUILTINS	:= $(foreach dir, $(BUILTIN_SERVERS), src/server/$(dir)/$(dir).elf)
 
@@ -19,7 +19,7 @@ export CFLAGS		:= -Wall -g -ffreestanding -mcmodel=large -m64 \
 	-mno-red-zone -mno-mmx -mno-sse -mno-sse2 -std=c11 -nostdlib
 
 QEMU		:= qemu-system-x86_64
-QEMU_FLAGS 	:= -m 128M -monitor stdio -gdb tcp::10000 -display none
+QEMU_FLAGS 	:= -m 128M -monitor stdio -gdb tcp::10000
 #QEMU_FLAGS 	:= -m 128M -serial mon:stdio -gdb tcp::10000
 QEMU_DEBUG	:= -S
 

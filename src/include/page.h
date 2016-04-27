@@ -33,7 +33,6 @@ struct page_info{
     enum memory_type type;
     uintptr_t head;
     uint64_t length;
-    char name[32];
     //TODO added name(for the page used by module)
 };
 
