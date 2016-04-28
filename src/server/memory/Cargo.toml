@@ -1,0 +1,11 @@
+[package]
+name = "memory"
+version = "0.1.0"
+authors = ["himaaaatti <sux2mfgj@gmail.com>"]
+
+#[lib]
+#name = "memory"
+#crate-type = ["rlib"]
+
+[dependencies]
+server = {path = "lib"}

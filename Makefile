@@ -2,14 +2,16 @@ ARCH		:= x86_64
 KERNEL_PATH	:= src/boot
 export KERNEL		:= kernel.elf 
 
-BUILTIN_SERVERS	:= memory schedule
+BUILTIN_SERVERS	:= memory #schedule
 #BUILTIN_DEVICE_DRIVER :=
-BUILTINS	:= $(foreach dir, $(BUILTIN_SERVERS), src/server/$(dir)/$(dir).elf)
+BUILTINS	:= $(foreach dir, $(BUILTIN_SERVERS), src/server/$(dir).elf)
 
 TARGET 	:= $(KERNEL) $(BUILTIN_SERVERS)
 
 ISO			:= himawari.iso
 
+export RUSTC := $(shell pwd)/rust/bin/rustc
+export CARGO := $(shell pwd)/rust/bin/cargo
 export CC	:= clang
 GDB			:= ./gdb
 #  CC			:= gcc
@@ -30,7 +32,7 @@ CONFIG		:= $(SRC)/config
 all: $(TARGET) 
 
 .PHONY: $(TARGET)
-$(TARGET): 
+$(TARGET): $(RUSTC)
 	cd src/; $(MAKE) all
 
 $(ISO): $(KERNEL) $(BUILTIN_SERVERS)
@@ -42,6 +44,10 @@ $(ISO): $(KERNEL) $(BUILTIN_SERVERS)
 	done
 	grub-mkrescue -o $@ $(ISO_ROOT)
 
+$(RUSTC):
+	curl -f -L https://static.rust-lang.org/rustup.sh -O
+	sh rustup.sh --disable-sudo --disable-ldconfig --prefix=`pwd`/rust --channel=nightly
+
 .PHONY: run
 run: $(ISO)
 	$(QEMU)	$(QEMU_FLAGS) $(QEMU_DEBUG) -cdrom $<
@@ -49,6 +55,8 @@ run: $(ISO)
 .PHONY: debug
 debug: $(CONFIG)/gdb.conf
 	$(GDB) -x $<
+
+
 	
 .PHONY: clean
 clean:

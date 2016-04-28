@@ -1,0 +1,10 @@
+[package]
+name = "server"
+version = "0.1.0"
+authors = ["himaaaatti <sux2mfgj@gmail.com>"]
+
+[lib]
+name = "server"
+crate-type = ["rlib"]
+
+[dependencies]

@@ -4,3 +4,10 @@
 *.map
 root/
 link.ld
+gdb
+rust/
+rustup.sh
+tags
+.gdb_history
+
+src/server/*/target/
