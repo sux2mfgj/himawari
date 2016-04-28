@@ -74,7 +74,6 @@
 
 extern void timer_handler(void);
 
-static bool test_switch = false;
 /* void irq(int idt_entry_num) */
 /* { */
 /*     switch (idt_entry_num) */

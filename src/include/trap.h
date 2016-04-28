@@ -1,8 +1,7 @@
 #pragma once
 
 struct trap_frame_struct {
-
-    //push at trap_entry
+//push at trap_entry uint64_t rax;
     uint64_t rax;
     uint64_t rbx;
     uint64_t rcx;

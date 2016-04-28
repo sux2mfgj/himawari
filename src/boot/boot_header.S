@@ -92,7 +92,9 @@ entry:
     rdmsr
 
     // write efer
+    // enable IA-32e
     btsl $IA32_EFER_LME, %eax
+    // enable SYSCALL/SYSRET instruction
     or $IA32_EFER_SCE, %eax
     wrmsr
 

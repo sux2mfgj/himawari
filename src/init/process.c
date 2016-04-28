@@ -8,15 +8,15 @@
 #include <elf.h>
 
 // TODO
-bool init_scheduler(struct task_struct *first, struct task_struct *second)
-{
-    start_task_array[0] = first;
-    start_task_array[1] = second;
-    current_task_num    = 0;
-    return true;
-}
+/* bool init_scheduler(struct task_struct *first, struct task_struct *second) */
+/* { */
+/*     start_task_array[0] = first; */
+/*     start_task_array[1] = second; */
+/*     current_task_num    = 0; */
+/*     return true; */
+/* } */
 
-void start_first_task() { start_task(start_task_array[0]); }
+/* void start_first_task() { start_task(start_task_array[0]); } */
 
 void start_task(struct task_struct *tsk)
 {

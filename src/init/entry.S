@@ -83,6 +83,8 @@ trap_exit:
             push $number;\
             jmp trap_entry
 
+#define define_interrupt_hander(name, number) define_exception_not_error_code(name, number)
+
 //.data 
 //.globl vectors
 //vectors:
@@ -131,6 +133,7 @@ irq_exit:
     iretq
 */
 define_irq_hander(timer_handler, IDT_ENTRY_PIC_TIMER)
+define_interrupt_hander(task_call_handler, IDT_ENTRY_TASK_CALL)
 
 #include <segment.h>
 .globl user_entry
@@ -142,5 +145,6 @@ user_entry:
     movl %eax, %fs
 1: 
     jmp 1b
+
 
 

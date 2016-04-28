@@ -39,7 +39,11 @@ extern bool init_pic(void);
 
 #include <process.h>
 // schduler (process.c)
+struct task_struct;
 extern bool init_scheduler(struct task_struct* first, struct task_struct* second);
 extern void start_first_task(void);
 extern bool setup_server_process(uintptr_t elf_header, struct task_struct *task, char* name);
 
+// system call (syscall.c)
+
+extern bool init_syscall(void);

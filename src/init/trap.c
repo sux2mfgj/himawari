@@ -5,6 +5,7 @@
 #include <x86_64.h>
 #include <trap.h>
 #include <string.h>
+#include <task_call.h>
 
 extern struct descriptor_ptr idt_desc;
 
@@ -54,13 +55,12 @@ void trap(struct trap_frame_struct *trap_frame)
         {
             puts(fault_list[trap_frame->trap_number]);
         }
-        else
-        {
-            puts("user definition handler: ");
-            itoa(trap_frame->trap_number, buf, 16);
-            puts(buf);
-            puts("\n");
-        }
+/*         else */
+/*         { */
+/*             puts("user definition handler: 0x"); */
+/*             itoa(trap_frame->trap_number, buf, 16); */
+/*             puts(buf); */
+/*         } */
         puts(", 0x");
         itoa(trap_frame->ret_rip, buf, 16);
         puts(buf);
@@ -73,6 +73,12 @@ void trap(struct trap_frame_struct *trap_frame)
         {
             schedule(trap_frame);
             irq_eoi();
+            break;
+        }
+
+        case IDT_ENTRY_TASK_CALL:
+        {
+            task_call(trap_frame);
             break;
         }
         default:

@@ -2,7 +2,7 @@
 
 #include <init.h>
 
-enum {
+enum task {
     MEMORY,
     SCHEDULE,
     BOOT_MODULES_NUM,

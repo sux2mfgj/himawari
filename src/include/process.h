@@ -5,6 +5,7 @@
 #include <process.h>
 #include <kernel.h>
 #include <trap.h>
+#include <task_call.h>
 
 struct task_struct
 {
@@ -38,13 +39,15 @@ struct task_struct
 
     struct trap_frame_struct context;
 
+    struct message* message_buffer;
+
     // pid, etc...
 };
 
 extern struct task_struct startup_processes[];
 
-struct task_struct *start_task_array[2];
-int current_task_num;
+//struct task_struct *start_task_array[2];
+//int current_task_num;
 
 extern void start_task(struct task_struct *tsk);
 extern bool create_kernel_thread(uintptr_t func_addr, uintptr_t stack_end_addr,

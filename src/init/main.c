@@ -253,7 +253,15 @@ void start_kernel(uintptr_t bootinfo_addr)
 
     pl_head->next->next->next = pl_head;
 
+    status = init_syscall();
+    if(!status)
+    {
+        panic("init_syscall");
+    }
+
     sti();
+
+
     // start_task(&startup_processes[0]);
 
     /*     struct task_struct* first_thread; */

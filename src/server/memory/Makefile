@@ -2,7 +2,7 @@ TARGET := $(notdir $(shell pwd)).elf
 
 CRT_OBJ	:= ../../lib/c_run_time_startup.o
 OBJS	:= $(CRT_OBJ) main.o
-INCLUDE	:= -I../include
+INCLUDE	:= -I../../include
 
 .PHONY: all
 all: $(TARGET)

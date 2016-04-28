@@ -130,6 +130,15 @@ static inline void _set_gate(struct gate_descriptor* adr,
 
 extern struct gate_descriptor idt_table[];
 
+static inline void set_gate_dpl3(int nr, void* func)
+{
+    _set_gate(
+            (struct gate_descriptor*)
+            //((uintptr_t)&idt_table[nr] + (uintptr_t)START_KERNEL_MAP),
+            ((uintptr_t)(&idt_table[nr]) + START_KERNEL_MAP),
+              GATE_INTERRUPT, (uintptr_t)func, 3, 0);
+}
+
 static inline void set_intr_gate(int nr, void* func)
 {
     _set_gate(
@@ -168,3 +177,6 @@ extern void virtualization_exception(void);
 #define IDT_ENTRY_PIC_MASTER 0x20
 #define IDT_ENTRY_PIC_SLAVE 0x28
 #define IDT_ENTRY_PIC_TIMER 0x20
+
+#define IDT_ENTRY_SYSCALL 0x80
+#define IDT_ENTRY_TASK_CALL 0x81
