@@ -78,7 +78,7 @@ void trap(struct trap_frame_struct *trap_frame)
 
         case IDT_ENTRY_TASK_CALL:
         {
-            task_call(trap_frame);
+            task(trap_frame);
             break;
         }
         default:

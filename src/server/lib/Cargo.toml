@@ -2,9 +2,11 @@
 name = "server"
 version = "0.1.0"
 authors = ["himaaaatti <sux2mfgj@gmail.com>"]
+build = "build.rs"
 
-[lib]
-name = "server"
-crate-type = ["rlib"]
+#[lib]
+#name = "server"
+#crate-type = ["staticlib"]
 
-[dependencies]
+[build-dependencies]
+rusty-cheddar = "0.3.0"

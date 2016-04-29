@@ -1,5 +1,5 @@
 [root]
-name = "memory"
+name = "process"
 version = "0.1.0"
 dependencies = [
  "server 0.1.0",

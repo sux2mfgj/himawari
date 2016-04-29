@@ -10,7 +10,7 @@ all: $(KERNEL) $(SERVER)
 .SUFFIXES: .o
 
 .PHONY: $(KERNEL)
-$(KERNEL): 
+$(KERNEL): $(SERVER)
 	for dir in $(LINK_DIR); do\
 		(cd $$dir; $(MAKE);)\
 	done

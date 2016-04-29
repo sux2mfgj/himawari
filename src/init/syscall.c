@@ -24,28 +24,28 @@ bool init_task_call(void)
 // rsi : second argument
 // rdx : third argument
 //
-void task_call(struct trap_frame_struct *trap_frame)
+void task(struct trap_frame_struct *trap_frame)
 {
     if (trap_frame->ret_cs != SERVER_CODE_SEGMENT)
     {
         return;
     }
 
-    struct message *msg = (struct message *)trap_frame->rdi;
+    struct Message *msg = (struct message *)trap_frame->rdi;
 
-    switch (msg->type)
+    switch (msg->m_type)
     {
-        case SEND:
-        case RECEIVE:
+        case Send:
+        case Receive:
             break;
         default:
             goto failed;
     }
 
-    switch (msg->destination)
+    switch (msg->dest)
     {
-        case MEMORY:
-        case SCHEDULE:
+        case Memory:
+        case Process:
             break;
         default:
             goto failed;

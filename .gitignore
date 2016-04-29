@@ -11,3 +11,4 @@ tags
 .gdb_history
 
 src/server/*/target/
+src/server/include/task_call.h

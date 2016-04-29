@@ -36,3 +36,6 @@ struct trap_frame_struct {
     uint16_t padding3;
     uint32_t padding4;
 };
+
+
+extern void task(struct trap_frame_struct *trap_frame);
