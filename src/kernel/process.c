@@ -7,35 +7,6 @@
 #include <util.h>
 #include <elf.h>
 
-// TODO
-/* bool init_scheduler(struct task_struct *first, struct task_struct *second) */
-/* { */
-/*     start_task_array[0] = first; */
-/*     start_task_array[1] = second; */
-/*     current_task_num    = 0; */
-/*     return true; */
-/* } */
-
-/* void start_first_task() { start_task(start_task_array[0]); } */
-
-void start_task(struct task_struct *tsk)
-{
-    //    load_cr3(tsk->pml4);
-    __asm__ volatile("pushq %0;\n\t"
-                     "pushq %1;\n\t"
-                     "pushq %2;\n\t"
-                     "pushq %3;\n\t"
-                     "pushq %4;\n\t"
-                     "iretq;"
-                     : "=m"(tsk->ss), "=m"(tsk->rsp), "=m"(tsk->rflags),
-                       "=m"(tsk->cs), "=m"(tsk->entry_addr));
-    //"=m"(tsk->cs), "=m"(tsk->rip));
-
-    /*         "movq %0, %%rsp;\n\t" */
-    /*         "iretq;" */
-    /*         : "=m"(start_task_array[0]->stack_pointer)); */
-}
-
 void task_entry()
 {
     struct task_struct *tsk;
@@ -51,30 +22,6 @@ void task_entry()
                      "iretq;"
                      : "=m"(tsk->ss), "=m"(tsk->rsp), "=m"(tsk->rflags),
                        "=m"(tsk->cs), "=m"(tsk->entry_addr));
-}
-
-void _switch_to(void) { return; }
-
-void context_switch(struct task_struct *prev, struct task_struct *next,
-                    struct trap_frame_struct *trap_frame)
-{
-    if (next->pml4 != NULL)
-    {
-        load_cr3(next->pml4);
-    }
-
-    
-    memcpy(&prev->context, trap_frame, sizeof(struct trap_frame_struct));
-    memcpy(trap_frame, &next->context, sizeof(struct trap_frame_struct));
-
-/*     __asm__ volatile("movq %%rsp, %0;\n\t" */
-/*                      "movq $1f, %1;\n\t" */
-/*                      "movq %2, %%rsp;\n\t" */
-/*                      "pushq %3;\n\t" */
-/*                      "jmp _switch_to;\n\t" */
-/*                      "1:;" */
-/*                      : "=m"(prev->rsp), "=m"(prev->rip) */
-/*                      : "m"(next->rsp), "m"(next->rip)); */
 }
 
 bool create_first_thread(uintptr_t func_addr, uintptr_t stack_end_addr,
@@ -131,7 +78,6 @@ bool create_user_process(uintptr_t func_addr, uintptr_t stack_end_addr,
     return true;
 }
 
-struct task_struct startup_processes[BOOT_MODULES_NUM];
 bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
                           char *name)
 {

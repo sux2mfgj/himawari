@@ -1,9 +1,9 @@
 TARGET := kernel.o
 
 # remove local_apic.o
-OBJS	:= elf.o
+OBJS	:= main.o early_memory.o pagetable.o vram_text.o trap.o entry.o irq.o process.o syscall.o schedule.o system.o
 
-INCLUDE	:= -I../include
+INCLUDE	:= -I../include -I../server/include
 
 .PHONY: all
 all: $(TARGET)

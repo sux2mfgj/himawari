@@ -10,6 +10,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+struct task_struct startup_processes[5];
+
 void panic(char *text)
 {
     char buf[32];
@@ -27,46 +29,6 @@ void panic(char *text)
     {
         hlt();
     }
-}
-
-void test_thread(void)
-{
-    while (true)
-    {
-    }
-}
-
-// tempolary code
-struct process_list
-{
-    struct task_struct *task;
-    struct process_list *next;
-};
-
-struct process_list pl_array[5];
-struct process_list *pl_head;
-
-void schedule(struct trap_frame_struct *trap_frame)
-{
-    struct process_list *current = pl_head;
-    struct process_list *next    = pl_head->next;
-
-    pl_head       = next;
-    //pl_head->next = current;
-    struct process_list* s_current = pl_head;
-    while (s_current->next != pl_head) {
-        s_current = s_current->next;
-    }
-
-    s_current->next = current;
-    current->next = pl_head;
-
-    //TODO
-    // think about where I save context
-
-    //memcpy(&current->task->context, trap_frame, sizeof(struct trap_frame_struct));
-    
-    context_switch(current->task, next->task, trap_frame);
 }
 
 bool parse_bootinfo(uintptr_t bootinfo_addr, struct memory_info *m_info)
@@ -115,7 +77,6 @@ bool parse_bootinfo(uintptr_t bootinfo_addr, struct memory_info *m_info)
 
                         case MULTIBOOT_MEMORY_RESERVED:
                         {
-                            //
                             break;
                         }
 
@@ -230,105 +191,27 @@ void start_kernel(uintptr_t bootinfo_addr)
         }
     }
 
-    struct task_struct kernel_thread;
-    uintptr_t kernel_stack = early_malloc(1);
-    if (kernel_stack == 0)
-    {
-        panic("early_malloc");
-    }
-    memset((void *)kernel_stack, 0, 0x1000);
-    status = create_kernel_thread((uintptr_t)test_thread, kernel_stack + 0x1000,
-                                  0x1000, &kernel_thread);
-
-    pl_array[0].task = &kernel_thread;
-    pl_array[1].task = &startup_processes[0];
-    if(pl_array[2].task == NULL)
-    {
-        pl_array[2].task = &startup_processes[1];
-    }
-
-    pl_head       = &pl_array[0];
-    pl_head->next = &pl_array[1];
-    pl_head->next->next = &pl_array[2];
-
-    pl_head->next->next->next = pl_head;
-
     status = init_syscall();
     if(!status)
     {
         panic("init_syscall");
     }
 
-    sti();
-
-
-    // start_task(&startup_processes[0]);
-
-    /*     struct task_struct* first_thread; */
-    /*     struct task_struct* second_thread; */
-    /*     struct task_struct* user_task; */
-
-    /*     first_thread = (struct task_struct*)early_malloc(1); */
-    /*     second_thread = (struct task_struct*)(first_thread + */
-    /*                                           (((sizeof(struct
-     * task_struct) +
-     */
-    /*                                              sizeof(struct
-     * task_struct) -
-     * 1) >> */
-    /*                                             4) */
-    /*                                            << 4)); */
-    /*     user_task = (struct task_struct*)(second_thread + */
-    /*                                       (((sizeof(struct task_struct) +
-     */
-    /*                                          sizeof(struct task_struct) -
-     * 1)
-     * >> */
-    /*                                         4) */
-    /*                                        << 4)); */
-
-    /*     uintptr_t stack_end_addr = early_malloc(1); */
-    /*     if (stack_end_addr) { */
-    /*         // panic("")  ; */
-    /*     } */
-    /*     memset((void*)stack_end_addr, 0, 0x1000); */
-    /*     status = create_first_thread((uintptr_t)&test_thread,
-     * stack_end_addr,
-     */
-    /*                                  0x1000, first_thread); */
-
-    /*     stack_end_addr = early_malloc(1); */
-    /*     if (stack_end_addr) { */
-    /*         // panic("")  ; */
-    /*     } */
-    /*     memset((void*)stack_end_addr, 0, 0x1000); */
-    /*     create_kernel_thread((uintptr_t)&test_thread2, stack_end_addr,
-     * 0x1000, */
-    /*                          second_thread); */
-
-    /*     //    start_kernel_thread(first_thread); */
-    /*     // */
-    /*     stack_end_addr = early_malloc(1); */
-    /*     if (stack_end_addr) { */
-    /*         // panic("")  ; */
-    /*     } */
-    /*     memset((void*)stack_end_addr, 0, 0x1000); */
-
-    /*     extern void user_entry(void); */
-    /*     create_user_process((uintptr_t)&user_entry, stack_end_addr,
-     * 0x1000,
-     */
-    /*                         user_task); */
-
-    /*     init_scheduler(user_task, first_thread); */
-    // start_task(user_task);
-
-    // don't reach this
-    // puts("Aiee?!");
-
-    puts("kernel thread");
-    while (true)
+    status = init_scheduler();
+    if(!status)
     {
-        hlt();
+        panic("init_scheduler");
     }
+
+    start_task();
+    panic("aiee ...after start_task");
+
+//    sti();
+
+
+//    puts("kernel thread");
+//    while (true)
+//    {
+//        hlt();
+//    }
 }

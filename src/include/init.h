@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include <page.h>
+#include <task_call.h>
 
 
 // early memory early_memory.c
@@ -38,12 +39,18 @@ extern bool init_local_apic(void);
 extern bool init_pic(void);
 
 #include <process.h>
-// schduler (process.c)
+// process (process.c)
 struct task_struct;
-extern bool init_scheduler(struct task_struct* first, struct task_struct* second);
 extern void start_first_task(void);
 extern bool setup_server_process(uintptr_t elf_header, struct task_struct *task, char* name);
+
+// schduler (schedule.c)
+extern bool init_scheduler(void);
+extern void start_task(void);
 
 // system call (syscall.c)
 
 extern bool init_syscall(void);
+
+#define BOOT_MODULES_NUM ServerNum
+

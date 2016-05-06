@@ -2,17 +2,15 @@
 
 #include <init.h>
 
-enum task {
+/*
+ enum task {
     MEMORY,
     SCHEDULE,
     BOOT_MODULES_NUM,
 };
+*/
 
-// void nothing(void* ptr)
-// {
-// }
+//const static int MODULE_NAME_SIZE = 32;
 
-// kernel/elf.c
-extern void load_elf_image(void);
+#define MODULE_NAME_SIZE 32
 
-const static int MODULE_NAME_SIZE = 32;

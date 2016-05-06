@@ -31,9 +31,9 @@ void task(struct trap_frame_struct *trap_frame)
         return;
     }
 
-    struct Message *msg = (struct message *)trap_frame->rdi;
+    struct Message *msg = (struct Message *)trap_frame->rdi;
 
-    switch (msg->m_type)
+    switch (msg->type)
     {
         case Send:
         case Receive:
@@ -44,9 +44,9 @@ void task(struct trap_frame_struct *trap_frame)
 
     switch (msg->dest)
     {
-        case Memory:
-        case Process:
-            break;
+//        case Memory:
+//        case Process:
+//           break;
         default:
             goto failed;
     }
