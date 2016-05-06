@@ -7,23 +7,6 @@
 #include <util.h>
 #include <elf.h>
 
-void task_entry()
-{
-    struct task_struct *tsk;
-
-    __asm__ volatile("movq 8(%%rbp), %0;" : "=r"(tsk));
-
-    irq_eoi();
-    __asm__ volatile("pushq %0;\n\t"
-                     "pushq %1;\n\t"
-                     "pushq %2;\n\t"
-                     "pushq %3;\n\t"
-                     "pushq %4;\n\t"
-                     "iretq;"
-                     : "=m"(tsk->ss), "=m"(tsk->rsp), "=m"(tsk->rflags),
-                       "=m"(tsk->cs), "=m"(tsk->entry_addr));
-}
-
 bool create_first_thread(uintptr_t func_addr, uintptr_t stack_end_addr,
                          int stack_size, struct task_struct *task)
 {
@@ -88,8 +71,8 @@ bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
     {
         return false;
     }
-//    task->cs = SERVER_CODE_SEGMENT;
-//    task->ss = SERVER_DATA_SEGMENT;
+    //    task->cs = SERVER_CODE_SEGMENT;
+    //    task->ss = SERVER_DATA_SEGMENT;
     task->context.ret_cs = SERVER_CODE_SEGMENT;
     task->context.ret_ss = SERVER_DATA_SEGMENT;
 
@@ -194,17 +177,13 @@ bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
         }
     }
 
-//    task->rip        = (uintptr_t)task_entry;
-//    task->entry_addr = header->e_entry;
-//    task->rflags     = 0x0UL | RFLAGS_IF;
-
-    task->context.ret_rip = (uintptr_t)header->e_entry;
+    task->context.ret_rip    = (uintptr_t)header->e_entry;
     task->context.ret_rflags = 0x0UL | RFLAGS_IF;
 
     // TODO this is tempolary stack address
     // You should change to 0x0000 7fff ffff f000
     // and setup page tables
-//    task->rsp = 0x1000;
+    //    task->rsp = 0x1000;
     task->context.ret_rsp = 0x1000;
 
     // setup for stack
@@ -267,14 +246,14 @@ bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
         */
 
     uintptr_t stack_head = ((uintptr_t)stack_addr + 0x1000);
-//    task->rsp -= sizeof(uint64_t);
-//    task->rsp -= sizeof(uint64_t);
+    //    task->rsp -= sizeof(uint64_t);
+    //    task->rsp -= sizeof(uint64_t);
     //*(stack_head--) = task->ss;
     //*(stack_head--) = task->rsp;
     //*(stack_head--) = task->rflags;
     //*(stack_head--) = task->cs;
     //*(stack_head--) = task->rip;
-//    *(struct task_struct **)(stack_head - sizeof(uint64_t)) = task;
+    //    *(struct task_struct **)(stack_head - sizeof(uint64_t)) = task;
 
     return true;
 }

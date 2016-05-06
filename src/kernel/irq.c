@@ -161,13 +161,13 @@ bool init_pic(void)
 
     bool state = true;
     state = init_pit();
-    if(!state)
+    if (!state)
     {
         return false;
     }
 
     state = init_tss();
-    if(!state)
+    if (!state)
     {
         return false;
     }

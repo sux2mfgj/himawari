@@ -10,8 +10,8 @@ extern void task_call_handler(void);
 bool init_task_call(void)
 {
     // TODO
-   set_gate_dpl3(IDT_ENTRY_TASK_CALL, &task_call_handler);
-   return true;
+    set_gate_dpl3(IDT_ENTRY_TASK_CALL, &task_call_handler);
+    return true;
 }
 
 // task call arguments
@@ -44,9 +44,9 @@ void task(struct trap_frame_struct *trap_frame)
 
     switch (msg->dest)
     {
-//        case Memory:
-//        case Process:
-//           break;
+        //        case Memory:
+        //        case Process:
+        //           break;
         default:
             goto failed;
     }

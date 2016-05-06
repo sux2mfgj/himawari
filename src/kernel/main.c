@@ -97,13 +97,14 @@ bool parse_bootinfo(uintptr_t bootinfo_addr, struct memory_info *m_info)
                 m_info->pages_info[page_info_index].head   = module->mod_start;
                 m_info->pages_info[page_info_index].length = module->mod_end;
 
-                memset(m_info->pages_info[page_info_index].name, 0, MODULE_NAME_SIZE);
-                for(int i=0; i<MODULE_NAME_SIZE; ++i)
+                memset(m_info->pages_info[page_info_index].name, 0,
+                       MODULE_NAME_SIZE);
+                for (int i = 0; i < MODULE_NAME_SIZE; ++i)
                 {
-                    char c = *(char*)((uintptr_t)&(module->cmdline) + i);
-                    
+                    char c = *(char *)((uintptr_t) & (module->cmdline) + i);
+
                     m_info->pages_info[page_info_index].name[i] = c;
-                    if(c == '\0')
+                    if (c == '\0')
                     {
                         break;
                     }
@@ -182,9 +183,9 @@ void start_kernel(uintptr_t bootinfo_addr)
         {
             panic("boot module is not enough!");
         }
-        status =
-            setup_server_process(m_info.pages_info[j].head + START_KERNEL_MAP,
-                                 &startup_processes[i], m_info.pages_info[i].name);
+        status = setup_server_process(
+            m_info.pages_info[j].head + START_KERNEL_MAP, &startup_processes[i],
+            m_info.pages_info[i].name);
         if (!status)
         {
             panic("setup_server_process");
@@ -192,13 +193,13 @@ void start_kernel(uintptr_t bootinfo_addr)
     }
 
     status = init_syscall();
-    if(!status)
+    if (!status)
     {
         panic("init_syscall");
     }
 
     status = init_scheduler();
-    if(!status)
+    if (!status)
     {
         panic("init_scheduler");
     }
@@ -206,12 +207,11 @@ void start_kernel(uintptr_t bootinfo_addr)
     start_task();
     panic("aiee ...after start_task");
 
-//    sti();
+    //    sti();
 
-
-//    puts("kernel thread");
-//    while (true)
-//    {
-//        hlt();
-//    }
+    //    puts("kernel thread");
+    //    while (true)
+    //    {
+    //        hlt();
+    //    }
 }

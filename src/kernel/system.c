@@ -3,11 +3,11 @@
 
 void system_task(void)
 {
-    //TODO
-    //initialize 
-    
-    while(true) {
-        //receive
+    // TODO
+    // initialize
 
+    while (true)
+    {
+        // receive
     }
 }

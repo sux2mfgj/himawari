@@ -55,12 +55,12 @@ void trap(struct trap_frame_struct *trap_frame)
         {
             puts(fault_list[trap_frame->trap_number]);
         }
-/*         else */
-/*         { */
-/*             puts("user definition handler: 0x"); */
-/*             itoa(trap_frame->trap_number, buf, 16); */
-/*             puts(buf); */
-/*         } */
+        /*         else */
+        /*         { */
+        /*             puts("user definition handler: 0x"); */
+        /*             itoa(trap_frame->trap_number, buf, 16); */
+        /*             puts(buf); */
+        /*         } */
         puts(", 0x");
         itoa(trap_frame->ret_rip, buf, 16);
         puts(buf);
