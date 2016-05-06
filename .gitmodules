@@ -1,0 +1,3 @@
+[submodule "src/server"]
+	path = src/server
+	url = git@github.com:himaaaatti/himawari_server.git
