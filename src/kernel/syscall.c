@@ -26,10 +26,12 @@ bool init_task_call(void)
 //
 void task(struct trap_frame_struct *trap_frame)
 {
+    /*
     if (trap_frame->ret_cs != SERVER_CODE_SEGMENT)
     {
         return;
     }
+    */
 
     struct Message *msg = (struct Message *)trap_frame->rdi;
 

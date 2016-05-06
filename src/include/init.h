@@ -46,6 +46,7 @@ extern bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
 
 // schduler (schedule.c)
 extern bool init_scheduler(void);
+extern void add_task(struct task_struct* t);
 extern void start_task(void);
 
 // system call (syscall.c)

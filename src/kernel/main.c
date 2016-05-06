@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+//TODO delete below variable
 struct task_struct startup_processes[5];
 
 void panic(char *text)
@@ -169,6 +170,12 @@ void start_kernel(uintptr_t bootinfo_addr)
         panic("init_pic");
     }
 
+    status = init_scheduler();
+    if (!status)
+    {
+        panic("init_scheduler");
+    }
+
     for (int i = 0, j = 0; i < BOOT_MODULES_NUM; ++i, ++j)
     {
 
@@ -183,6 +190,7 @@ void start_kernel(uintptr_t bootinfo_addr)
         {
             panic("boot module is not enough!");
         }
+
         status = setup_server_process(
             m_info.pages_info[j].head + START_KERNEL_MAP, &startup_processes[i],
             m_info.pages_info[i].name);
@@ -190,6 +198,8 @@ void start_kernel(uintptr_t bootinfo_addr)
         {
             panic("setup_server_process");
         }
+        add_task(&startup_processes[i]);
+
     }
 
     status = init_syscall();
@@ -198,11 +208,7 @@ void start_kernel(uintptr_t bootinfo_addr)
         panic("init_syscall");
     }
 
-    status = init_scheduler();
-    if (!status)
-    {
-        panic("init_scheduler");
-    }
+    
 
     start_task();
     panic("aiee ...after start_task");

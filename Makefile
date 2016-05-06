@@ -34,6 +34,7 @@ all: $(TARGET)
 .PHONY: $(TARGET)
 $(TARGET): #$(RUSTC)
 	cd src/; $(MAKE) all
+	mkdir -p $(ISO_ROOT)/boot/grub
 
 $(ISO): $(KERNEL) #$(BUILTIN_SERVERS)
 	mkdir -p $(ISO_ROOT)/boot/grub
@@ -61,5 +62,6 @@ debug: $(CONFIG)/gdb.conf
 .PHONY: clean
 clean:
 	cd src/; $(MAKE) clean
+	rm -rf $(ISO_ROOT)
 	rm -rf $(ISO)
 

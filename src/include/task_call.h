@@ -1,9 +1,12 @@
 #pragma once
 
+#include <stdint.h>
+
 enum ServerType {
-//    Memory,
+    Memory,
 //    Process,
     ServerNum,
+    Any, 
 };
 
 enum MessageType {

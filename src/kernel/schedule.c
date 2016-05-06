@@ -27,6 +27,7 @@ bool init_scheduler(void)
 
     struct task_struct *t = (struct task_struct *)mem_pool;
 
+    mem_pool += sizeof(struct task_struct);
     mem_pool = round_up(mem_pool, 0x100);
 
     t->pml4           = NULL;
@@ -47,6 +48,7 @@ bool init_scheduler(void)
 
     pl_head = (struct process_list *)mem_pool;
 
+    mem_pool += sizeof(struct process_list);
     mem_pool = round_up(mem_pool, 0x100);
 
     pl_head->next = pl_head;
@@ -55,10 +57,12 @@ bool init_scheduler(void)
     return true;
 }
 
+//XXX you should call after initialize 
 void add_task(struct task_struct *t)
 {
     struct process_list *l = (struct process_list *)mem_pool;
 
+    mem_pool += sizeof(struct process_list);
     mem_pool = round_up(mem_pool, 0x100);
 
     l->task = t;
