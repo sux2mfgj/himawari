@@ -29,13 +29,12 @@ struct task_struct
 
     struct message* message_buffer;
 
-    // pid, etc...
-};
+    struct task_struct* active_next;
+    struct task_struct* suspend_next;
+    struct task_struct* sending_next;
+    //struct task_struct* receiving_next;
 
-struct process_list 
-{
-    struct task_struct *task;
-    struct process_list* next;
+    // pid, etc...
 };
 
 extern bool create_kernel_thread(uintptr_t func_addr, uintptr_t stack_end_addr,

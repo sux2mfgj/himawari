@@ -50,8 +50,8 @@ extern void add_task(struct task_struct* t);
 extern void start_task(void);
 
 // system call (syscall.c)
-
 extern bool init_syscall(void);
+
 
 #define BOOT_MODULES_NUM ServerNum
 

@@ -60,9 +60,6 @@ trap_exit:
             push $0;\
             push $number;\
             jmp trap_entry
-//            jmp trap_entry;\
-//        .data;\
-//            .quad name
 
 
 #define define_exception_error_code(name, number) \
@@ -71,9 +68,6 @@ trap_exit:
             name:;\
             push $number;\
             jmp trap_entry
-//            jmp trap_entry;\
-//       .data;\
-//            .quad name
 
 #define define_irq_hander(name, number) \
         .text;\
@@ -111,27 +105,6 @@ define_exception_not_error_code(machine_check_exception, 18)
 define_exception_not_error_code(simd_floating_point_exception, 19)
 define_exception_not_error_code(virtualization_exception, 20)
 
-//#define define_irq_hander(name, number) \
-//        .text;\
-//        .globl name;\
-//        name:;\
-//            push $number;\
-//            jmp irq_entry
-/*
-.globl irq_entry
-irq_entry:
-    PUSH_ALL
-
-# for argument (interrupt number)
-    mov 8 * 15(%rsp), %rdi
-    call irq
-
-irq_exit:
-    POP_ALL
-# ignore interrupt number 
-    add $8, %rsp
-    iretq
-*/
 define_irq_hander(timer_handler, IDT_ENTRY_PIC_TIMER)
 define_interrupt_hander(task_call_handler, IDT_ENTRY_TASK_CALL)
 

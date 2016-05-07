@@ -4,6 +4,7 @@
 #include <segment.h>
 #include <task_call.h>
 #include <kernel.h>
+#include <schedule.h>
 
 extern void task_call_handler(void);
 
@@ -12,6 +13,26 @@ bool init_task_call(void)
     // TODO
     set_gate_dpl3(IDT_ENTRY_TASK_CALL, &task_call_handler);
     return true;
+}
+
+static void send_core(struct Message* msg, struct trap_frame_struct * t_frame)
+{
+    //TODO
+    //check receive task list
+    //  if(receive dest task)
+    //  {
+    //      return
+    //  }
+    //
+    //
+    //blocking
+    task_sending(t_frame);
+}
+
+static void receive_core(struct Message* msg)
+{
+    
+    //TODO
 }
 
 // task call arguments
@@ -34,21 +55,27 @@ void task(struct trap_frame_struct *trap_frame)
     */
 
     struct Message *msg = (struct Message *)trap_frame->rdi;
-
-    switch (msg->type)
+    switch (msg->dest)
     {
-        case Send:
-        case Receive:
+        case Memory:
+        case System:
+        //case Process:
+        
             break;
         default:
             goto failed;
     }
 
-    switch (msg->dest)
+    switch (msg->type)
     {
-        //        case Memory:
-        //        case Process:
-        //           break;
+        case Send:
+            send_core(msg, trap_frame);
+            break;
+
+        case Receive:
+            receive_core(msg);
+            break;
+
         default:
             goto failed;
     }

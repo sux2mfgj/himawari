@@ -6,6 +6,7 @@ enum ServerType {
     Memory,
 //    Process,
     ServerNum,
+    System,
     Any, 
 };
 
@@ -26,3 +27,7 @@ struct Message {
     enum MessageType type;
     struct Content content;
 };
+
+extern uint64_t receive(struct Message *msg);
+extern uint64_t send(struct Message *msg);
+

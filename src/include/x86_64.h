@@ -9,6 +9,9 @@
 
 #ifndef ASM_FILE
 
+#include <page.h>
+#include <stdint.h>
+
 enum {
     CPUID_FLAG_APIC = 0x1 << 9,
 };
