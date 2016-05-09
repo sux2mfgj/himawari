@@ -6,6 +6,7 @@
 #include <kernel.h>
 #include <trap.h>
 #include <task_call.h>
+#include <list.h>
 
 struct task_struct
 {
@@ -30,10 +31,13 @@ struct task_struct
     struct Message msg_buf;
     struct Message *msg_addr;
 
-    struct task_struct* active_next;
-    struct task_struct* suspend_next;
-    struct task_struct* sending_next;
-    struct task_struct* receving_next;;
+    struct linked_list active_list;
+    struct linked_list suspend_list;
+
+    //    struct task_struct* active_next;
+    //    struct task_struct* suspend_next;
+    //    struct task_struct* sending_next;
+    //    struct task_struct* receving_next;;
 
     // pid, etc...
 };

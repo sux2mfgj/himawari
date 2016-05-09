@@ -8,6 +8,7 @@
 #include <string.h>
 #include <x86_64.h>
 
+#include <schedule.h>
 #include <stdlib.h>
 
 extern void task_call_handler(void);
@@ -19,74 +20,86 @@ bool init_task_call(void)
     return true;
 }
 
-static void send_core(struct Message *msg, struct trap_frame_struct *t_frame)
+static void mp_core(enum MessageType type, struct task_struct *t,
+                    struct Message *msg, struct trap_frame_struct *t_frame)
 {
-    // TODO
-    // check receive task list
-    struct task_struct *receving = tl_receving_head;
-    if (receving == NULL)
+    bool is_head = false;
+    switch (type)
     {
-        goto blocking;
+        case Send:
+        {
+            context_switch(current_task, t, t_frame);
+
+            memcpy(&t->msg_addr->content, &msg->content,
+                   sizeof(struct Content));
+            is_head = true;
+            break;
+        }
+        case Receive:
+        {
+            memcpy(&msg->content, &t->msg_buf.content,
+                   sizeof(struct Content));
+        }
+        break;
+
+        default:
+            while (true)
+            {
+            }
     }
 
-    do
+    bool r = active_task(t, is_head);
+    if (!r)
     {
-        // find wait message for receive
-        if (receving->msg_buf.dest = msg->source)
-        {
-            bool r = active_task(receving);
-            if (!r)
-            {
-                // TODO
-                // panic
-            }
-            // change memory space to receive task
-            context_switch(tl_active_head, receving, t_frame);
-             
-            memcpy(&receving->msg_addr->content, &msg->content, sizeof(struct Content));
-
-            //TODO
-            //dequeue from receving list
-
-            return;
-        }
-    } while (receving->receving_next != tl_receving_head);
-
-blocking:
-    task_sending(t_frame, msg);
+    }
 }
 
-static void receive_core(struct Message *msg, struct trap_frame_struct *t_frame)
+static void message_passing(struct Message *msg,
+                            struct trap_frame_struct *t_frame)
 {
-    struct task_struct *sending = tl_sending_head;
-    if (tl_sending_head == NULL)
+    if (suspend_head == NULL)
     {
         goto blocking;
     }
 
+    struct linked_list *current = suspend_head;
     do
     {
-        // sending task
-        if (sending->msg_buf.dest == msg->source)
+        struct task_struct *t =
+            container_of(current, struct task_struct, suspend_list);
+
+        if (t->msg_buf.dest != msg->source)
         {
-            memcpy(&msg->content, &sending->msg_buf.content,
-                   sizeof(struct Content));
-
-            bool r = active_task(sending);
-            if (!r)
-            {
-                // TODO
-                // panic(!!);
-            }
-            //TODO
-            //dequeue from sending list
-
-            return;
+            continue;
         }
-    } while (sending->sending_next != tl_sending_head);
+
+        switch (msg->type)
+        {
+            case Send:
+                if (t->msg_buf.type == Receive)
+                {
+                    mp_core(Send, t, msg, t_frame);
+                    return;
+                }
+                break;
+            case Receive:
+                if (t->msg_buf.type == Send)
+                {
+                    mp_core(Receive, t, msg, t_frame);
+                    return;
+                }
+                break;
+
+            default:
+                while (true)
+                {
+                }
+        }
+
+    } while (current->next != suspend_head);
 
 blocking:
-    task_receiving(t_frame, msg);
+    suspend_task(t_frame, msg);
 }
 
 // task call arguments
@@ -101,12 +114,14 @@ blocking:
 //
 void task(struct trap_frame_struct *trap_frame)
 {
-    /*
-    if (trap_frame->ret_cs != SERVER_CODE_SEGMENT)
+    switch (trap_frame->ret_cs)
     {
-        return;
+        case SERVER_CODE_SEGMENT:
+        case KERNEL_CODE_SEGMENT:
+            break;
+        default:
+            goto failed;
     }
-    */
 
     struct Message *msg = (struct Message *)trap_frame->rdi;
     switch (msg->dest)
@@ -124,11 +139,8 @@ void task(struct trap_frame_struct *trap_frame)
     switch (msg->type)
     {
         case Send:
-            send_core(msg, trap_frame);
-            break;
-
         case Receive:
-            receive_core(msg, trap_frame);
+            message_passing(msg, trap_frame);
             break;
 
         default:

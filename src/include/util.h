@@ -10,7 +10,9 @@
 	_a > _b ? _a : _b;      \
     })
 
-
 #define round_up(x,y) (((x) + (y) - 1) & ~((y)-1))
 #define round_down(x,y) ((x) & ~((y)-1))
 
+#define container_of(ptr, type, member) ({ \
+            const __typeof__( ((type *)0)->member ) *__mptr = (ptr);\
+            (type*)((char *) __mptr - offsetof(type, member));})

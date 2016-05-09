@@ -9,10 +9,9 @@
 
 #include <stddef.h>
 
-struct task_struct *tl_active_head;
-struct task_struct *tl_suspend_head;
-struct task_struct *tl_sending_head;
-struct task_struct *tl_receving_head;
+struct linked_list *active_head;
+struct linked_list *suspend_head;
+
 
 struct task_struct idle;
 
@@ -25,12 +24,11 @@ extern void idle_task(void);
 bool init_scheduler(void)
 {
     // TODO setup by null
-    tl_active_head  = NULL;
-    tl_suspend_head = NULL;
-    tl_sending_head = NULL;
-    tl_receving_head = NULL;
 
-    // initialize pl_active of system_task
+    active_head = NULL;
+    suspend_head = NULL;
+
+    // initialize active_head (containing a task about system_task)
 
     mem_pool = (uintptr_t)early_malloc(1);
     if (mem_pool == 0)
@@ -59,8 +57,8 @@ bool init_scheduler(void)
 
     t->context.ret_rsp = stack + 0x1000;
 
-    tl_active_head              = t;
-    tl_active_head->active_next = tl_active_head;
+    list_init(&t->active_list);
+    active_head = &t->active_list;
 
     // setup idle task
     idle.pml4 = NULL;
@@ -83,26 +81,19 @@ bool init_scheduler(void)
 // XXX you should call after initialize
 void add_task(struct task_struct *t)
 {
-    if (tl_active_head == NULL)
+    if (active_head == NULL)
     {
-        tl_active_head              = t;
-        tl_active_head->active_next = tl_active_head;
+        list_init(&t->active_list);
+        active_head = &t->active_list;
         return;
     }
 
-    struct task_struct *s_current = tl_active_head;
-    while (s_current->active_next != tl_active_head)
-    {
-        s_current = s_current->active_next;
-    }
-
-    s_current->active_next = t;
-    t->active_next         = tl_active_head;
+    enqueue(active_head, &t->active_list);
 }
 
 void start_task(void)
 {
-    struct task_struct *tsk = tl_active_head;
+    struct task_struct *tsk = current_task;
 
     if (tsk->pml4 != NULL)
     {
@@ -138,32 +129,22 @@ void context_switch(struct task_struct *prev, struct task_struct *next,
 
 void schedule(struct trap_frame_struct *trap_frame)
 {
-    struct task_struct *current = tl_active_head;
-    struct task_struct *next    = tl_active_head->active_next;
+    struct task_struct *current = current_task;
+    struct task_struct *next    = next_task;
 
+    // don't need call context switch
     if (current == next)
     {
         return;
     }
 
-    tl_active_head                = next;
-    struct task_struct *active_tail = tl_active_head;
-    while (active_tail->active_next != tl_active_head)
-    {
-        active_tail = active_tail->active_next;
-    }
+    // update active_head
+    active_head = active_head->next; 
 
-    if(current == &idle)
-    {
-        active_tail->active_next = tl_active_head;
-    }
-    else 
-    {
-        active_tail->active_next = current;
-        current->active_next   = tl_active_head;
-    }
+    //TODO 
+    // must consider idle task
 
-    // TODO
+    //TODO
     // think about where I save context
     context_switch(current, next, trap_frame);
 }
@@ -171,142 +152,78 @@ void schedule(struct trap_frame_struct *trap_frame)
 void sleep_current_task(struct trap_frame_struct *t_frame)
 {
     // dequeue
-    struct task_struct *current   = tl_active_head;
-    struct task_struct *tl_a_tail = tl_active_head;
-    struct task_struct* next;
+    struct task_struct *prev = current_task;
 
-    // list have a task
-    if (current->active_next == current)
+    struct linked_list* next = dequeue(active_head);
+
+    if(next == NULL)
     {
-        tl_active_head = NULL;
-        tl_active_head = &idle;
-        tl_active_head->active_next = tl_active_head;
+        list_init(&idle.active_list);
+        active_head = &idle.active_list;
         goto enqueue_suspend;
     }
 
-    // some tasks
-    while (tl_a_tail->active_next != current)
-    {
-        tl_a_tail = tl_a_tail->active_next;
-    }
-
-    tl_active_head         = current->active_next;
-    tl_a_tail->active_next = tl_active_head;
+    // when list have more than 2 tasks
+    active_head = next;
 
 enqueue_suspend:
     // enqueue
+
     // list have not task 
-    if (tl_suspend_head == NULL)
+    if (suspend_head == NULL)
     {
-        tl_suspend_head               = current;
-        tl_suspend_head->suspend_next = tl_suspend_head;
+        list_init(&current_task->suspend_list);
+        suspend_head = &current_task->suspend_list;
 
         goto c_switch;
     }
 
     // some tasks
-    struct task_struct *tl_s_tail = tl_suspend_head;
-    while (tl_s_tail->suspend_next != tl_suspend_head)
-    {
-        tl_s_tail = tl_s_tail->suspend_next;
-    }
-
-    tl_s_tail->suspend_next = current;
-    current->suspend_next   = tl_suspend_head;
+    enqueue(suspend_head, &current_task->suspend_list);
 
 c_switch:
 
-    context_switch(current, tl_active_head, t_frame);
+    context_switch(prev, current_task, t_frame);
 }
 
-bool active_task(struct task_struct *tsk)
+bool active_task(struct task_struct *tsk, bool is_head)
 {
-    // dequeue sleep
-    if (tsk->suspend_next == tsk)
-    {
-        tl_suspend_head   = NULL;
-        tsk->suspend_next = NULL;
-    }
-    else
-    {
-        struct task_struct *tl_s = tl_suspend_head;
-        while (tl_s->suspend_next != tsk)
-        {
-            if (tl_suspend_head == tl_s->suspend_next)
-            {
-                return false;
-            }
-            tl_s = tl_s->suspend_next;
-        }
-        tl_s->suspend_next = tsk->suspend_next;
-    }
+    // dequeue from sleep
+    suspend_head = dequeue(&tsk->suspend_list);
 
     // enqueue active
-    if (tl_active_head == NULL)
+    if (active_head == NULL)
     {
-        tl_active_head              = tsk;
-        tl_active_head->active_next = tl_active_head;
+        active_head = list_init(&tsk->active_list);
         return true;
     }
-    struct task_struct *active_tail = tl_active_head;
-    while (active_tail->active_next != tl_active_head)
-    {
-        active_tail = active_tail->active_next;
-    }
 
-    active_tail->active_next = tsk;
-    tsk->active_next         = tl_active_head;
+    enqueue(active_head, &tsk->active_list);
+    if(is_head)
+    {
+        active_head = &tsk->active_list;
+    }
 
     return true;
 }
 
-void task_sending(struct trap_frame_struct *t_frame, struct Message* msg)
+void suspend_task(struct trap_frame_struct *t_frame, struct Message* msg)
 {
-    struct task_struct *sending_tail     = tl_sending_head;
-    struct task_struct *current = tl_active_head;
+    memcpy(&current_task->msg_buf, msg, sizeof(struct Message));
 
-    memcpy(&current->msg_buf, msg, sizeof(struct Message));
-
-    if (tl_sending_head == NULL)
+    if(msg->type == Receive)
     {
-        tl_sending_head               = current;
-        tl_sending_head->sending_next = tl_sending_head;
+        current_task->msg_addr = msg;
+    }
+
+    if (suspend_head == NULL)
+    {
+        suspend_head = list_init(&current_task->suspend_list);
     }
     else
     {
-        while (sending_tail->sending_next != tl_sending_head)
-        {
-            sending_tail = sending_tail->sending_next;
-        }
-        sending_tail->sending_next= current;
-        current->sending_next = tl_sending_head;
+        enqueue(suspend_head, &current_task->suspend_list);
     }
 
     sleep_current_task(t_frame);
 }
-
-void task_receiving(struct trap_frame_struct *t_frame, struct Message* msg)
-{
-    struct task_struct *receving_tail = tl_receving_head;
-    struct task_struct *current = tl_active_head;
-
-    memcpy(&current->msg_buf, msg, sizeof(struct Message));
-    current->msg_addr = msg;
-
-    if(tl_receving_head== NULL)
-    {
-        tl_receving_head= current;
-        tl_receving_head->receving_next= tl_receving_head;
-    }
-    else {
-        while(receving_tail->receving_next!= tl_receving_head)
-        {
-            receving_tail = receving_tail->receving_next;
-        }
-        receving_tail->receving_next = current;
-        current->receving_next = tl_receving_head;
-    }
-
-    sleep_current_task(t_frame);
-}
-

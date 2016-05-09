@@ -1,6 +1,6 @@
 TARGET := lib.o
 
-OBJS	:= string.o
+OBJS	:= string.o linked_list.o
 
 INCLUDE	:= -I../include
 

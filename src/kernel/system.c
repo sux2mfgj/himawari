@@ -12,7 +12,6 @@ static void send_init_data(void)
         .content = {1, 2},
     };
     uint64_t result = send(&msg);
-
 }
 
 void system_task(void)
