@@ -43,6 +43,7 @@ $(ISO): $(KERNEL) #$(BUILTIN_SERVERS)
 	for file in $(BUILTINS); do\
 		cp $$file $(ISO_ROOT)/boot;\
 	done
+	cd src/server/; $(MAKE) install_iso
 	grub-mkrescue -o $@ $(ISO_ROOT)
 
 #$(RUSTC):

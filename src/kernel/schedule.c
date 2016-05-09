@@ -12,6 +12,7 @@
 struct task_struct *tl_active_head;
 struct task_struct *tl_suspend_head;
 struct task_struct *tl_sending_head;
+struct task_struct *tl_receving_head;
 
 struct task_struct idle;
 
@@ -27,6 +28,7 @@ bool init_scheduler(void)
     tl_active_head  = NULL;
     tl_suspend_head = NULL;
     tl_sending_head = NULL;
+    tl_receving_head = NULL;
 
     // initialize pl_active of system_task
 
@@ -66,6 +68,7 @@ bool init_scheduler(void)
     idle.context.ret_ss = KERNEL_DATA_SEGMENT;
     idle.context.ret_rip = (uintptr_t)&idle_task;
     idle.context.ret_rflags = 0x0UL | RFLAGS_IF;
+    memcpy(&idle.name, "idle", sizeof(char) * MODULE_NAME_SIZE);
 
     stack = early_malloc(1) ;
     if(stack == 0)
@@ -257,10 +260,13 @@ bool active_task(struct task_struct *tsk)
     return true;
 }
 
-void task_sending(struct trap_frame_struct *t_frame)
+void task_sending(struct trap_frame_struct *t_frame, struct Message* msg)
 {
     struct task_struct *sending_tail     = tl_sending_head;
     struct task_struct *current = tl_active_head;
+
+    memcpy(&current->msg_buf, msg, sizeof(struct Message));
+
     if (tl_sending_head == NULL)
     {
         tl_sending_head               = current;
@@ -278,3 +284,29 @@ void task_sending(struct trap_frame_struct *t_frame)
 
     sleep_current_task(t_frame);
 }
+
+void task_receiving(struct trap_frame_struct *t_frame, struct Message* msg)
+{
+    struct task_struct *receving_tail = tl_receving_head;
+    struct task_struct *current = tl_active_head;
+
+    memcpy(&current->msg_buf, msg, sizeof(struct Message));
+    current->msg_addr = msg;
+
+    if(tl_receving_head== NULL)
+    {
+        tl_receving_head= current;
+        tl_receving_head->receving_next= tl_receving_head;
+    }
+    else {
+        while(receving_tail->receving_next!= tl_receving_head)
+        {
+            receving_tail = receving_tail->receving_next;
+        }
+        receving_tail->receving_next = current;
+        current->receving_next = tl_receving_head;
+    }
+
+    sleep_current_task(t_frame);
+}
+

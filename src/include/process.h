@@ -27,12 +27,13 @@ struct task_struct
 
     struct trap_frame_struct context;
 
-    struct message* message_buffer;
+    struct Message msg_buf;
+    struct Message *msg_addr;
 
     struct task_struct* active_next;
     struct task_struct* suspend_next;
     struct task_struct* sending_next;
-    //struct task_struct* receiving_next;
+    struct task_struct* receving_next;;
 
     // pid, etc...
 };
