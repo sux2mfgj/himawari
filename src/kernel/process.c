@@ -245,7 +245,7 @@ bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
 
         */
 
-    uintptr_t stack_head = ((uintptr_t)stack_addr + 0x1000);
+    //uintptr_t stack_head = ((uintptr_t)stack_addr + 0x1000);
     //    task->rsp -= sizeof(uint64_t);
     //    task->rsp -= sizeof(uint64_t);
     //*(stack_head--) = task->ss;

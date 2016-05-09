@@ -128,10 +128,10 @@ uint64_t *create_pml4(void)
     memset(pd, 0, 0x1000);
 
     pml4[511] =
-        PAGE_PRESENT | PAGE_READ_WRITE | (uintptr_t)pdpt - START_KERNEL_MAP;
+        PAGE_PRESENT | PAGE_READ_WRITE | ((uintptr_t)pdpt - START_KERNEL_MAP);
 
     pdpt[510] =
-        PAGE_PRESENT | PAGE_READ_WRITE | (uintptr_t)pd - START_KERNEL_MAP;
+        PAGE_PRESENT | PAGE_READ_WRITE | ((uintptr_t)pd - START_KERNEL_MAP);
 
     for (int j = 0; j <= kernel_page_directory_num; ++j)
     {
@@ -144,11 +144,11 @@ uint64_t *create_pml4(void)
         for (int i = 0; i < 512; ++i)
         {
             pt[i] = PAGE_PRESENT | PAGE_READ_WRITE |
-                    ((uintptr_t)i << 12) + (j * 0x200000);
+                    (((uintptr_t)i << 12) + (j * 0x200000));
         }
 
         pd[j] =
-            PAGE_PRESENT | PAGE_READ_WRITE | (uintptr_t)pt - START_KERNEL_MAP;
+            PAGE_PRESENT | PAGE_READ_WRITE | ((intptr_t)pt - START_KERNEL_MAP);
     }
 
     return pml4;
