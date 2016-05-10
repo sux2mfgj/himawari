@@ -7,60 +7,6 @@
 #include <util.h>
 #include <elf.h>
 
-bool create_first_thread(uintptr_t func_addr, uintptr_t stack_end_addr,
-                         int stack_size, struct task_struct *task)
-{
-    uintptr_t stack_head = stack_end_addr + stack_size;
-    task->rip            = func_addr;
-    task->cs             = KERNEL_CODE_SEGMENT;
-    task->rflags         = 0x0UL | RFLAGS_IF;
-    task->rsp            = stack_head;
-    task->ss             = KERNEL_DATA_SEGMENT;
-    task->pml4           = NULL;
-
-    return true;
-}
-
-bool create_kernel_thread(uintptr_t func_addr, uintptr_t stack_end_addr,
-                          uintmax_t stack_size, struct task_struct *task)
-{
-    uintptr_t stack_head = stack_end_addr + stack_size;
-
-    stack_head = (stack_head >> 8) << 8;
-    /*     task->stack_pointer = stack_head; */
-    task->stack_size = stack_size;
-
-    // task->stack_frame = (struct stack_frame*)(stack_head);
-
-    /*     task->rip  = func_addr; */
-    //    task->rip = (uintptr_t)start_kernel_thread;
-    task->cs     = KERNEL_CODE_SEGMENT;
-    task->rflags = 0x0UL | RFLAGS_IF;
-    task->rsp    = stack_head;
-    task->ss     = KERNEL_DATA_SEGMENT;
-
-    // for start_kernel_thread argument
-    *(uintptr_t *)stack_head = (uintptr_t)task;
-
-    return true;
-}
-
-bool create_user_process(uintptr_t func_addr, uintptr_t stack_end_addr,
-                         uintmax_t stack_size, struct task_struct *task)
-{
-    uintptr_t stack_head = stack_end_addr + stack_size;
-
-    task->stack_size = stack_size;
-
-    task->rip    = (uintptr_t)func_addr;
-    task->cs     = USER_CODE_SEGMENT;
-    task->rflags = 0x0UL | RFLAGS_IF;
-    task->rsp    = stack_head;
-    task->ss     = USER_DATA_SEGMENT;
-
-    return true;
-}
-
 bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
                           char *name)
 {
@@ -98,18 +44,6 @@ bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
         if (size == 0)
         {
             continue;
-        }
-
-        {
-            char buf[32];
-            itoa(load_v_addr, buf, 16);
-            puts("0x");
-            puts(buf);
-            puts("(");
-            itoa(size, buf, 16);
-            puts(buf);
-            puts(")");
-            puts("\n");
         }
 
         // server process can use memory(1G)

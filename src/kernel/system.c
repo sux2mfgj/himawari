@@ -3,17 +3,29 @@
 
 #include <stdbool.h>
 
-static void send_init_data(void)
+static void initialize(void)
 {
+    uint64_t result;
     struct Message msg = {
         .source = System,
         .dest   = Memory,
-        .type   = Send,
-        .content = {1, 2},
+        .type   = Receive,
+        .content = {
+            .address = 0, 
+            .num = 0
+        },
     };
-    uint64_t result = send(&msg);
 
+    // setup memory server
+    result = receive(&msg);
+    uintptr_t bitmap_addr = msg.content.address;
 
+    msg.dest = Memory;
+    msg.type = Send;
+    result = send(&msg);
+
+    // setup process
+    
 }
 
 void system_task(void)
@@ -21,7 +33,7 @@ void system_task(void)
     // TODO
     // initialize
 
-    send_init_data();
+    initialize();
     while (true)
     {
         // receive

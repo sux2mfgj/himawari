@@ -42,17 +42,8 @@ struct task_struct
     // pid, etc...
 };
 
-extern bool create_kernel_thread(uintptr_t func_addr, uintptr_t stack_end_addr,
-                                 uintmax_t stack_size,
-                                 struct task_struct *task);
-bool create_first_thread(uintptr_t func_addr, uintptr_t stack_end_addr,
-                         int stack_size, struct task_struct *task);
-
 extern void schedule(struct trap_frame_struct *trap_frame);
 extern void context_switch(struct task_struct *prev, struct task_struct *next,
                            struct trap_frame_struct *trap_frame);
-
-extern bool create_user_process(uintptr_t func_addr, uintptr_t stack_end_addr,
-                                uintmax_t stack_size, struct task_struct *task);
 
 extern void irq_eoi(void);

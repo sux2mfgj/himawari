@@ -21,6 +21,8 @@ uintptr_t mem_pool;
 extern void system_task(void);
 extern void idle_task(void);
 
+static char system_name[MODULE_NAME_SIZE] = "system";
+
 bool init_scheduler(void)
 {
     // TODO setup by null
@@ -40,6 +42,8 @@ bool init_scheduler(void)
 
     mem_pool += sizeof(struct task_struct);
     mem_pool = round_up(mem_pool, 0x100);
+
+    memcpy(t->name, system_name, MODULE_NAME_SIZE);
 
     t->pml4           = NULL;
     t->context.ret_cs = KERNEL_CODE_SEGMENT;
