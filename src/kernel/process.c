@@ -7,6 +7,18 @@
 #include <util.h>
 #include <elf.h>
 
+static uint64_t *setup_entry()
+{
+    uint64_t *entry = (uint64_t *)early_malloc(1);
+    if (entry == 0)
+    {
+        return NULL;
+    }
+    memset(entry, 0, 0x1000);
+    return (uint64_t *)create_entry((uintptr_t)entry,
+                                    PAGE_READ_WRITE | PAGE_USER_SUPER);
+}
+
 bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
                           char *name)
 {
@@ -46,68 +58,70 @@ bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
             continue;
         }
 
-        // server process can use memory(1G)
-        // TODO beyond usbale memory range
-        if ((load_v_addr + size) >= 0x40000000)
+        int pml4_index   = load_v_addr >> 39;         // 512G
+        int pdpt_index   = load_v_addr >> 30 & 0x1ff; // 1G 0b100000000 512
+        int pd_index     = load_v_addr >> 21 & 0x1ff; // 2M
+        int pt_index     = load_v_addr >> 12 & 0x1ff; // 4K
+        int pt_entry_num = size + ((1 << 12) - 1) >> 12;
+
+        if ((uint64_t *)task->pml4[pml4_index] == NULL)
         {
-            return false;
+            uint64_t *entry        = setup_entry();
+            task->pml4[pml4_index] = (uintptr_t)entry;
         }
 
-        uint64_t *pdpt = (uint64_t *)early_malloc(1);
-        if (pdpt == 0)
+        uint64_t **pdpt =
+            (uint64_t **)((uintptr_t)(task->pml4[pml4_index] & ~0xfffUL) +
+                          START_KERNEL_MAP);
+
+        if (pdpt[pdpt_index] == NULL)
         {
-            return false;
+            uint64_t *entry  = setup_entry();
+            pdpt[pdpt_index] = entry;
         }
-        memset(pdpt, 0, 0x1000);
 
-        uint64_t *pd = (uint64_t *)early_malloc(1);
-        if (pd == 0)
+        uint64_t **pd = (uint64_t **)(((uintptr_t)pdpt[pdpt_index] & ~0xfffUL) +
+                                      START_KERNEL_MAP);
+
+        // TODO
+        // now process use 2M memory(only use pd[0])
+        // have to beyond memory space
+        if (pd[pd_index] == NULL)
         {
-            return false;
+            uint64_t *entry = setup_entry();
+            pd[pd_index]    = entry;
         }
-        memset(pd, 0, 0x1000);
 
-        task->pml4[0] =
-            create_entry((uintptr_t)pdpt, PAGE_READ_WRITE | PAGE_USER_SUPER);
+        uint64_t **pt = (uint64_t **)(((uintptr_t)pd[pd_index] & ~0xfffUL) +
+                                      START_KERNEL_MAP);
 
-        pdpt[0] =
-            create_entry((uintptr_t)pd, PAGE_READ_WRITE | PAGE_USER_SUPER);
-
-        int pd_index = load_v_addr / 0x200000;
-        // int pd_num              = (load_v_addr + size) / 0x200000;
-        int pd_num             = (size / 0x200000) + 1;
-        uintptr_t v_addr_floor = round_down(load_v_addr, 0x1000);
-        for (int j = 0; j < pd_num; ++j)
+        for (int j = 0; j < pt_entry_num; ++j)
         {
-            uint64_t *pt = (uint64_t *)early_malloc(1);
-            if (pt == 0)
+            if (pt[pt_index + j] == NULL)
             {
-                return false;
-            }
-            memset(pt, 0, 0x1000);
+                uint64_t *entry  = setup_entry();
+                pt[pt_index + j] = entry;
+                // TODO
+                // copy elf segment
 
-            for (int k = 0; k < 512; ++k)
-            {
+                int pt_size = 0x1000;
 
-                uintptr_t physical_addr = early_malloc(1);
-                uintptr_t load_to_addr =
-                    physical_addr + load_v_addr - v_addr_floor;
-
-                memcpy((void *)load_to_addr, (void *)(uintptr_t)header + offset,
-                       size);
-
-                pt[i] = create_entry(physical_addr,
-                                     PAGE_READ_WRITE | PAGE_USER_SUPER);
-
-                // TODO below branch should replace above ?
-                if ((v_addr_floor + ((uintptr_t)k << 12) + (j * 0x200000)) >
-                    (load_v_addr + size))
+                if (size > 0x1000)
                 {
-                    break;
+                    size -= 0x1000;
                 }
+                else
+                {
+                    pt_size = size;
+                }
+
+                uintptr_t load_dest_addr = ((uintptr_t)entry & (~0xfffUL)) +
+                                           load_v_addr -
+                                           round_down(load_v_addr, 0x1000) + START_KERNEL_MAP;
+
+                memcpy((void *)load_dest_addr,
+                       (void *)((uintptr_t)header + offset), pt_size);
             }
-            pd[j + pd_index] =
-                create_entry((uintptr_t)pt, PAGE_READ_WRITE | PAGE_USER_SUPER);
         }
     }
 
@@ -167,27 +181,6 @@ bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
     memset(stack_addr, 0, 0x1000);
     pt[0] =
         create_entry((uintptr_t)stack_addr, PAGE_READ_WRITE | PAGE_USER_SUPER);
-
-    /*    stack_addr = (uint64_t*)early_malloc(1);
-        if (stack_addr == 0)
-        {
-            return false;
-        }
-        memset(stack_addr, 0, 0x1000);
-        pt[1] = create_entry((uintptr_t)stack_addr, PAGE_READ_WRITE |
-       PAGE_USER_SUPER);
-
-        */
-
-    //uintptr_t stack_head = ((uintptr_t)stack_addr + 0x1000);
-    //    task->rsp -= sizeof(uint64_t);
-    //    task->rsp -= sizeof(uint64_t);
-    //*(stack_head--) = task->ss;
-    //*(stack_head--) = task->rsp;
-    //*(stack_head--) = task->rflags;
-    //*(stack_head--) = task->cs;
-    //*(stack_head--) = task->rip;
-    //    *(struct task_struct **)(stack_head - sizeof(uint64_t)) = task;
 
     return true;
 }

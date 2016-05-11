@@ -70,6 +70,7 @@ static void message_passing(struct Message *msg,
 
         if (t->msg_buf.dest != msg->source)
         {
+            current = current->next;
             continue;
         }
 
@@ -96,7 +97,7 @@ static void message_passing(struct Message *msg,
                 }
         }
 
-    } while (current->next != suspend_head);
+    } while (current != suspend_head);
 
 blocking:
     suspend_task(t_frame, msg);
