@@ -12,7 +12,6 @@
 struct linked_list *active_head;
 struct linked_list *suspend_head;
 
-
 struct task_struct idle;
 
 // TODO have to use memory manager(library? as kmem_cache?)
@@ -38,20 +37,21 @@ bool init_scheduler(void)
         return false;
     }
 
-    struct task_struct *t = (struct task_struct *)mem_pool;
+    struct task_struct *system = (struct task_struct *)mem_pool;
 
     mem_pool += sizeof(struct task_struct);
     mem_pool = round_up(mem_pool, 0x100);
 
-    memcpy(t->name, system_name, MODULE_NAME_SIZE);
+    memcpy(system->name, system_name, MODULE_NAME_SIZE);
 
-    t->pml4           = NULL;
-    t->context.ret_cs = KERNEL_CODE_SEGMENT;
-    t->context.ret_ss = KERNEL_DATA_SEGMENT;
+    system->pml4           = NULL;
+    system->context.ret_cs = KERNEL_CODE_SEGMENT;
+    system->context.ret_ss = KERNEL_DATA_SEGMENT;
 
-    t->context.ret_rip = (uintptr_t)&system_task;
+    system->context.ret_rip = (uintptr_t)&system_task;
+    system->context.ret_rflags = 0x0UL | RFLAGS_IF;
 
-    t->context.ret_rflags = 0x0UL | RFLAGS_IF;
+    system->msg_info.self = System;
 
     uintptr_t stack = early_malloc(1);
     if (stack == 0)
@@ -59,10 +59,10 @@ bool init_scheduler(void)
         return false;
     }
 
-    t->context.ret_rsp = stack + 0x1000;
+    system->context.ret_rsp = stack + 0x1000;
 
-    list_init(&t->active_list);
-    active_head = &t->active_list;
+    list_init(&system->active_list);
+    active_head = &system->active_list;
 
     // setup idle task
     idle.pml4 = NULL;
@@ -213,11 +213,11 @@ bool active_task(struct task_struct *tsk, bool is_head)
 
 void suspend_task(struct trap_frame_struct *t_frame, struct Message* msg)
 {
-    memcpy(&current_task->msg_buf, msg, sizeof(struct Message));
+    memcpy(&current_task->msg_info.buf, msg, sizeof(struct Message));
 
     if(msg->type == Receive)
     {
-        current_task->msg_addr = msg;
+        current_task->msg_info.addr = msg;
     }
 
     if (suspend_head == NULL)

@@ -15,17 +15,6 @@ struct task_struct startup_processes[5];
 
 void panic(char *text)
 {
-    char buf[32];
-    puts("panic:");
-    puts("\n");
-    puts(__FILE__);
-    itoa(__LINE__, buf, 10);
-    puts(" : ");
-    puts(buf);
-    puts(" - ");
-    puts(text);
-    puts("\n");
-
     while (true)
     {
         hlt();
@@ -193,7 +182,8 @@ void start_kernel(uintptr_t bootinfo_addr)
 
         status = setup_server_process(
             m_info.pages_info[j].head + START_KERNEL_MAP, &startup_processes[i],
-            m_info.pages_info[i].name);
+            m_info.pages_info[j].name);
+
         if (!status)
         {
             panic("setup_server_process");

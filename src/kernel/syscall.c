@@ -30,14 +30,14 @@ static void mp_core(enum MessageType type, struct task_struct *t,
         {
             context_switch(current_task, t, t_frame);
 
-            memcpy(&t->msg_addr->content, &msg->content,
+            memcpy(&t->msg_info.addr->content, &msg->content,
                    sizeof(struct Content));
             is_head = true;
             break;
         }
         case Receive:
         {
-            memcpy(&msg->content, &t->msg_buf.content,
+            memcpy(&msg->content, &t->msg_info.buf.content,
                    sizeof(struct Content));
         }
         break;
@@ -62,42 +62,70 @@ static void message_passing(struct Message *msg,
         goto blocking;
     }
 
-    struct linked_list *current = suspend_head;
+    struct task_struct *c_task = current_task;
+
+    struct linked_list *s_task = suspend_head;
     do
     {
         struct task_struct *t =
-            container_of(current, struct task_struct, suspend_list);
-
-        if (t->msg_buf.dest != msg->source)
-        {
-            current = current->next;
-            continue;
-        }
+            container_of(s_task, struct task_struct, suspend_list);
 
         switch (msg->type)
         {
             case Send:
-                if (t->msg_buf.type == Receive)
-                {
-                    mp_core(Send, t, msg, t_frame);
-                    return;
-                }
-                break;
-            case Receive:
-                if (t->msg_buf.type == Send)
-                {
-                    mp_core(Receive, t, msg, t_frame);
-                    return;
-                }
-                break;
+            {
 
+                if (t->msg_info.buf.type != Receive)
+                {
+                    continue;
+                }
+
+                // check receive msg
+                if (t->msg_info.buf.src != Any &&
+                    t->msg_info.buf.src != c_task->msg_info.self)
+                {
+                    continue;
+                }
+
+                // check send msg
+                if (msg->dest != t->msg_info.self)
+                {
+                    continue;
+                }
+
+                mp_core(Send, t, msg, t_frame);
+                return;
+            }
+            case Receive:
+            {
+                if (t->msg_info.buf.type != Send)
+                {
+                    continue;
+                }
+
+                // check send msg
+                if (t->msg_info.buf.dest != c_task->msg_info.self)
+                {
+                    continue;
+                }
+
+                // check receive msg
+                if(msg->dest != Any && msg->dest != c_task->msg_info.self)
+                {
+                    continue;
+                }
+
+                mp_core(Receive, t, msg, t_frame);
+                return;
+            }
             default:
+                //TODO error 
                 while (true)
                 {
                 }
         }
 
-    } while (current != suspend_head);
+    } while (s_task != suspend_head);
 
 blocking:
     suspend_task(t_frame, msg);
@@ -125,12 +153,12 @@ void task(struct trap_frame_struct *trap_frame)
     }
 
     struct Message *msg = (struct Message *)trap_frame->rdi;
-    switch (msg->dest)
+    switch (msg->src)
     {
         case Memory:
         case System:
         case Any:
-            // case Process:
+            // TODO add some processes
 
             break;
         default:
@@ -164,6 +192,5 @@ bool init_syscall(void)
     }
 
     // TODO setup system call
-
     return true;
 }

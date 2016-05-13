@@ -29,8 +29,6 @@ bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
     {
         return false;
     }
-    //    task->cs = SERVER_CODE_SEGMENT;
-    //    task->ss = SERVER_DATA_SEGMENT;
     task->context.ret_cs = SERVER_CODE_SEGMENT;
     task->context.ret_ss = SERVER_DATA_SEGMENT;
 

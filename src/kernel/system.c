@@ -1,31 +1,17 @@
 #include <init.h>
 #include <task_call.h>
+#include <schedule.h>
 
 #include <stdbool.h>
 
+bool regist_server_list[ServerNum];
+
 static void initialize(void)
 {
-    uint64_t result;
-    struct Message msg = {
-        .source = System,
-        .dest   = Memory,
-        .type   = Receive,
-        .content = {
-            .address = 0, 
-            .num = 0
-        },
-    };
-
-    // setup memory server
-    result = receive(&msg);
-    uintptr_t bitmap_addr = msg.content.address;
-
-    msg.dest = Memory;
-    msg.type = Send;
-    result = send(&msg);
-
-    // setup process
-    
+    for(int i=0; i< ServerNum; ++i)
+    {
+        regist_server_list[i] = false;
+    }
 }
 
 void system_task(void)
@@ -34,8 +20,33 @@ void system_task(void)
     // initialize
 
     initialize();
+    struct Message msg;
+    uint64_t result;
     while (true)
     {
+        result = receive(Any, &msg);
+        switch (msg.number) {
+            case Regist:
+                if(msg.content.num >= ServerNum || regist_server_list[msg.content.num])
+                {
+                    //TODO error
+                    panic("this server number is invalid");
+                    break;
+                }
+                regist_server_list[msg.content.num] = true;
+                current_task->msg_info.self = msg.content.num;
+                break;
+
+            case Initialize:
+                //TODO
+                break;
+
+            default:
+                //TODO send error message(where?)
+                break;
+
+        }
+
         // receive
     }
 }

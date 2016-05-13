@@ -12,14 +12,16 @@ static uint64_t taskcall(struct Message* msg)
     return result;
 }
 
-uint64_t receive(struct Message* msg)
+uint64_t receive(enum ServerType src, struct Message* msg)
 {
     msg->type = Receive;      
+    msg->src = src;
     return taskcall(msg);
 }
 
-uint64_t send(struct Message *msg)
+uint64_t send(enum ServerType dest, struct Message *msg)
 {
     msg->type = Send;
+    msg->dest = dest;
     return taskcall(msg);
 }

@@ -53,5 +53,6 @@ extern void start_task(void);
 extern bool init_syscall(void);
 
 
+extern void panic(char *text);
 #define BOOT_MODULES_NUM ServerNum
 

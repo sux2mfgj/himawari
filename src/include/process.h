@@ -28,8 +28,9 @@ struct task_struct
 
     struct trap_frame_struct context;
 
-    struct Message msg_buf;
-    struct Message *msg_addr;
+    //struct Message msg_buf;
+    //struct Message *msg_addr;
+    struct MessageInfo msg_info;
 
     struct linked_list active_list;
     struct linked_list suspend_list;

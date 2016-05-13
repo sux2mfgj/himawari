@@ -20,8 +20,14 @@ struct linked_list* enqueue(struct linked_list* head, struct linked_list* new)
     {
         return NULL;
     }
-    head->prev->next = new;
+
+    struct linked_list* head_prev = head->prev;
+
+    head_prev->next = new;
+    new->prev = head_prev;
+
     new->next = head;
+    head->prev = new;
 
     return head;
 }

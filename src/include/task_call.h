@@ -21,13 +21,27 @@ struct Content {
     uint64_t num;
 };
 
+enum TaskCallType {
+    Regist = 0,
+    Initialize = 1,
+};
+
 struct Message {
-    enum ServerType source;
-    enum ServerType dest;
+    union {
+        enum ServerType dest;
+        enum ServerType src;
+    };
+    enum TaskCallType number;
     enum MessageType type;
     struct Content content;
 };
 
-extern uint64_t receive(struct Message *msg);
-extern uint64_t send(struct Message *msg);
+struct MessageInfo {
+    struct Message buf;
+    enum ServerType self;
+    struct Message* addr;
+};
+
+extern uint64_t receive(enum ServerType src, struct Message *msg);
+extern uint64_t send(enum ServerType dest, struct Message *msg);
 

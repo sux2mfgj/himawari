@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stddef.h>
+
 #define align(x, a) __align_mask(x, (typeof(x))(a)-1)
 #define __align_mask(x,mask) (((x)+(mask))&~(mask))
 

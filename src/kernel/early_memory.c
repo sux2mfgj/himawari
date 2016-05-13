@@ -10,9 +10,6 @@ uintptr_t allocate_base_addr = 0;
 bool is_enable = false;
 
 bool init_early_memory_allocator(struct memory_info *m_info)
-/* bool init_early_memory_allocator(uintptr_t kernel_end_addr,  */
-/*         uintptr_t available_end, */
-/*         uintptr_t* kernel_end_include_heap) */
 {
     uintptr_t round_kernel_end = round_up(m_info->kernel_end, PAGE_SIZE);
     uintptr_t round_available_end =
