@@ -6,6 +6,7 @@
 #include <string.h>
 #include <util.h>
 #include <elf.h>
+#include <task_call.h>
 
 static uint64_t *setup_entry()
 {
@@ -19,11 +20,36 @@ static uint64_t *setup_entry()
                                     PAGE_READ_WRITE | PAGE_USER_SUPER);
 }
 
+struct servers server_info[ServerNum] = {
+    {
+        .name = "memory",
+        .task_struct = NULL,
+    },
+};
+
+char server_names[ServerNum][MODULE_NAME_SIZE] = {
+    "memory",
+};
+
 bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
                           char *name)
 {
     // should be clear set
     memcpy(task->name, name, 32);
+
+    for(int i=0; i< ServerNum; ++i)
+    {
+
+        if(!strcmp(server_info[i].name, name)) 
+        {
+            task->msg_info.self = i;
+            server_info[i].task_struct = task;
+            goto find_name;    
+        }
+    }
+    return false;
+
+find_name: 
     task->pml4 = create_pml4();
     if (task->pml4 == 0)
     {
@@ -182,3 +208,5 @@ bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
 
     return true;
 }
+
+

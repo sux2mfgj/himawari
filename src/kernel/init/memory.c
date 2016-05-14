@@ -1,7 +1,8 @@
 #include <system.h>
 #include <string.h>
 #include <early_memory.h>
-
+#include <x86_64.h>
+#include <process.h>
 
 //  1, receive message for initialize from memory server.
 //      (in system task)
@@ -10,7 +11,7 @@
 //  2, copy bitmap to memory server space.
 //      
 //  3, notify server of completion that is copy bitmap.
-//  the message should contain new bitmap size
+//  the message should contain new bitmap size(byte)
 //      (by send message)
 bool memory_server_init(struct Message* msg)
 {
@@ -24,18 +25,18 @@ bool memory_server_init(struct Message* msg)
         return false;
     }
 
+    load_cr3(server_info[Memory].task_struct->pml4);
     memcpy((void *)dest_base_addr, (void *)bitmap, bitmap_size);
 
     struct Message send_msg = {
         .number = Initialize,
         .content = {
-            .address = 0,
+            .address = dest_base_addr,
             .num = early_mem_bitmap_size,
         },
     };
 
-    uint64_t res = send(System, &send_msg);
+    uint64_t res = send(Memory, &send_msg);
 
     return true;
 }
-

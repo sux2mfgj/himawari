@@ -11,7 +11,8 @@
 #include <stdbool.h>
 
 //TODO delete below variable
-struct task_struct startup_processes[5];
+#define startup_processes_num 5
+struct task_struct startup_processes[startup_processes_num];
 
 void panic(char *text)
 {
@@ -167,7 +168,6 @@ void start_kernel(uintptr_t bootinfo_addr)
 
     for (int i = 0, j = 0; i < BOOT_MODULES_NUM; ++i, ++j)
     {
-
         for (; j < PAGE_INFO_MAX; ++j)
         {
             if (m_info.pages_info[j].type == MEMORY_MODULE)

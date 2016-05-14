@@ -43,8 +43,17 @@ struct task_struct
     // pid, etc...
 };
 
+struct servers {
+    char name[MODULE_NAME_SIZE];
+    struct task_struct* task_struct;
+};
+extern struct servers server_info[ServerNum];
+
 extern void schedule(struct trap_frame_struct *trap_frame);
 extern void context_switch(struct task_struct *prev, struct task_struct *next,
                            struct trap_frame_struct *trap_frame);
 
+extern char server_names[ServerNum][MODULE_NAME_SIZE];
 extern void irq_eoi(void);
+
+

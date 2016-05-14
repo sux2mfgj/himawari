@@ -43,19 +43,8 @@ void system_task(void)
 
         switch(msg.number)
         {
-            case Regist:
-                if(msg.content.num >= ServerNum || regist_server_list[msg.content.num])
-                {
-                    //TODO error
-                    panic("this server number is invalid");
-                    break;
-                }
-                regist_server_list[msg.content.num] = true;
-                current_task->msg_info.self = msg.content.num;
-                break;
-
             case Initialize: 
-                //res_bool = (*init_task_table[msg.src])(&msg);
+                res_bool = (*init_task_table[msg.src])(&msg);
                 if(!res_bool)
                 {
                     

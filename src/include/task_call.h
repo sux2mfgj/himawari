@@ -22,8 +22,7 @@ struct Content {
 };
 
 enum TaskCallType {
-    Regist = 0,
-    Initialize = 1,
+    Initialize = 0,
 };
 
 struct Message {

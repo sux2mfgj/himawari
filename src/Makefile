@@ -26,5 +26,5 @@ clean:
 		(cd $$dir; $(MAKE) clean;)\
 	done
 
-#	cd $(SERVER); $(MAKE) clean
+	cd $(SERVER); $(MAKE) clean
 	cd boot/; $(MAKE) clean
