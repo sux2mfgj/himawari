@@ -176,14 +176,16 @@ enqueue_suspend:
     // list have not task 
     if (suspend_head == NULL)
     {
-        list_init(&current_task->suspend_list);
-        suspend_head = &current_task->suspend_list;
+        suspend_head = list_init(&prev->suspend_list);
+        //suspend_head = &current_task->suspend_list;
 
-        goto c_switch;
+    }
+    else {
+
+        // some tasks
+        enqueue(suspend_head, &current_task->suspend_list);
     }
 
-    // some tasks
-    enqueue(suspend_head, &current_task->suspend_list);
 
 c_switch:
 
@@ -220,14 +222,14 @@ void suspend_task(struct trap_frame_struct *t_frame, struct Message* msg)
         current_task->msg_info.addr = msg;
     }
 
-    if (suspend_head == NULL)
-    {
-        suspend_head = list_init(&current_task->suspend_list);
-    }
-    else
-    {
-        enqueue(suspend_head, &current_task->suspend_list);
-    }
+/*     if (suspend_head == NULL) */
+/*     { */
+/*         suspend_head = list_init(&current_task->suspend_list); */
+/*     } */
+/*     else */
+/*     { */
+/*         enqueue(suspend_head, &current_task->suspend_list); */
+/*     } */
 
     sleep_current_task(t_frame);
 }

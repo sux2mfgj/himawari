@@ -1,7 +1,7 @@
 ENTRY(entry)
 
 
-       
+
 
 SECTIONS
 {

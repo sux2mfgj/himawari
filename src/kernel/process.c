@@ -60,7 +60,7 @@ bool setup_server_process(uintptr_t elf_header, struct task_struct *task,
         int pdpt_index   = load_v_addr >> 30 & 0x1ff; // 1G 0b100000000 512
         int pd_index     = load_v_addr >> 21 & 0x1ff; // 2M
         int pt_index     = load_v_addr >> 12 & 0x1ff; // 4K
-        int pt_entry_num = size + ((1 << 12) - 1) >> 12;
+        int pt_entry_num = (size + ((1 << 12) - 1)) >> 12;
 
         if ((uint64_t *)task->pml4[pml4_index] == NULL)
         {

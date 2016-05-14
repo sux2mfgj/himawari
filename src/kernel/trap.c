@@ -48,25 +48,6 @@ static char *fault_list[] = {
 
 void trap(struct trap_frame_struct *trap_frame)
 {
-    {
-        char buf[32];
-        puts("trap_number: ");
-        if (trap_frame->trap_number < 20)
-        {
-            puts(fault_list[trap_frame->trap_number]);
-        }
-        /*         else */
-        /*         { */
-        /*             puts("user definition handler: 0x"); */
-        /*             itoa(trap_frame->trap_number, buf, 16); */
-        /*             puts(buf); */
-        /*         } */
-        puts(", 0x");
-        itoa(trap_frame->ret_rip, buf, 16);
-        puts(buf);
-        puts("\n");
-    }
-
     switch (trap_frame->trap_number)
     {
         case IDT_ENTRY_PIC_TIMER:

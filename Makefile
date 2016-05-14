@@ -12,7 +12,7 @@ ISO			:= himawari.iso
 
 #export RUSTC := $(shell pwd)/rust/bin/rustc
 #export CARGO := $(shell pwd)/rust/bin/cargo
-#export CC	:= clang
+export CC	:= clang
 GDB			:= ./gdb
 #  CC			:= gcc
 export LD 	:= ld

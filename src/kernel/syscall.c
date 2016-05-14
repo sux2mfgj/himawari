@@ -1,11 +1,11 @@
-#include <init.h>
 #include <descriptor.h>
-#include <trap.h>
-#include <segment.h>
-#include <task_call.h>
+#include <init.h>
 #include <kernel.h>
 #include <schedule.h>
+#include <segment.h>
 #include <string.h>
+#include <task_call.h>
+#include <trap.h>
 #include <x86_64.h>
 
 #include <schedule.h>
@@ -32,6 +32,11 @@ static void mp_core(enum MessageType type, struct task_struct *t,
 
             memcpy(&t->msg_info.addr->content, &msg->content,
                    sizeof(struct Content));
+            memcpy(&t->msg_info.addr->src, &current_task->msg_info.self,
+                   sizeof(enum ServerType));
+            memcpy(&t->msg_info.addr->number, &msg->number,
+                   sizeof(enum TaskCallType));
+
             is_head = true;
             break;
         }
@@ -39,8 +44,12 @@ static void mp_core(enum MessageType type, struct task_struct *t,
         {
             memcpy(&msg->content, &t->msg_info.buf.content,
                    sizeof(struct Content));
+            memcpy(&msg->src, &t->msg_info.self, sizeof(enum ServerType));
+
+            memcpy(&msg->number, &t->msg_info.buf.number,
+                   sizeof(enum TaskCallType));
+            break;
         }
-        break;
 
         default:
             while (true)
@@ -110,7 +119,7 @@ static void message_passing(struct Message *msg,
                 }
 
                 // check receive msg
-                if(msg->dest != Any && msg->dest != c_task->msg_info.self)
+                if (msg->dest != Any && msg->dest != c_task->msg_info.self)
                 {
                     continue;
                 }
@@ -119,7 +128,7 @@ static void message_passing(struct Message *msg,
                 return;
             }
             default:
-                //TODO error 
+                // TODO error
                 while (true)
                 {
                 }
@@ -185,7 +194,7 @@ failed:
 bool init_syscall(void)
 {
     bool state = true;
-    state = init_task_call();
+    state      = init_task_call();
     if (!state)
     {
         return false;
