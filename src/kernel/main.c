@@ -26,6 +26,7 @@ bool parse_bootinfo(uintptr_t bootinfo_addr, struct memory_info *m_info)
 {
     struct multiboot_tag *tag;
     int page_info_index = 0;
+    m_info->available_end = 0;
     do
     {
         tag = (struct multiboot_tag *)(bootinfo_addr + 8);

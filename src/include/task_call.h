@@ -17,8 +17,16 @@ enum MessageType {
 };
 
 struct Content {
-    uint64_t address;
-    uint64_t num;
+    union {
+        struct {
+            uintptr_t address;
+            uint64_t num;
+        };
+        struct {
+            uintptr_t start_address;
+            uintptr_t end_address;
+        };
+    };
 };
 
 enum TaskCallType {

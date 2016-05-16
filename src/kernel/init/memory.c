@@ -11,7 +11,7 @@
 //  2, copy bitmap to memory server space.
 //      
 //  3, notify server of completion that is copy bitmap.
-//  the message should contain new bitmap size(byte)
+//  and send address after bitmap memory address, memory size;
 //      (by send message)
 bool memory_server_init(struct Message* msg)
 {
@@ -31,8 +31,8 @@ bool memory_server_init(struct Message* msg)
     struct Message send_msg = {
         .number = Initialize,
         .content = {
-            .address = dest_base_addr,
-            .num = early_mem_bitmap_size,
+            .start_address = EARLY_MEMORY_SIZE,
+            .end_address = available_end,
         },
     };
 

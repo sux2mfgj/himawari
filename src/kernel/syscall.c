@@ -119,7 +119,7 @@ static void message_passing(struct Message *msg,
                 }
 
                 // check receive msg
-                if (msg->dest != Any && msg->dest != c_task->msg_info.self)
+                if (msg->dest != Any && msg->dest != t->msg_info.self)
                 {
                     continue;
                 }
