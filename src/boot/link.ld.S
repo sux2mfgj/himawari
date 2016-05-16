@@ -6,6 +6,7 @@ ENTRY(entry)
 SECTIONS
 {
 
+    _kernel_start = .;
     . = PHYSICAL_START;
     .boot :
     {
@@ -13,7 +14,6 @@ SECTIONS
     }
 
     . += START_KERNEL_MAP;
-    _kernel_start = .;
     .text : AT(ADDR(.text) - START_KERNEL_MAP)
     {
         *(.text)

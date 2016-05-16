@@ -1,5 +1,5 @@
 #pragma once
 
-#define STACK_SIZE 0x1000
+#define STACK_SIZE 0x2000
 
 

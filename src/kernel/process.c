@@ -67,7 +67,8 @@ find_name:
     {
         uint64_t offset       = p_header[i].p_offset;
         uintptr_t load_v_addr = p_header[i].p_vaddr;
-        int size              = p_header[i].p_memsz;
+        int mem_size              = p_header[i].p_memsz;
+        int file_size           = p_header[i].p_filesz;
 
         switch (p_header[i].p_type)
         {
@@ -77,7 +78,7 @@ find_name:
                 continue;
         }
 
-        if (size == 0)
+        if (mem_size == 0)
         {
             continue;
         }
@@ -86,7 +87,7 @@ find_name:
         int pdpt_index   = load_v_addr >> 30 & 0x1ff; // 1G 0b100000000 512
         int pd_index     = load_v_addr >> 21 & 0x1ff; // 2M
         int pt_index     = load_v_addr >> 12 & 0x1ff; // 4K
-        int pt_entry_num = (size + ((1 << 12) - 1)) >> 12;
+        int pt_entry_num = (mem_size + ((1 << 12) - 1)) >> 12;
 
         if ((uint64_t *)task->pml4[pml4_index] == NULL)
         {
@@ -125,18 +126,22 @@ find_name:
             {
                 uint64_t *entry  = setup_entry();
                 pt[pt_index + j] = entry;
-                // TODO
-                // copy elf segment
 
                 int pt_size = 0x1000;
 
-                if (size > 0x1000)
+                if(file_size == 0)
                 {
-                    size -= 0x1000;
+                    continue;
+                }
+
+                if (file_size > 0x1000)
+                {
+                    file_size -= 0x1000;
                 }
                 else
                 {
-                    pt_size = size;
+                    pt_size = file_size;
+                    file_size = 0;
                 }
 
                 uintptr_t load_dest_addr = ((uintptr_t)entry & (~0xfffUL)) +
@@ -208,5 +213,3 @@ find_name:
 
     return true;
 }
-
-

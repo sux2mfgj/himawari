@@ -1,7 +1,8 @@
 #pragma once
 
 
-#define PHYSICAL_START      0x0000000001000000
+//#define PHYSICAL_START      0x0000000001000000
+#define PHYSICAL_START      0x0000000000100000 // 1MB ~ 0x00F00000
 #define PAGE_OFFSET         0xffff810000000000
 #define START_KERNEL_MAP    0xffffffff80000000
 //#define START_KERNEL_MAP    0xffff800000000000
@@ -42,7 +43,7 @@ struct memory_info {
     uintptr_t available_end;
     uintptr_t kernel_end;
     uintptr_t kernel_start;
-    uintptr_t kernel_end_include_heap;
+//    uintptr_t kernel_end_include_heap;
 };
 
 extern uint64_t create_entry(uintptr_t physical_addr, uint64_t flags);

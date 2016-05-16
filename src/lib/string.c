@@ -34,6 +34,17 @@ int strcmp(const char* s1, const char *s2)
     return 0;
 }
 
+char* strcpy(char *s1, const char *s2)
+{
+    char* p = s1;
+    int f;
+    do{
+        f = (*s1++ = *s2++);
+    }
+    while(f);
+    return p;
+}
+
 bool itoa(uint64_t num, char *buf, const uint64_t decimal)
 {
     const int size = 32;

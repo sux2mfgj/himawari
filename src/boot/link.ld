@@ -6,14 +6,14 @@ ENTRY(entry)
 SECTIONS
 {
 
-    . = 0x0000000001000000;
+    _kernel_start = .;
+    . = 0x0000000000100000;
     .boot :
     {
         *(.boot)
     }
 
     . += 0xffffffff80000000;
-    _kernel_start = .;
     .text : AT(ADDR(.text) - 0xffffffff80000000)
     {
         *(.text)

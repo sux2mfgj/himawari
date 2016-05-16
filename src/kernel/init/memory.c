@@ -18,7 +18,7 @@ bool memory_server_init(struct Message* msg)
 
     uintptr_t dest_base_addr = msg->content.address;
     int size = msg->content.num; 
-    int early_mem_bitmap_size = (bitmap_size * sizeof(uint64_t));
+    int early_mem_bitmap_size = (BITMAP_ENTRY_NUM * sizeof(uint64_t));
 
     if(size < early_mem_bitmap_size)
     {
@@ -26,7 +26,7 @@ bool memory_server_init(struct Message* msg)
     }
 
     load_cr3(server_info[Memory].task_struct->pml4);
-    memcpy((void *)dest_base_addr, (void *)bitmap, bitmap_size);
+    memcpy((void *)dest_base_addr, (void *)bitmap, BITMAP_ENTRY_NUM * sizeof(uint64_t));
 
     struct Message send_msg = {
         .number = Initialize,

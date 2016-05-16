@@ -136,7 +136,7 @@ void start_kernel(uintptr_t bootinfo_addr)
         panic("init_early_memory_allocator");
     }
 
-    status = init_pagetable(m_info.kernel_end_include_heap);
+    status = init_pagetable(round_up(m_info.kernel_end - START_KERNEL_MAP, PAGE_SIZE));
     if (!status)
     {
         panic("init_pagetable");
