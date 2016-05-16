@@ -1,0 +1,21 @@
+
+
+system task
+===
+- Initialize
+    * memory server 
+
+        mem ->      system
+            Initialize
+                with bitmap address
+        system
+            copy bitmap(data of 0 ~ 16MB)
+
+        system ->   mem
+            Initialize
+                with usable memory end address
+
+    * process server
+
+
+
