@@ -65,4 +65,4 @@ $(OVMF):
 
 .PHONY: clean
 clean:
-	rm -rf fs *.o *.so
+	rm -rf fs *.o *.so OVMF
