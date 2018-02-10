@@ -50,7 +50,7 @@ $(BOOT_EFI): $(TMP_SO) $(EFI_BOOT)
 $(TMP_SO): $(OBJS) $(CRT0_EFI)
 	$(LD) $^ $(LDFLAGS) -o $@
 
-boot: $(BOOT_EFI) #$(OVMF)
+boot: $(BOOT_EFI) $(OVMF)
 	$(QEMU) $(QEMUFLAGS)
 
 $(EFI_BOOT):
