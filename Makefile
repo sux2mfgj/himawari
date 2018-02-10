@@ -1,8 +1,3 @@
-
-BOOT	:= src/boot/BOOTX64.efi
-KERNEL 	:= src/kernel/kernel.elf
-TARGET 	:= $(BOOT) $(KERNEL)
-
 ARCH	:= x86_64
 
 CC		:= clang
@@ -10,51 +5,64 @@ LD		:= ld
 OBJCOPY	:= objcopy
 
 CFLAGS	:= -Wall -ggdb3 -fpic -std=c11
-EFI_CFLAGS	:= -fno-stack-protector -fshort-wchar -mno-red-zone -DEFI_FUNCTION_WRAPER $(CFLAGS)
 
 QEMU	:= qemu-system-x86_64
 
-OVMF	:= OVMF.fd
+OVMF	:= OVMF/OVMF.fd
+# OVMF	:= /usr/shared/ovmf/x64/OVMF_CODE.fd
 
 LIB_PATH	:= /usr/lib
 EFI_PATH	:= /usr/include/efi
 EFI_INCLUDES := -I $(EFI_PATH) -I $(EFI_PATH)/$(ARCH)
+EFI_CFLAGS	:= -fno-stack-protector -fshort-wchar -mno-red-zone -DEFI_FUNCTION_WRAPER $(EFI_INCLUDES)
 EFI_LDS		:= $(LIB_PATH)/elf_x86_64_efi.lds
 CRT0_EFI	:= $(LIB_PATH)/crt0-efi-x86_64.o
 
-HDA		:= run/hda-contents
+LDFLAGS	:= -nostdlib -znocombreloc -T $(EFI_LDS) -shared -Bsymbolic -L $(LIB_PATH) -l:libgnuefi.a -l:libefi.a
+
+HDA		:= fs
 EFI_BOOT:= $(HDA)/EFI/BOOT/
+BOOT_EFI:= $(EFI_BOOT)/BOOTX64.EFI
 
-QEMUFLAGS	:= -L ./run -bios $(OVMF) -hda fat:$(HDA) -m 64M
+QEMUFLAGS	:= -bios $(OVMF) -hda fat:$(HDA) -m 64M
+OBJS	:= BOOTX64.o
+TMP_SO	:= BOOTX64.so
 
-.PHONY:all
-all: $(TARGET)
+.PHONY: build
+build: $(BOOT_EFI)
+$(BOOT_EFI): $(TMP_SO) $(EFI_BOOT)
+	$(OBJCOPY) \
+		-j .text                \
+		-j .sdata               \
+		-j .data                \
+		-j .dynamic             \
+		-j .dynsym              \
+		-j .rel                 \
+		-j .rela                \
+		-j .reloc               \
+		--target=efi-app-x86_64 \
+		$< $@
 
-.PHONY:run
-run: run/$(OVMF) $(TARGET) $(EFI_BOOT) Makefile
-	cp $(BOOT) $(EFI_BOOT)
+.SUFFIXES: .c.o
+.c.o:
+	$(CC) $(CFLAGS) $(EFI_CFLAGS) -c -o $@ $<
+
+$(TMP_SO): $(OBJS) $(CRT0_EFI)
+	$(LD) $^ $(LDFLAGS) -o $@
+
+boot: $(BOOT_EFI) #$(OVMF)
 	$(QEMU) $(QEMUFLAGS)
 
-debug: run/$(OVMF) $(TARGET) $(EFI_BOOT) Makefile
-	cp $(BOOT) $(EFI_BOOT)
-	$(QEMU) $(QEMUFLAGS) -gdb tcp::9999 -S
-
-.PHONY:$(TARGET)
-$(TARGET):
-	cd src/boot; $(MAKE)
-	cd src/kernel; $(MAKE)
-
 $(EFI_BOOT):
-	mkdir -p $(HDA)/EFI/BOOT
+	mkdir -p $@
 
-run/$(OVMF):
-	mkdir -p run
-	wget https://sourceforge.net/projects/edk2/files/OVMF/OVMF-X64-r15214.zip 
-	unzip OVMF-X64-r15214.zip OVMF.fd
-	mv OVMF.fd $@
+.PHONY: ovmf
+ovmf: $(OVMF)
+$(OVMF):
+	mkdir -p OVMF
+	wget https://sourceforge.net/projects/edk2/files/OVMF/OVMF-X64-r15214.zip -O OVMF/OVMF.zip
+	cd OVMF && unzip OVMF.zip OVMF.fd
 
+.PHONY: clean
 clean:
-	cd src/kernel; $(MAKE) clean
-	cd src/boot; $(MAKE) clean
-
-export CC LD CFLAGS EFI_CFLAGS LIB_PATH EFI_PATH EFI_INCLUDES ARCH EFI_LDS CRT0_EFI OBJCOPY 
+	rm -rf fs *.o *.so
