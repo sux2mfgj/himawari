@@ -24,7 +24,7 @@ HDA		:= fs
 EFI_BOOT:= $(HDA)/EFI/BOOT/
 BOOT_EFI:= $(EFI_BOOT)/BOOTX64.EFI
 
-QEMUFLAGS	:= -bios $(OVMF) -hda fat:$(HDA) -m 64M
+QEMUFLAGS	:= -bios $(OVMF) -hda fat:$(HDA) #-m 64M
 OBJS	:= BOOTX64.o
 TMP_SO	:= BOOTX64.so
 
