@@ -54,6 +54,7 @@ run/$(OVMF):
 	mv OVMF.fd $@
 
 clean:
+	rm -rf run
 	cd src/kernel; $(MAKE) clean
 	cd src/boot; $(MAKE) clean
 
