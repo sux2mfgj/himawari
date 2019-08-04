@@ -25,7 +25,7 @@ CRT0_EFI	:= $(LIB_PATH)/crt0-efi-x86_64.o
 HDA		:= run/hda-contents
 EFI_BOOT:= $(HDA)/EFI/BOOT/
 
-QEMUFLAGS	:= -L ./run -bios $(OVMF) -hda fat:$(HDA) -m 64M
+QEMUFLAGS	:= -L ./run -bios $(OVMF) -hda fat:rw:$(HDA) -m 64M
 
 .PHONY:all
 all: $(TARGET)
