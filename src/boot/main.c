@@ -86,14 +86,14 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable) {
 
 
 /*         status = simpleFile->OpenVoleme(simpleFile, &root); */
-        status = uefi_call_wrapper(simpleFile->OpenVoleme, 2, simpleFile, &root);
+        status = uefi_call_wrapper(simpleFile->OpenVolume, 2, simpleFile, &root);
         if(EFI_ERROR(status)) {
             Print(L"%r", status);
             while(1){}
         }
 
         // If you initialize memory_map by NULL, GetMemoryMap function return INVALID_PARAMETER.
-        EFI_MEMORY_DESCRIPTOR* memory_map;
+        EFI_MEMORY_DESCRIPTOR* memory_map = NULL;
         uintmax_t memory_map_size, map_key;
 
         status = get_memory_map(memory_map, &memory_map_size, &map_key);
