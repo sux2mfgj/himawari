@@ -58,7 +58,8 @@ retry:
 
 EFI_STATUS
 EFIAPI
-efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable) {
+efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable)
+{
     {
         EFI_DEVICE_PATH* Path;
         EFI_LOADED_IMAGE* LoadedImageParent;
@@ -70,30 +71,32 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable) {
         Print(L"Hello, EFI!\n");
         Print(L"boot loader 0x%08x\n", ImageHandle);
 
-
-        EFI_SIMPLE_FILE_SYSTEM_PROTOCOL  *simpleFile;
-        EFI_FILE_PROTOCOL                *root;
-        EFI_FILE_PROTOCOL                *file;
+        EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* simpleFile;
+        EFI_FILE_PROTOCOL* root;
+        EFI_FILE_PROTOCOL* file;
         EFI_GUID guid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
         EFI_HANDLE* handles = NULL;
         uintmax_t handleCount = 0;
 
-        status = uefi_call_wrapper(BS->LocateProtocol, 3, &guid, NULL, (void **)&simpleFile);
-        if(EFI_ERROR(status)) {
+        status = uefi_call_wrapper(BS->LocateProtocol, 3, &guid, NULL,
+                                   (void**)&simpleFile);
+        if (EFI_ERROR(status)) {
             Print(L"%r", status);
-            while(1){}
+            while (1) {
+            }
         }
 
-
-/*         status = simpleFile->OpenVoleme(simpleFile, &root); */
-        status = uefi_call_wrapper(simpleFile->OpenVolume, 2, simpleFile, &root);
-        if(EFI_ERROR(status)) {
+        status =
+            uefi_call_wrapper(simpleFile->OpenVolume, 2, simpleFile, &root);
+        if (EFI_ERROR(status)) {
             Print(L"%r", status);
-            while(1){}
+            while (1) {
+            }
         }
 
-        // If you initialize memory_map by NULL, GetMemoryMap function return INVALID_PARAMETER.
-        EFI_MEMORY_DESCRIPTOR* memory_map = NULL;
+        // If you initialize memory_map by NULL, GetMemoryMap function return
+        // INVALID_PARAMETER.
+        EFI_MEMORY_DESCRIPTOR* memory_map;
         uintmax_t memory_map_size, map_key;
 
         status = get_memory_map(memory_map, &memory_map_size, &map_key);
@@ -104,11 +107,12 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable) {
             return status;
         }
 
-/*         status = */
-/*             uefi_call_wrapper(BS->ExitBootServices, 2, ImageHandle, map_key); */
-/*         if (EFI_ERROR(status)) { */
-/*             return status; */
-/*         } */
+        /*         status = */
+        /*             uefi_call_wrapper(BS->ExitBootServices, 2, ImageHandle,
+         * map_key); */
+        /*         if (EFI_ERROR(status)) { */
+        /*             return status; */
+        /*         } */
 
         /*
         uintptr_t max_addr = 0x0;
@@ -125,13 +129,14 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable) {
                 case EfiConventionalMemory:
                     if (memory_map[i].Attribute & EFI_MEMORY_WB) {
                         Print(L"1");
-                        Print(L"0x%08x, %d\n", 
+                        Print(L"0x%08x, %d\n",
                                 memory_map[i].PhysicalStart,
                                 memory_map[i].NumberOfPages);
                         if(max_addr < memory_map[i].PhysicalStart) {
-                            Print(L"%d, %d\n", max_addr, memory_map[i].PhysicalStart);
-                            Print(L"1 max_addr 0x%08x, 0x%08x\n", max_addr, memory_map[i].PhysicalStart);
-                            max_addr = memory_map[i].PhysicalStart;
+                            Print(L"%d, %d\n", max_addr,
+        memory_map[i].PhysicalStart); Print(L"1 max_addr 0x%08x, 0x%08x\n",
+        max_addr, memory_map[i].PhysicalStart); max_addr =
+        memory_map[i].PhysicalStart;
                         }
 
                     }
@@ -148,17 +153,17 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable) {
                 //                            break;
                 default:
                     if(max_addr < memory_map[i].PhysicalStart) {
-                        Print(L"%d < %d: %d\n", 
+                        Print(L"%d < %d: %d\n",
                                 max_addr,
                                 memory_map[i].PhysicalStart,
                                 (max_addr < memory_map[i].PhysicalStart));
 
-                        Print(L"1 max_addr 0x%08x, 0x%08x\n", max_addr, memory_map[i].PhysicalStart);
-                        max_addr = memory_map[i].PhysicalStart;
+                        Print(L"1 max_addr 0x%08x, 0x%08x\n", max_addr,
+        memory_map[i].PhysicalStart); max_addr = memory_map[i].PhysicalStart;
                     }
                     break;
             }
-        } 
+        }
 */
 
         /*

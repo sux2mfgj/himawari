@@ -25,7 +25,8 @@ CRT0_EFI	:= $(LIB_PATH)/crt0-efi-x86_64.o
 HDA		:= run/hda-contents
 EFI_BOOT:= $(HDA)/EFI/BOOT/
 
-QEMUFLAGS	:= -L ./run -bios $(OVMF) -hda fat:rw:$(HDA) -m 64M
+RAM_SIZE	:= 64m
+QEMUFLAGS	:= -L ./run -bios $(OVMF) -hda fat:rw:$(HDA) -m $(RAM_SIZE)
 
 .PHONY:all
 all: $(TARGET)
@@ -47,15 +48,17 @@ $(TARGET):
 $(EFI_BOOT):
 	mkdir -p $(HDA)/EFI/BOOT
 
-run/$(OVMF):
+run/$(OVMF): $(OVMF)
 	mkdir -p run
-	wget https://sourceforge.net/projects/edk2/files/OVMF/OVMF-X64-r15214.zip 
+	cp OVMF.fd $@
+
+$(OVMF):
+	wget https://sourceforge.net/projects/edk2/files/OVMF/OVMF-X64-r15214.zip
 	unzip OVMF-X64-r15214.zip OVMF.fd
-	mv OVMF.fd $@
 
 clean:
-	rm -rf run
+	rm -rf run *.zip $(OVMF)
 	cd src/kernel; $(MAKE) clean
 	cd src/boot; $(MAKE) clean
 
-export CC LD CFLAGS EFI_CFLAGS LIB_PATH EFI_PATH EFI_INCLUDES ARCH EFI_LDS CRT0_EFI OBJCOPY 
+export CC LD CFLAGS EFI_CFLAGS LIB_PATH EFI_PATH EFI_INCLUDES ARCH EFI_LDS CRT0_EFI OBJCOPY

@@ -5,7 +5,7 @@ ENTRY(start_kernel)
 
 SECTIONS
 {
-    . = KERNEL_VIRTUAL_BASE; 
+    . = KERNEL_VIRTUAL_BASE;
 
     .text : AT(ADDR(.text) - KERNEL_VIRTUAL_BASE)
     {

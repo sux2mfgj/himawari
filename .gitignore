@@ -1,5 +1,5 @@
 *.efi
 *.o
 *.so
-OVMF-*
+OVMF*
 run
