@@ -33,6 +33,7 @@ all: $(TARGET)
 
 .PHONY:run
 run: run/$(OVMF) $(TARGET) $(EFI_BOOT) Makefile
+	cp $(KERNEL) $(EFI_BOOT)
 	cp $(BOOT) $(EFI_BOOT)
 	$(QEMU) $(QEMUFLAGS)
 

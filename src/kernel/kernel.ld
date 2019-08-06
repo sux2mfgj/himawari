@@ -1,4 +1,4 @@
-ENTRY(start_kernel)
+ENTRY(entry_64)
 
 
 

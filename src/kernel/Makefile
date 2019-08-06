@@ -2,7 +2,7 @@ TARGET	:= kernel.elf
 
 MEMMAP	:= memory.map
 
-INIT	:= main.o 
+INIT	:= entry.o main.o
 INIT_OBJS	:= $(foreach file, $(INIT), init/$(file))
 
 LD_SCRIPT	:= kernel.ld
@@ -14,12 +14,16 @@ INCLUDE	:= -I../include
 CFLAGS += $(INCLUDE)
 
 OBJS	:= $(INIT_OBJS)
-MAIN_SO	:= main.so 
+MAIN_SO	:= main.so
 
 all: $(TARGET)
 
 .SUFFIXES: .c.o
 %.o: %.c Makefile
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+.SUFFIXES: .s.o
+%o: %.s
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(TARGET): $(OBJS) $(LD_SCRIPT) Makefile
