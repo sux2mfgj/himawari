@@ -9,7 +9,7 @@ CC		:= clang
 LD		:= ld
 OBJCOPY	:= objcopy
 
-CFLAGS	:= -Wall -ggdb3 -fpic -std=c11
+CFLAGS	:= -Wall -ggdb3 -std=c11
 EFI_CFLAGS	:= -fno-stack-protector -fshort-wchar -mno-red-zone -DEFI_FUNCTION_WRAPER $(CFLAGS)
 
 QEMU	:= qemu-system-x86_64

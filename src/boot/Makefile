@@ -6,8 +6,8 @@ MEMMAP	:= memory.map
 EFI_CFLAGS += $(INCLUDE)
 #  CFLAGS += $(INCLUDE)
 
-OBJS	:= main.o
-MAIN_SO	:= main.so 
+OBJS	:= main.o ../libs/elf.o
+MAIN_SO	:= main.so
 
 all: $(TARGET)
 

@@ -1,6 +1,8 @@
 #include <efi.h>
 #include <efilib.h>
 
+#include "elf.h"
+
 CHAR16* convery_type_into_string(EFI_MEMORY_TYPE type)
 {
     switch (type) {
@@ -37,6 +39,23 @@ CHAR16* convery_type_into_string(EFI_MEMORY_TYPE type)
         default:
             return L"Unknown                ";
     }
+}
+
+EFI_STATUS relocate_kernel_elf(EFI_PHYSICAL_ADDRESS temporary_loaded_address)
+{
+    EFI_STATUS status = EFI_SUCCESS;
+
+    Elf64_Ehdr *efi_ptr = temporary_loaded_address;
+    Print(L"%x %x %x %x\n",
+            efi_ptr->e_ident[EI_MAG0],
+            efi_ptr->e_ident[EI_MAG1],
+            efi_ptr->e_ident[EI_MAG2],
+            efi_ptr->e_ident[EI_MAG3]);
+
+    Print(L"file class  %x\n", efi_ptr->e_ident[4]);
+    Print(L"data encode %x\n", efi_ptr->e_ident[5]);
+    Print(L"version     %x\n", efi_ptr->e_ident[6]);
+    Print(L"OS ABI      %x\n", efi_ptr->e_ident[7]);
 }
 
 EFI_STATUS
@@ -106,10 +125,17 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable)
     }
     Print(L"temporary page address 0x08%x\n", tmp_page_address);
 
-    status = uefi_call_wrapper(File->Read, 3, File, &enough_page_size, tmp_page_address);
+    status = uefi_call_wrapper(File->Read, 3, File, &file_size, (void *)tmp_page_address);
     if(EFI_ERROR(status))
     {
         Print(L"Read %r\n", status);
+        return status;
+    }
+
+    status = relocate_kernel_elf(tmp_page_address);
+    if(EFI_ERROR(status))
+    {
+        Print(L"relocation %r\n", status);
         return status;
     }
 
@@ -141,11 +167,11 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable)
     for (int i = 0; i < descriptor_count; ++i) {
         memory_descriptor_ptr =
             (EFI_MEMORY_DESCRIPTOR*)(memory_map_buffer + (i * descriptor_size));
-        Print(L"type: %s, phy start 0x%08x, pages %d\n",
-                convery_type_into_string(memory_descriptor_ptr->Type),
-                memory_descriptor_ptr->PhysicalStart,
-                memory_descriptor_ptr->NumberOfPages
-                );
+        //Print(L"type: %s, phy start 0x%08x, pages %d\n",
+        //        convery_type_into_string(memory_descriptor_ptr->Type),
+        //        memory_descriptor_ptr->PhysicalStart,
+        //        memory_descriptor_ptr->NumberOfPages
+        //        );
     }
 
     FreePool(memory_map_buffer);
