@@ -72,6 +72,47 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable)
         return status;
     }
 
+    UINTN file_info_buffer_size = sizeof(EFI_FILE_INFO) * 10;
+    UINTN file_info_buffer[file_info_buffer_size];
+    status = uefi_call_wrapper(File->GetInfo, 4, File, &gEfiFileInfoGuid, &file_info_buffer_size, file_info_buffer);
+    if(EFI_ERROR(status))
+    {
+        Print(L"File->GetInfo %r\n", status);
+        return status;
+    }
+    UINTN file_size = ((EFI_FILE_INFO*)file_info_buffer)->FileSize;
+    // 4k aligned
+    UINTN enough_page_size = (file_size + 0x1000 - 1) / 0x1000;
+
+    EFI_PHYSICAL_ADDRESS kernel_load_page_head = 0x100000;
+    Print(L"elf file size %d, page num %d\n", file_size, enough_page_size);
+
+    // allocate relocate destination memory that is started at 0x100000.
+    // this address is configurated by the linker script.
+    status = uefi_call_wrapper(BS->AllocatePages, 4, AllocateAddress, EfiLoaderData, enough_page_size, &kernel_load_page_head);
+    if(EFI_ERROR(status))
+    {
+        Print(L"AllocatePages %r\n", status);
+        return status;
+    }
+
+    EFI_PHYSICAL_ADDRESS tmp_page_address = 0;
+    // and then, allocate memory to load kernel.elf temporary.
+    status = uefi_call_wrapper(BS->AllocatePages, 4, AllocateAnyPages, EfiLoaderData, enough_page_size, &tmp_page_address);
+    if(EFI_ERROR(status))
+    {
+        Print(L"AllocatePages %r\n", status);
+        return status;
+    }
+    Print(L"temporary page address 0x08%x\n", tmp_page_address);
+
+    status = uefi_call_wrapper(File->Read, 3, File, &enough_page_size, tmp_page_address);
+    if(EFI_ERROR(status))
+    {
+        Print(L"Read %r\n", status);
+        return status;
+    }
+
     // memory map
     VOID* memory_map_buffer;
     UINTN buffer_size = 0x1000;
