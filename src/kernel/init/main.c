@@ -5,7 +5,5 @@
 void start_kernel(void)
 {
 
-    while (true) {
-
-    }
+    while (true) {}
 }

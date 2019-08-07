@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <efi.h>
 #include <efilib.h>
 
@@ -41,21 +42,83 @@ CHAR16* convery_type_into_string(EFI_MEMORY_TYPE type)
     }
 }
 
-EFI_STATUS relocate_kernel_elf(EFI_PHYSICAL_ADDRESS temporary_loaded_address)
+EFI_STATUS relocate_kernel_elf(EFI_PHYSICAL_ADDRESS temporary_loaded_address,
+                               EFI_PHYSICAL_ADDRESS* kernel_memory_start,
+                               UINTN* number_of_pages,
+                               EFI_PHYSICAL_ADDRESS* kernel_entry)
+
 {
     EFI_STATUS status = EFI_SUCCESS;
 
-    Elf64_Ehdr *efi_ptr = temporary_loaded_address;
-    Print(L"%x %x %x %x\n",
-            efi_ptr->e_ident[EI_MAG0],
-            efi_ptr->e_ident[EI_MAG1],
-            efi_ptr->e_ident[EI_MAG2],
-            efi_ptr->e_ident[EI_MAG3]);
+    Elf64_Ehdr* elf_header = (Elf64_Ehdr*)temporary_loaded_address;
+    Print(L"%x %x %x %x\n", elf_header->e_ident[EI_MAG0],
+          elf_header->e_ident[EI_MAG1], elf_header->e_ident[EI_MAG2],
+          elf_header->e_ident[EI_MAG3]);
 
-    Print(L"file class  %x\n", efi_ptr->e_ident[4]);
-    Print(L"data encode %x\n", efi_ptr->e_ident[5]);
-    Print(L"version     %x\n", efi_ptr->e_ident[6]);
-    Print(L"OS ABI      %x\n", efi_ptr->e_ident[7]);
+    Print(L"file class  %x\n", elf_header->e_ident[4]);
+    Print(L"data encode %x\n", elf_header->e_ident[5]);
+    Print(L"version     %x\n", elf_header->e_ident[6]);
+    Print(L"OS ABI      %x\n", elf_header->e_ident[7]);
+    Print(L"entry addr  %x\n", elf_header->e_entry);
+
+    Print(L"p header %d\n", elf_header->e_phnum);
+    Print(L"p header offset %d\n", elf_header->e_phoff);
+
+    Elf64_Phdr* elf_program_header =
+        (Elf64_Phdr*)(temporary_loaded_address + elf_header->e_phoff);
+
+    EFI_PHYSICAL_ADDRESS lowest_address = ~0ULL;
+    EFI_PHYSICAL_ADDRESS highest_address = 0;
+
+    for (int i = 0; i < elf_header->e_phnum; ++i) {
+        if (elf_program_header[i].p_type == PT_LOAD) {
+            EFI_PHYSICAL_ADDRESS physical_addr = elf_program_header[i].p_paddr;
+            UINTN segment_size = elf_program_header[i].p_memsz;
+
+            if (lowest_address > physical_addr) {
+                lowest_address = physical_addr;
+            }
+            if (highest_address < (physical_addr + segment_size)) {
+                highest_address = physical_addr + segment_size;
+            }
+
+            Print(L"phys addr 0x%08x, size 0x%x\n", physical_addr,
+                  segment_size);
+        }
+    }
+
+    assert(lowest_address < highest_address);
+    Print(L"allocate range 0x%08x - 0x%08x\n", lowest_address, highest_address);
+
+    EFI_PHYSICAL_ADDRESS aligned_lowest = lowest_address & ~0xfff;
+    EFI_PHYSICAL_ADDRESS aligned_highest =
+        (highest_address + 0x1000 - 1) & ~0xfff;
+    UINTN alloc_page_num = (aligned_highest - aligned_lowest) / 0x1000;
+
+    Print(L"aligned addressed 0x%08x 0x%08x [%d page]\n", aligned_lowest,
+          aligned_highest, alloc_page_num);
+
+    status = uefi_call_wrapper(BS->AllocatePages, 4, AllocateAddress,
+                               EfiLoaderData, alloc_page_num, &aligned_lowest);
+    if (EFI_ERROR(status)) {
+        Print(L"AllocatePages %r\n", status);
+        return status;
+    }
+
+    for(int i=0; i< elf_header->e_phnum; ++i)
+    {
+        if (elf_program_header[i].p_type == PT_LOAD) {
+            UINTN offset = elf_program_header[i].p_offset;
+            UINTN size = elf_program_header[i].p_filesz;
+            CopyMem(aligned_lowest, temporary_loaded_address + offset, size);
+        }
+    }
+
+    *kernel_memory_start = aligned_lowest;
+    *number_of_pages = alloc_page_num;
+    *kernel_entry = elf_header->e_entry;
+
+    return status;
 }
 
 EFI_STATUS
@@ -93,9 +156,9 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable)
 
     UINTN file_info_buffer_size = sizeof(EFI_FILE_INFO) * 10;
     UINTN file_info_buffer[file_info_buffer_size];
-    status = uefi_call_wrapper(File->GetInfo, 4, File, &gEfiFileInfoGuid, &file_info_buffer_size, file_info_buffer);
-    if(EFI_ERROR(status))
-    {
+    status = uefi_call_wrapper(File->GetInfo, 4, File, &gEfiFileInfoGuid,
+                               &file_info_buffer_size, file_info_buffer);
+    if (EFI_ERROR(status)) {
         Print(L"File->GetInfo %r\n", status);
         return status;
     }
@@ -103,46 +166,41 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable)
     // 4k aligned
     UINTN enough_page_size = (file_size + 0x1000 - 1) / 0x1000;
 
-    EFI_PHYSICAL_ADDRESS kernel_load_page_head = 0x100000;
     Print(L"elf file size %d, page num %d\n", file_size, enough_page_size);
-
-    // allocate relocate destination memory that is started at 0x100000.
-    // this address is configurated by the linker script.
-    status = uefi_call_wrapper(BS->AllocatePages, 4, AllocateAddress, EfiLoaderData, enough_page_size, &kernel_load_page_head);
-    if(EFI_ERROR(status))
-    {
-        Print(L"AllocatePages %r\n", status);
-        return status;
-    }
 
     EFI_PHYSICAL_ADDRESS tmp_page_address = 0;
     // and then, allocate memory to load kernel.elf temporary.
-    status = uefi_call_wrapper(BS->AllocatePages, 4, AllocateAnyPages, EfiLoaderData, enough_page_size, &tmp_page_address);
-    if(EFI_ERROR(status))
-    {
+    status =
+        uefi_call_wrapper(BS->AllocatePages, 4, AllocateAnyPages, EfiLoaderData,
+                          enough_page_size, &tmp_page_address);
+    if (EFI_ERROR(status)) {
         Print(L"AllocatePages %r\n", status);
         return status;
     }
     Print(L"temporary page address 0x08%x\n", tmp_page_address);
 
-    status = uefi_call_wrapper(File->Read, 3, File, &file_size, (void *)tmp_page_address);
-    if(EFI_ERROR(status))
-    {
+    status = uefi_call_wrapper(File->Read, 3, File, &file_size,
+                               (void*)tmp_page_address);
+    if (EFI_ERROR(status)) {
         Print(L"Read %r\n", status);
         return status;
     }
 
-    status = relocate_kernel_elf(tmp_page_address);
-    if(EFI_ERROR(status))
-    {
+    EFI_PHYSICAL_ADDRESS kernel_memory_start;
+    UINTN kernel_memory_page_number;
+    EFI_PHYSICAL_ADDRESS kernel_entry;
+    status = relocate_kernel_elf(tmp_page_address, &kernel_memory_start,
+                                 &kernel_memory_page_number, &kernel_entry);
+    if (EFI_ERROR(status)) {
         Print(L"relocation %r\n", status);
         return status;
     }
+    FreePool(tmp_page_address);
 
     // memory map
     VOID* memory_map_buffer;
     UINTN buffer_size = 0x1000;
-    UINTN map_size;
+    UINTN map_size = 0x1000;
     UINTN map_key;
     UINTN descriptor_size;
     UINT32 descriptor_version;
@@ -158,7 +216,7 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable)
         uefi_call_wrapper(BS->GetMemoryMap, 5, &map_size, memory_map_buffer,
                           &map_key, &descriptor_size, &descriptor_version);
     if (EFI_ERROR(status)) {
-        Print(L"5. %r", status);
+        Print(L"5. %r\n", status);
         return status;
     }
 
@@ -167,15 +225,26 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable)
     for (int i = 0; i < descriptor_count; ++i) {
         memory_descriptor_ptr =
             (EFI_MEMORY_DESCRIPTOR*)(memory_map_buffer + (i * descriptor_size));
-        //Print(L"type: %s, phy start 0x%08x, pages %d\n",
-        //        convery_type_into_string(memory_descriptor_ptr->Type),
-        //        memory_descriptor_ptr->PhysicalStart,
-        //        memory_descriptor_ptr->NumberOfPages
-        //        );
+        Print(L"type: %s, phy start 0x%08x, pages %d\n",
+              convery_type_into_string(memory_descriptor_ptr->Type),
+              memory_descriptor_ptr->PhysicalStart,
+              memory_descriptor_ptr->NumberOfPages);
     }
 
-    FreePool(memory_map_buffer);
+    do {
+        map_size = 0x1000;
+        status =
+            uefi_call_wrapper(BS->GetMemoryMap, 5, &map_size, memory_map_buffer,
+                    &map_key, &descriptor_size, &descriptor_version);
+        if (EFI_ERROR(status)) {
+            Print(L"5. %r\n", status);
+            return status;
+        }
+        status = uefi_call_wrapper(BS->ExitBootServices, 2, ImageHandle, map_key);
+    } while(EFI_ERROR(status));
 
-    while (1) {
-    }
+    __asm__ volatile("jmpq *%0" : : "m"(kernel_entry));
+
+    while (1)
+        ;
 }

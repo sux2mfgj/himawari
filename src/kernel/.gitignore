@@ -1,3 +1,4 @@
 kernel.elf
 
 memory.map
+kernel.ld

@@ -7,12 +7,12 @@ SECTIONS
 {
     . = KERNEL_VIRTUAL_BASE;
 
-    .text : AT(ADDR(.text) - KERNEL_VIRTUAL_BASE)
+    .text : AT(ADDR(.text))
     {
         *(.text)
     }
 
-    .data : AT(ADDR(.data) - KERNEL_VIRTUAL_BASE)
+    .data : AT(ADDR(.data))
     {
         *(.data)
     }
