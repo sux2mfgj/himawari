@@ -38,8 +38,9 @@ run: run/$(OVMF) $(TARGET) $(EFI_BOOT) Makefile
 	$(QEMU) $(QEMUFLAGS)
 
 debug: run/$(OVMF) $(TARGET) $(EFI_BOOT) Makefile
+	cp $(KERNEL) $(EFI_BOOT)
 	cp $(BOOT) $(EFI_BOOT)
-	$(QEMU) $(QEMUFLAGS) -gdb tcp::9999 -S
+	$(QEMU) $(QEMUFLAGS) -gdb tcp::10000 -S
 
 .PHONY:$(TARGET)
 $(TARGET):
