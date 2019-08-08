@@ -1,0 +1,5 @@
+IndentWidth:    4
+TabWidth:   4
+BreakBeforeBraces:  Allman
+AllowShortIfStatementsOnASingleLine:    true
+IndentCaseLabels:   true
