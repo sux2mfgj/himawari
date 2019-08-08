@@ -2,7 +2,7 @@ TARGET	:= BOOTX64.efi
 
 MEMMAP	:= memory.map
 
-#  INCLUDE	:= -I../include
+INCLUDE	:= -I../include
 EFI_CFLAGS += $(INCLUDE)
 #  CFLAGS += $(INCLUDE)
 

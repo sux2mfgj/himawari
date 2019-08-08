@@ -1,9 +1,8 @@
 #include <stdbool.h>
 
-//TODO
-//  have to be set argument(boot params)
-void start_kernel(void)
-{
+#include "boot_arg.h"
 
+void start_kernel(struct boot_arg* bootinfo)
+{
     while (true) {}
 }
