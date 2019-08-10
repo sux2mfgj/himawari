@@ -20,6 +20,7 @@ struct memory_info
 struct boot_argument
 {
     uintptr_t kernel_stack_address;
+    uintptr_t acpi_rsdp;
     size_t number_of_meminfo;
     struct memory_info meminfo[];
 };

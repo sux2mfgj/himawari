@@ -1,6 +1,6 @@
 #include <assert.h>
-#include <efi.h>
-#include <efilib.h>
+
+#include "boot.h"
 
 #include "boot_arg.h"
 #include "elf.h"
@@ -142,7 +142,6 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     status = uefi_call_wrapper(BS->LocateProtocol, 3,
                                &gEfiSimpleFileSystemProtocolGuid, NULL,
                                (void **)&simpleFile);
-
     if (EFI_ERROR(status))
     {
         Print(L"1. %r", status);
@@ -239,7 +238,18 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     }
     boot_arg->kernel_stack_address = kernel_stack_end - (0x1000 * kernel_stack_pages);
 
-    // memory map
+    // for ACPI
+    EFI_PHYSICAL_ADDRESS acpi_rsdp;
+    status = get_acpi_rsdp(SystemTable, &acpi_rsdp);
+    if(EFI_ERROR(status))
+    {
+        Print(L"acpi %r\n", status);
+        return status;
+    }
+    Print(L"ACPI RSDP 0x%08x\n", acpi_rsdp);
+    boot_arg->acpi_rsdp = acpi_rsdp;
+
+    // to get the memory map
     VOID *memory_map_buffer;
     UINTN buffer_size = 0x1000;
     UINTN map_size = 0x1000;

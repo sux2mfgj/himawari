@@ -4,9 +4,9 @@ MEMMAP	:= memory.map
 
 INCLUDE	:= -I../include
 EFI_CFLAGS += $(INCLUDE)
-#  CFLAGS += $(INCLUDE)
+CFLAGS += $(EFI_CFLAGS) $(EFI_INCLUDES)
 
-OBJS	:= main.o ../libs/elf.o
+OBJS	:= main.o acpi.o ../libs/elf.o ../libs/string.o
 MAIN_SO	:= main.so
 
 all: $(TARGET)
