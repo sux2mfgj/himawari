@@ -225,23 +225,26 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
     struct boot_argument *boot_arg = (struct boot_argument *)boot_info_addr;
     boot_arg->number_of_meminfo = 0;
+    boot_arg->uefi_system_table = (uintptr_t)SystemTable;
     Print(L"boot_arg is here 0x%08x\n", (EFI_PHYSICAL_ADDRESS)boot_arg);
 
     EFI_PHYSICAL_ADDRESS kernel_stack_end;
     UINTN kernel_stack_pages = 1;
-    status = uefi_call_wrapper(BS->AllocatePages, 4, AllocateAnyPages,
-                               EfiLoaderData, kernel_stack_pages, &kernel_stack_end);
+    status =
+        uefi_call_wrapper(BS->AllocatePages, 4, AllocateAnyPages, EfiLoaderData,
+                          kernel_stack_pages, &kernel_stack_end);
     if (EFI_ERROR(status))
     {
         Print(L"AllocatePages %r\n", status);
         return status;
     }
-    boot_arg->kernel_stack_address = kernel_stack_end - (0x1000 * kernel_stack_pages);
+    boot_arg->kernel_stack_address =
+        kernel_stack_end - (0x1000 * kernel_stack_pages);
 
     // for ACPI
     EFI_PHYSICAL_ADDRESS acpi_rsdp;
     status = get_acpi_rsdp(SystemTable, &acpi_rsdp);
-    if(EFI_ERROR(status))
+    if (EFI_ERROR(status))
     {
         Print(L"acpi %r\n", status);
         return status;
@@ -297,7 +300,18 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
             info->type = PAGE_TYPE_FREE;
             boot_arg->number_of_meminfo++;
         }
-        //TODO add another memory regions info
+        // TODO add another memory regions info
+    }
+
+    // Is there pci devices?
+    boot_arg->is_support_pci = false;
+    EFI_PCI_ROOT_BRIDGE_IO_PROTOCOL pci_root_bridge_protocol;
+    status = uefi_call_wrapper(BS->LocateProtocol, 3,
+                               &gEfiPciRootBridgeIoProtocolGuid, NULL,
+                               &pci_root_bridge_protocol);
+    if (!EFI_ERROR(status))
+    {
+        boot_arg->is_support_pci = true;
     }
 
     do
@@ -315,7 +329,7 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
             uefi_call_wrapper(BS->ExitBootServices, 2, ImageHandle, map_key);
     } while (EFI_ERROR(status));
 
-    __asm__ volatile("movq %0, %%rdi":  "=m"(boot_arg) :: "rdi");
+    __asm__ volatile("movq %0, %%rdi" : "=m"(boot_arg)::"rdi");
     __asm__ volatile("jmpq *%0" : : "m"(kernel_entry));
 
     while (1)
