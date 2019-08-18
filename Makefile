@@ -61,7 +61,7 @@ $(EFI_BOOT):
 	mkdir -p $(HDA)/EFI/BOOT
 
 clean:
-	rm -rf run *.zip $(OVMF)
+	rm -rf run *.zip
 	cd src/kernel; $(MAKE) clean
 	cd src/boot; $(MAKE) clean
 
