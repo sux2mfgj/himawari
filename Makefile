@@ -25,8 +25,18 @@ CRT0_EFI	:= $(LIB_PATH)/crt0-efi-x86_64.o
 HDA		:= run/hda-contents
 EFI_BOOT:= $(HDA)/EFI/BOOT/
 
-RAM_SIZE	:= 64m
-QEMUFLAGS	:= -L ./run -bios $(OVMF) -hda fat:rw:$(HDA) -m $(RAM_SIZE)
+RAM_SIZE	:= 1G
+QEMU_DEVS	:= -monitor stdio -machine pc-i440fx-2.8 -nodefaults -vga std
+#-device pcie-root-port,id=root,slot=0 -device virtio-serial-pci,bus=pcie.0
+#-device pcie-root-port,id=root,slot=1
+#	-device virtio-serial-pci,id=virtio-serial0 -device virtconsole,chardev=charconsole0,id=console0 -chardev stdio,id=charconsole0 \
+#	-device pcie-root-port,id=rp20,bus=pcie.0,chassis=1,addr=2.0,multifunction=on,pref64-reserve=32M
+
+#-device virtio-net-pci,netdev=net0 -netdev socket,id=net0,listen=:5002
+
+QEMUFLAGS	:= -L ./run -bios $(OVMF) -hda fat:rw:$(HDA) -m $(RAM_SIZE) $(QEMU_DEVS)
+
+
 
 .PHONY:all
 all: $(TARGET)
