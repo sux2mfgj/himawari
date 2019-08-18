@@ -14,7 +14,7 @@ EFI_CFLAGS	:= -fno-stack-protector -fshort-wchar -mno-red-zone -DEFI_FUNCTION_WR
 
 QEMU	:= qemu-system-x86_64
 
-OVMF	:= OVMF.fd
+OVMF=/usr/share/ovmf/x64/OVMF_CODE.fd
 
 LIB_PATH	:= /usr/lib
 EFI_PATH	:= /usr/include/efi
@@ -26,7 +26,7 @@ HDA		:= run/hda-contents
 EFI_BOOT:= $(HDA)/EFI/BOOT/
 
 RAM_SIZE	:= 1G
-QEMU_DEVS	:= -monitor stdio -machine pc-i440fx-2.8 -nodefaults -vga std
+QEMU_DEVS	:= -monitor stdio -machine q35 #-nodefaults -vga std
 #-device pcie-root-port,id=root,slot=0 -device virtio-serial-pci,bus=pcie.0
 #-device pcie-root-port,id=root,slot=1
 #	-device virtio-serial-pci,id=virtio-serial0 -device virtconsole,chardev=charconsole0,id=console0 -chardev stdio,id=charconsole0 \
@@ -36,18 +36,16 @@ QEMU_DEVS	:= -monitor stdio -machine pc-i440fx-2.8 -nodefaults -vga std
 
 QEMUFLAGS	:= -L ./run -bios $(OVMF) -hda fat:rw:$(HDA) -m $(RAM_SIZE) $(QEMU_DEVS)
 
-
-
 .PHONY:all
 all: $(TARGET)
 
 .PHONY:run
-run: run/$(OVMF) $(TARGET) $(EFI_BOOT) Makefile
+run: $(OVMF) $(TARGET) $(EFI_BOOT) Makefile
 	cp $(KERNEL) $(EFI_BOOT)
 	cp $(BOOT) $(EFI_BOOT)
 	$(QEMU) $(QEMUFLAGS)
 
-debug: run/$(OVMF) $(TARGET) $(EFI_BOOT) Makefile
+debug: $(OVMF) $(TARGET) $(EFI_BOOT) Makefile
 	cp $(KERNEL) $(EFI_BOOT)
 	cp $(BOOT) $(EFI_BOOT)
 	$(QEMU) $(QEMUFLAGS) -gdb tcp::10000 -S
@@ -59,14 +57,6 @@ $(TARGET):
 
 $(EFI_BOOT):
 	mkdir -p $(HDA)/EFI/BOOT
-
-run/$(OVMF): $(OVMF)
-	mkdir -p run
-	cp OVMF.fd $@
-
-$(OVMF):
-	wget https://sourceforge.net/projects/edk2/files/OVMF/OVMF-X64-r15214.zip
-	unzip OVMF-X64-r15214.zip OVMF.fd
 
 clean:
 	rm -rf run *.zip $(OVMF)
