@@ -28,6 +28,7 @@ typedef struct
     uint32_t oem_revision;
     uint32_t creator_id;
     uint32_t creator_revision;
+    uint64_t reserved;
 } __attribute__((__packed__)) acpi_dt_header_t;
 
 typedef struct {
@@ -43,10 +44,34 @@ typedef struct{
 typedef struct {
     acpi_dt_header_t header;
     // space for ACPI 1.0;
-    uint8_t dummy[]; // 132 - 36
+    // 131 is a offset of FADT Minor Version in the FACP table.
+    uint8_t dummy[131 - sizeof(acpi_dt_header_t)];
+    uint8_t fadt_minor_version;
+    uint64_t x_firmware_ctrl;
+    uint64_t x_dsdt;
     // TODO there are many entries.
 }__attribute__((__packed__)) acpi_fadt_t;
 
+typedef struct {
+    acpi_dt_header_t header;
+    uint8_t definition_block[];
+}__attribute__((__packed__)) acpi_dsdt_t;
+
+typedef struct __config_space_based_address_alloc_t {
+    uint64_t base_address;
+    uint16_t pci_segment_group_number;
+    uint8_t start_pci_bus_number;
+    uint8_t end_pci_bus_number;
+    uint32_t reserved;
+} __attribute__((__packed__)) pci_config_info_t;
+
+typedef struct {
+    acpi_dt_header_t header;
+    pci_config_info_t config_space[];
+}__attribute__((__packed__)) acpi_mcfg_t;
+
 bool init_acpi(uintptr_t rsdp);
 bool get_pcie_configuration_addr(uintptr_t* addr);
-bool get_mcfg_table(uintptr_t *ptr);
+//bool setup_mcfg_table(void);
+
+bool get_pci_config_space_addresses(void);

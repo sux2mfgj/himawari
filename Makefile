@@ -9,7 +9,7 @@ CC		:= clang
 LD		:= ld
 OBJCOPY	:= objcopy
 
-CFLAGS	:= -Wall -ggdb3 -std=c11
+CFLAGS	:= -Wall -ggdb3 -std=c11 -fno-stack-protector
 EFI_CFLAGS	:= -fno-stack-protector -fshort-wchar -mno-red-zone -DEFI_FUNCTION_WRAPER $(CFLAGS)
 
 QEMU	:= qemu-system-x86_64
@@ -26,8 +26,10 @@ HDA		:= run/hda-contents
 EFI_BOOT:= $(HDA)/EFI/BOOT/
 
 RAM_SIZE	:= 1G
-QEMU_DEVS	:= -monitor stdio -machine q35 #-nodefaults -vga std
-#-device pcie-root-port,id=root,slot=0 -device virtio-serial-pci,bus=pcie.0
+QEMU_DEVS	:= -monitor stdio -machine q35 \
+-device virtio-serial-pci,bus=pcie.0 \
+-nodefaults -vga std
+#-device pcie-root-port,id=root,slot=0
 #-device pcie-root-port,id=root,slot=1
 #	-device virtio-serial-pci,id=virtio-serial0 -device virtconsole,chardev=charconsole0,id=console0 -chardev stdio,id=charconsole0 \
 #	-device pcie-root-port,id=rp20,bus=pcie.0,chassis=1,addr=2.0,multifunction=on,pref64-reserve=32M

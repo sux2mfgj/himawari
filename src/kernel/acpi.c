@@ -1,10 +1,40 @@
 #include "acpi.h"
 #include "string.h"
+#include "utils.h"
+
+#include "pci_device_struct.h"
 
 static acpi_rsdp_t *rsdp;
 
 static acpi_xsdt_t *xsdt;
 static acpi_rsdt_t *rsdt;
+static acpi_fadt_t *fadt;
+static acpi_dsdt_t *dsdt;
+
+static acpi_mcfg_t *mcfgt;
+
+bool search_signature_in_xsdt(uintptr_t *ptr, const char *signature, int length)
+{
+    // search in xsdt
+    int number_of_entries = (xsdt->header.length - sizeof(acpi_dt_header_t)) /
+                            sizeof(xsdt->entries[0]);
+
+    for (int i = 0; i < number_of_entries; ++i)
+    {
+        acpi_dt_header_t *header = (acpi_dt_header_t *)xsdt->entries[i];
+        bool result = h_memcmp(header->signature, signature, length);
+        if (result)
+        {
+            *ptr = (uintptr_t)xsdt->entries[i];
+            goto find;
+        }
+    }
+
+    *ptr = (uintptr_t)NULL;
+    return false;
+find:
+    return true;
+}
 
 bool init_acpi(uintptr_t rsd_ptr)
 {
@@ -14,69 +44,65 @@ bool init_acpi(uintptr_t rsd_ptr)
     result = h_memcmp(rsdp->signature, "RSD PTR ", 8);
     if (!result)
     {
-        goto finish;
+        goto fail;
     }
 
     xsdt = (acpi_xsdt_t *)rsdp->xsdt_address;
     result = h_memcmp(xsdt->header.signature, "XSDT", 4);
     if (!result)
     {
-        goto finish;
+        goto fail;
     }
 
-    rsdt = (acpi_rsdt_t *)(uintptr_t)rsdp->rsdt_address;
-    result = h_memcmp(rsdt->header.signature, "RSDT", 4);
-    if (!result)
-    {
-        // there is not RSDT in this system.
-    }
+    //rsdt = (acpi_rsdt_t *)(uintptr_t)rsdp->rsdt_address;
+    //result = h_memcmp(rsdt->header.signature, "RSDT", 4);
+    //if (!result)
+    //{}
 
-    // The first entry must be FADT
     // acpi_dt_header_t *header = (acpi_dt_header_t *)xsdt->entries[0];
-    acpi_fadt_t *fadt = (acpi_fadt_t *)xsdt->entries[0];
-    result = h_memcmp(fadt->header.signature, "FACP", 4);
-    if (!result)
-    {
-        goto finish;
-    }
+    //uintptr_t tmp_ptr;
+    //result = search_signature_in_xsdt(&tmp_ptr, "FACP", 4);
+    //if (!result)
+    //{
+    //    goto fail;
+    //}
+    //fadt = (acpi_fadt_t *)tmp_ptr;
 
-    result = true;
+    //dsdt = (acpi_dsdt_t *)fadt->x_dsdt;
+    //result = h_memcmp(dsdt->header.signature, "DSDT", 4);
+    //if (!result)
+    //{
+    //    goto fail;
+    //}
 
-finish:
-    return result;
+    return true;
+
+fail:
+    return false;
 }
 
-bool get_mcfg_table(uintptr_t *ptr)
+bool setup_mcfg_table(void)
 {
     bool result;
     uint64_t number_of_entries;
 
-    // search in xsdt
-    number_of_entries =
-        (xsdt->header.length - sizeof(acpi_dt_header_t)) / sizeof(uint64_t);
-
-    for (int i = 0; i < number_of_entries; ++i)
+    result = search_signature_in_xsdt(&mcfgt, "MCFG", 4);
+    if(result)
     {
-        acpi_dt_header_t *header = (acpi_dt_header_t *)xsdt->entries[i];
-        result = h_memcmp(header->signature, "MCFG", 4);
-        if (result)
-        {
-            *ptr = (uintptr_t)xsdt->entries[i];
-            goto find;
-        }
+        goto find;
     }
 
     // search in rsdt
-    number_of_entries =
-        (rsdt->header.length - sizeof(acpi_dt_header_t)) / sizeof(uint32_t);
+    number_of_entries = (rsdt->header.length - sizeof(acpi_dt_header_t)) /
+                        sizeof(rsdt->entries[0]);
     for (int i = 0; i < number_of_entries; ++i)
     {
-        acpi_dt_header_t *header = (acpi_dt_header_t *)(uintptr_t)rsdt->entries[i];
+        acpi_dt_header_t *header =
+            (acpi_dt_header_t *)(uintptr_t)rsdt->entries[i];
         result = h_memcmp(header->signature, "MCFG", 4);
         if (result)
         {
-            *ptr = (uintptr_t)rsdt->entries[i];
-            goto find;
+            assert(false, "MCFG table found in RSDT. [NIY]");
         }
     }
 
@@ -86,27 +112,30 @@ find:
     return true;
 }
 
-bool get_pcie_configuration_addr(uintptr_t *addr)
+bool get_pci_config_space_addresses(void)
 {
-    addr = NULL;
-    bool result = false;
-
-    uint64_t number_of_entries = 10;
-    //(xsdt->header.length - sizeof(acpi_dt_header_t)) / sizeof(uint64_t *);
-
-    for (int i = 1; i < number_of_entries; ++i)
+    bool result;
+    if (mcfgt == NULL)
     {
-        acpi_dt_header_t *header = (acpi_dt_header_t *)xsdt->entries[i];
-        result = h_memcmp(header->signature, "MCFG", 4);
-        if (result)
+        result = setup_mcfg_table();
+        if (!result)
         {
-            // 44 is offset of the configuration space based address allocations
-            // structure
-            *addr = (uintptr_t)header + 44;
-            goto finish;
+            return false;
         }
     }
+    assert(mcfgt != NULL, "something wrong...");
 
-finish:
-    return result;
+    int pci_device_num = (mcfgt->header.length - sizeof(acpi_dt_header_t)) /
+                         sizeof(mcfgt->config_space[0]);
+
+    for (int i = 0; i < pci_device_num; ++i)
+    {
+        pci_config_space_t *config_space =
+            (pci_config_space_t *)mcfgt->config_space[i].base_address;
+
+        printk((const char*)config_space->vendor_id);
+        printk((const char*)config_space->device_id);
+    }
+
+    return true;
 }
