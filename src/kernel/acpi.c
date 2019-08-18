@@ -8,8 +8,8 @@ static acpi_rsdp_t *rsdp;
 
 static acpi_xsdt_t *xsdt;
 static acpi_rsdt_t *rsdt;
-static acpi_fadt_t *fadt;
-static acpi_dsdt_t *dsdt;
+// static acpi_fadt_t *fadt;
+// static acpi_dsdt_t *dsdt;
 
 static acpi_mcfg_t *mcfgt;
 
@@ -54,23 +54,23 @@ bool init_acpi(uintptr_t rsd_ptr)
         goto fail;
     }
 
-    //rsdt = (acpi_rsdt_t *)(uintptr_t)rsdp->rsdt_address;
-    //result = h_memcmp(rsdt->header.signature, "RSDT", 4);
-    //if (!result)
+    // rsdt = (acpi_rsdt_t *)(uintptr_t)rsdp->rsdt_address;
+    // result = h_memcmp(rsdt->header.signature, "RSDT", 4);
+    // if (!result)
     //{}
 
     // acpi_dt_header_t *header = (acpi_dt_header_t *)xsdt->entries[0];
-    //uintptr_t tmp_ptr;
-    //result = search_signature_in_xsdt(&tmp_ptr, "FACP", 4);
-    //if (!result)
+    // uintptr_t tmp_ptr;
+    // result = search_signature_in_xsdt(&tmp_ptr, "FACP", 4);
+    // if (!result)
     //{
     //    goto fail;
     //}
-    //fadt = (acpi_fadt_t *)tmp_ptr;
+    // fadt = (acpi_fadt_t *)tmp_ptr;
 
-    //dsdt = (acpi_dsdt_t *)fadt->x_dsdt;
-    //result = h_memcmp(dsdt->header.signature, "DSDT", 4);
-    //if (!result)
+    // dsdt = (acpi_dsdt_t *)fadt->x_dsdt;
+    // result = h_memcmp(dsdt->header.signature, "DSDT", 4);
+    // if (!result)
     //{
     //    goto fail;
     //}
@@ -86,8 +86,8 @@ bool setup_mcfg_table(void)
     bool result;
     uint64_t number_of_entries;
 
-    result = search_signature_in_xsdt(&mcfgt, "MCFG", 4);
-    if(result)
+    result = search_signature_in_xsdt((uintptr_t *)&mcfgt, "MCFG", 4);
+    if (result)
     {
         goto find;
     }
@@ -133,8 +133,8 @@ bool get_pci_config_space_addresses(void)
         pci_config_space_t *config_space =
             (pci_config_space_t *)mcfgt->config_space[i].base_address;
 
-        printk((const char*)config_space->vendor_id);
-        printk((const char*)config_space->device_id);
+        printk("%x", config_space->vendor_id);
+        printk("%x", config_space->device_id);
     }
 
     return true;
