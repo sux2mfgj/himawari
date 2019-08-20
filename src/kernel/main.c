@@ -3,6 +3,7 @@
 #include "boot_arg.h"
 
 #include "utils.h"
+#include "memory_manager.h"
 
 #include "acpi.h"
 #include "uefi.h"
@@ -11,6 +12,12 @@
 void start_kernel(struct boot_argument *bootinfo)
 {
     bool result = false;
+
+    result = init_memory_manager(bootinfo->number_of_meminfo, bootinfo->meminfo);
+    if(!result)
+    {
+        goto fail;
+    }
 
     result = init_acpi(bootinfo->acpi_rsdp);
     if (!result)
@@ -30,13 +37,6 @@ void start_kernel(struct boot_argument *bootinfo)
         //printk("there is not pci device in this system");
         goto fail;
     }
-
-    EFI_SYSTEM_TABLE *system_table =
-        (EFI_SYSTEM_TABLE *)bootinfo->uefi_system_table;
-
-    EFI_STATUS status;
-    status = call_uefi_function(system_table->ConOut->OutputString, 2,
-                                system_table->ConOut, L"Hello in kernel\n");
 
 fail:
     assert(false, "reach the start_kernel end");

@@ -10,7 +10,7 @@ LD_FLAGS	:= -Map $(MEMMAP) -T $(LD_SCRIPT) -nostdlib
 INCLUDE	:= -I../include
 CFLAGS += $(INCLUDE)
 
-OBJS	:= entry.o pci.o uefi.o main.o acpi.o ../libs/string.o utils.o
+OBJS	:= entry.o pci.o uefi.o main.o acpi.o ../libs/string.o utils.o memory_manager.o
 
 all: $(TARGET)
 
