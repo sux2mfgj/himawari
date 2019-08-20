@@ -88,7 +88,10 @@ bool malloc_4k(uintptr_t *dest)
             continue;
         }
         *dest = free_list[i].base_address;
+
         free_list[i].base_address -= 0x1000;
+        free_list[i].number_of_pages--;
+
         assert(free_list[i].base_address < 0xf000000000000000,
                "negatie overflow occured");
         break;
