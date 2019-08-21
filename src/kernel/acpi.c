@@ -1,4 +1,5 @@
 #include "acpi.h"
+#include "acpi_types.h"
 #include "string.h"
 #include "utils.h"
 
@@ -13,7 +14,7 @@ static acpi_rsdt_t *rsdt;
 
 static acpi_mcfg_t *mcfgt;
 
-bool search_signature_in_xsdt(uintptr_t *ptr, const char *signature, int length)
+static bool search_signature_in_xsdt(uintptr_t *ptr, const char *signature, int length)
 {
     // search in xsdt
     int number_of_entries = (xsdt->header.length - sizeof(acpi_dt_header_t)) /
@@ -81,7 +82,7 @@ fail:
     return false;
 }
 
-bool setup_mcfg_table(void)
+static bool find_mcfg_table(void)
 {
     bool result;
     uint64_t number_of_entries;
@@ -112,30 +113,33 @@ find:
     return true;
 }
 
-bool get_pci_config_space_addresses(void)
+bool get_mcfgt_info(int index, uintptr_t* base_address, uint16_t* segment_group_number,
+        uint8_t * start_bus_number, uint8_t* end_bus_number)
 {
     bool result;
     if (mcfgt == NULL)
     {
-        result = setup_mcfg_table();
+        result = find_mcfg_table();
         if (!result)
         {
             return false;
         }
     }
-    assert(mcfgt != NULL, "something wrong...");
 
     int pci_device_num = (mcfgt->header.length - sizeof(acpi_dt_header_t)) /
                          sizeof(mcfgt->config_space[0]);
 
-    for (int i = 0; i < pci_device_num; ++i)
+    if(pci_device_num <= index)
     {
-        pci_config_space_t *config_space =
-            (pci_config_space_t *)mcfgt->config_space[i].base_address;
-
-        printk("%x", config_space->vendor_id);
-        printk("%x", config_space->device_id);
+        return false;
     }
+
+    pci_config_info_t config_info = mcfgt->config_space[index];
+
+    *base_address = config_info.base_address;
+    *segment_group_number = config_info.pci_segment_group_number;
+    *start_bus_number = config_info.start_pci_bus_number;
+    *end_bus_number = config_info.end_pci_bus_number;
 
     return true;
 }
