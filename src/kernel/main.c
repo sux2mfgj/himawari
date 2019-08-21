@@ -6,6 +6,7 @@
 #include "memory_manager.h"
 
 #include "acpi.h"
+#include "apic.h"
 #include "uefi.h"
 #include "pci.h"
 
@@ -19,14 +20,14 @@ void start_kernel(struct boot_argument *bootinfo)
         goto fail;
     }
 
-    result = init_acpi(bootinfo->acpi_rsdp);
-    if (!result)
+    result = init_apic();
+    if(!result)
     {
         goto fail;
     }
 
-    result = get_pci_config_space_addresses();
-    if(!result)
+    result = init_acpi(bootinfo->acpi_rsdp);
+    if (!result)
     {
         goto fail;
     }
