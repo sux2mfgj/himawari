@@ -2,4 +2,4 @@
 
 #include <stdint.h>
 
-void cpuid(uint32_t eax, uint32_t* edx);
+void cpuid(uint32_t eax, uint32_t *edx);

@@ -3,8 +3,9 @@
 #include "msr.h"
 #include "utils.h"
 
-enum IA32_APIC_BASE_BITS {
-    IA32_APIC_BASE_BSP  = 0x100,
+enum IA32_APIC_BASE_BITS
+{
+    IA32_APIC_BASE_BSP = 0x100,
     IA32_APIC_BASE_GLOBAL_ENABLE = 0x800,
     IA32_APIC_BASE_APIC_BASE = ~0xfff,
 };
@@ -18,7 +19,7 @@ static bool is_presence_local_apic(void)
     cpuid(1, &edx);
 
     // TODO remove the magic number
-    if(edx & 0x100)
+    if (edx & 0x100)
     {
         return true;
     }
@@ -43,10 +44,11 @@ static void enable_local_apic(void)
     write_msr(IA32_APIC_BASE, high, low);
 }
 
+// 10.4.4 Local APIC Status and Location
 static void setup_bsp_local_apic_base(void)
 {
     uint64_t apic_base = read_msr(IA32_APIC_BASE);
-    if(!(apic_base & IA32_APIC_BASE_BSP))
+    if (!(apic_base & IA32_APIC_BASE_BSP))
     {
         assert(false, "not yet implemented for MP system");
     }
@@ -59,21 +61,21 @@ bool init_apic(void)
     bool result;
 
     result = is_presence_local_apic();
-    if(!result)
+    if (!result)
     {
         return false;
     }
 
     result = is_enable_local_apic();
 
-    if(!result)
+    if (!result)
     {
         enable_local_apic();
     }
 
     setup_bsp_local_apic_base();
 
-    //TODO
+    // TODO
 
     return true;
 }

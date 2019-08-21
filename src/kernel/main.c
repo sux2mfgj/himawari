@@ -2,26 +2,27 @@
 
 #include "boot_arg.h"
 
-#include "utils.h"
 #include "memory_manager.h"
+#include "utils.h"
 
 #include "acpi.h"
 #include "apic.h"
-#include "uefi.h"
 #include "pci.h"
+#include "uefi.h"
 
 void start_kernel(struct boot_argument *bootinfo)
 {
     bool result = false;
 
-    result = init_memory_manager(bootinfo->number_of_meminfo, bootinfo->meminfo);
-    if(!result)
+    result =
+        init_memory_manager(bootinfo->number_of_meminfo, bootinfo->meminfo);
+    if (!result)
     {
         goto fail;
     }
 
     result = init_apic();
-    if(!result)
+    if (!result)
     {
         goto fail;
     }
@@ -33,9 +34,9 @@ void start_kernel(struct boot_argument *bootinfo)
     }
 
     result = init_pci(bootinfo->is_support_pci);
-    if(!result)
+    if (!result)
     {
-        //printk("there is not pci device in this system");
+        // printk("there is not pci device in this system");
         goto fail;
     }
 

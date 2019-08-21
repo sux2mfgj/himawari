@@ -2,7 +2,8 @@
 
 #include <stdint.h>
 
-enum {
+enum
+{
     IA32_APIC_BASE = 0x1b
 };
 
