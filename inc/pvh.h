@@ -21,6 +21,14 @@ struct hvm_start_info {
   uint32_t reserved; /* Reserved. */
 };
 
+#define HVM_MEMMAP_TYPE_RAM 1
+#define HVM_MEMMAP_TYPE_RESERVED 2
+#define HVM_MEMMAP_TYPE_ACPI 3
+#define HVM_MEMMAP_TYPE_NVS 4
+#define HVM_MEMMAP_TYPE_UNUSABLE 5
+#define HVM_MEMMAP_TYPE_DISABLED 6
+#define HVM_MEMMAP_TYPE_PMEM 7
+
 struct hvm_memmap_table_entry {
   uint64_t addr; /* Base address */
   uint64_t size; /* Size */

@@ -9,6 +9,7 @@ PHDRS {
 
 SECTIONS {
   . = 1M;
+  _kernel_start = .;
 
   .note.Xen : {
     *(.note.Xen)
@@ -34,4 +35,5 @@ SECTIONS {
   __early_stack_bottom = .;
   . += 0x2000;
   __early_stack_top = .;
+  _kernel_end = .;
 }

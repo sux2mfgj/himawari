@@ -1,3 +1,4 @@
+#include <hm/pmm.h>
 #include <hm/print.h>
 #include <pvh.h>
 
@@ -8,6 +9,9 @@ void kernel_cmain(struct hvm_start_info *start_info) {
   kprintf("hello world\n");
 
   kprintf("memmap_paddr 0x%x\n", start_info->memmap_paddr);
+
+  pmm_init((struct hvm_memmap_table_entry *)start_info->memmap_paddr,
+           start_info->memmap_entries);
 
   asm volatile("hlt");
 }
