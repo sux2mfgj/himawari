@@ -11,12 +11,35 @@ static void puts(const char *text) {
 
 static void put_hex_num(unsigned int x) {
 
-  char buf[sizeof(unsigned int)];
+  if (x == 0) {
+    putc('0');
+    return;
+  }
+
+  char buf[16];
 
   int buf_idx = 0;
-  for (; x != 0; x /= 0x10, buf_idx++) {
+  for (; x != 0; x /= 0x10, buf_idx++)
     buf[buf_idx] = "0123456789abcdef"[x % 0x10];
+
+  buf_idx--;
+
+  for (; buf_idx >= 0; buf_idx--)
+    putc(buf[buf_idx]);
+}
+
+static void put_dec_num(int d) {
+  if (d == 0) {
+    putc('0');
+    return;
   }
+
+  char buf[32];
+  int buf_idx = 0;
+  for (; d != 0; d /= 10, buf_idx++)
+    buf[buf_idx] = "0123456789"[d % 10];
+
+  buf_idx--;
 
   for (; buf_idx >= 0; buf_idx--)
     putc(buf[buf_idx]);
@@ -36,11 +59,11 @@ void kprintf(const char *fmt, ...) {
     // skip '%'
     cur++;
     switch (*cur) {
-    // case 'd': {
-    //   int d = va_arg(args, int);
-    //   put_dec_num(d);
-    //   break;
-    // }
+    case 'd': {
+      int d = va_arg(args, int);
+      put_dec_num(d);
+      break;
+    }
     case 'x': {
       unsigned int x = va_arg(args, unsigned int);
       put_hex_num(x);
