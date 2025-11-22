@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 
 #define HVM_START_MAGIC_VALUE 0x336ec578
