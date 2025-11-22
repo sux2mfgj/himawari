@@ -66,6 +66,9 @@ long_mode:
   # Setup stack
   mov rsp, OFFSET __early_stack_top
 
+  # prepare an argument to pass hvm_start_info to C code.
+  mov rdi, rbx
+
   # Jump to C code
   call kernel_cmain
 

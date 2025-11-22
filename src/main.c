@@ -1,14 +1,13 @@
-void qemu_debugcon_putc(unsigned char c);
+#include <hm/print.h>
+#include <pvh.h>
 
-void puts(const char *text) {
+void qemu_debugcon_putc(char c);
 
-  for (; *text; text++) {
-    qemu_debugcon_putc(*text);
-  }
-}
+void kernel_cmain(struct hvm_start_info *start_info) {
+  register_putc(qemu_debugcon_putc);
+  kprintf("hello world\n");
 
-void kernel_cmain(void) {
-  puts("hello world\n");
+  kprintf("memmap_paddr 0x%x\n", start_info->memmap_paddr);
 
   asm volatile("hlt");
 }

@@ -12,7 +12,6 @@ configure_file(
   copy: true
 )
 
-
 c_args = ['-nostdlib', '-ffreestanding']
 link_args = ['-nostdlib', '-Tlinker.ld', '-static', '-Wl,-e,_boot']
 
