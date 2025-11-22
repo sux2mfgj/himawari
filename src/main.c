@@ -8,7 +8,6 @@ void puts(const char *text) {
 }
 
 void kernel_cmain(void) {
-  qemu_debugcon_putc('c');
   puts("hello world\n");
 
   asm volatile("hlt");

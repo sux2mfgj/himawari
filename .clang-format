@@ -1,0 +1,69 @@
+# ベーススタイル: Googleスタイルをベースに、Linuxスタイルに合わせて調整
+BasedOnStyle: Google
+
+# インデント幅: 8スペース (タブではない)
+IndentWidth: 8
+ContinuationIndentWidth: 8
+
+# ブレース (波括弧) の配置
+# 関数/名前空間/構造体/列挙型/ユニオンなど: 次の行に単独で配置
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterControlStatement: false
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+  BeforeWhile: true
+  IndentBraces: false # ブレースの後のインデントはしない
+
+# 'if', 'while' などの制御文の後のブレース
+# Linuxスタイルでは、基本的に単一行の制御文ではブレースを省略するが、
+# clang-formatでこれを強制するのは難しいため、関数定義のブレース配置を優先。
+# C/C++では制御文のブレースは同一行にするのが一般的だが、
+# Linuxスタイルでは常に新しい行に単独で配置するのが特徴。
+# BreakBeforeBracesのCustom設定で対応している。
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# ポインタ/参照演算子 '*' と '&' の位置
+# Linuxスタイルは常に型名の横に配置 (e.g., char *p)
+PointerAlignment: Left
+
+# 制御フローのキーワード (if, for, whileなど) の後のスペース
+SpaceBeforeParens: Never
+
+# 式や制御文内のスペース
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
+# テンプレート引数内のスペース
+SpacesInAngles: false
+
+# コメントスタイル
+# clang-formatはコメントの整形は限定的だが、可能な限り標準的なコメントを使用
+# C/C++のコメントも許容
+CommentPragmas: '^ *DO NOT FORMAT'
+
+# ヘッダーファイルを含める場合のソート
+# Linuxでは特定の順序があるが、ここでは一般的な順序のみ設定
+IncludeBlocks: Regroup
+IncludeIsMainSource: false
+SortIncludes: true
+
+# ラムダ式 (C++固有)
+LambdaBodyIndentation: Signature
+
+# 1行の最大文字数
+# Linuxでは通常80文字を推奨
+ColumnLimit: 80
+
+# タブの使用
+UseTab: Never # LinuxカーネルのCコードはタブだが、clang-formatの設定ではスペースで実装するのが一般的
