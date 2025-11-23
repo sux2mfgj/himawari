@@ -1,3 +1,4 @@
+#include <hm/acpi.h>
 #include <hm/pmm.h>
 #include <hm/print.h>
 #include <pvh.h>
@@ -10,8 +11,22 @@ void kernel_cmain(struct hvm_start_info *start_info) {
 
   kprintf("memmap_paddr 0x%x\n", start_info->memmap_paddr);
 
-  pmm_init((struct hvm_memmap_table_entry *)start_info->memmap_paddr,
-           start_info->memmap_entries);
+  int ret;
 
+  ret = pmm_init((struct hvm_memmap_table_entry *)start_info->memmap_paddr,
+                 start_info->memmap_entries);
+  if (ret < 0) {
+    kprintf("failed to init physical memory management subsystem\n");
+    goto out;
+  }
+
+  ret = acpi_init((struct rsdp_v1_t *)start_info->rsdp_paddr);
+  if (ret < 0) {
+    kprintf("failed to init acpi subsystem\n");
+    goto out;
+  }
+
+  kprintf("success");
+out:
   asm volatile("hlt");
 }
