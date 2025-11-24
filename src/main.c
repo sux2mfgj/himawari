@@ -36,6 +36,12 @@ void kernel_cmain(struct hvm_start_info *start_info) {
     goto out;
   }
 
+  struct mem_block block = {
+      .base = start_info->rsdp_paddr & ~(0x1000 - 1),
+      .npages = 1,
+  };
+  vmm_map_ram_straight(&block);
+
   ret = acpi_init((struct rsdp_v1_t *)start_info->rsdp_paddr);
   if (ret < 0) {
     kprintf("failed to init acpi subsystem\n");
