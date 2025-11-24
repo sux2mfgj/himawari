@@ -25,9 +25,6 @@ static int exclude_kernel_space(void) {
 
   kprintf("kernel space 0x%x (%d pages)\n", kernel_start_addr, npages);
 
-  for (int i = 0; i < phys_mem_info_size; i++)
-    mem_free_blocks[i] = phys_mem_info[i];
-
   bool removed = false;
   for (int i = 0; i < phys_mem_info_size; i++) {
     if (mem_free_blocks[i].base == kernel_start_addr) {
@@ -49,14 +46,14 @@ static int exclude_kernel_space(void) {
 static void exclude_null_page(void) {
   for (int i = 0; i < MEM_FREE_BLOCK_SIZE; i++) {
 
-    if (mem_free_blocks[i].base)
+    if (mem_free_blocks[i].base != 0x0)
       continue;
 
     if (!mem_free_blocks[i].npages)
-      break;
+      continue;
 
     mem_free_blocks[i].npages -= 1;
-    mem_free_blocks[i].base = 0x1000;
+    mem_free_blocks[i].base += 0x1000;
     break;
   }
 }
