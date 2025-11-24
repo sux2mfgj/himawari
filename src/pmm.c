@@ -83,7 +83,10 @@ int pmm_init(struct hvm_memmap_table_entry *table, int nentry) {
   }
 
   exclude_null_page();
-  exclude_kernel_space();
+
+  int ret = exclude_kernel_space();
+  if (ret < 0)
+    return ret;
 
   initialized = true;
   return 0;
