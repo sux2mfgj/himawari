@@ -93,7 +93,7 @@ int pmm_get_phys_mem_info(struct mem_block **mem_info, int *nentry) {
   if (!initialized)
     return -1;
 
-  *mem_info = mem_free_blocks;
+  *mem_info = phys_mem_info;
   *nentry = phys_mem_info_size;
 
   return 0;
