@@ -46,6 +46,21 @@ static int exclude_kernel_space(void) {
   return 0;
 }
 
+static void exclude_null_page(void) {
+  for (int i = 0; i < MEM_FREE_BLOCK_SIZE; i++) {
+
+    if (mem_free_blocks[i].base)
+      continue;
+
+    if (!mem_free_blocks[i].npages)
+      break;
+
+    mem_free_blocks[i].npages -= 1;
+    mem_free_blocks[i].base = 0x1000;
+    break;
+  }
+}
+
 int pmm_init(struct hvm_memmap_table_entry *table, int nentry) {
 
   if (initialized)
@@ -67,6 +82,7 @@ int pmm_init(struct hvm_memmap_table_entry *table, int nentry) {
     phys_mem_info_size++;
   }
 
+  exclude_null_page();
   exclude_kernel_space();
 
   initialized = true;
