@@ -1,6 +1,6 @@
 #include <acpi.h>
 #include <hm/print.h>
-#include <string.h>
+#include <hm/string.h>
 
 static bool validate_rsdt(struct rsdt_t *rsdt) {
   if (!memcmp(rsdt->header.signature, DESC_TABLE_SIG_RSDT,

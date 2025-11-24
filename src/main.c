@@ -1,6 +1,7 @@
 #include <hm/acpi.h>
 #include <hm/pmm.h>
 #include <hm/print.h>
+#include <hm/vmm.h>
 #include <pvh.h>
 
 void qemu_debugcon_putc(char c);
@@ -17,6 +18,12 @@ void kernel_cmain(struct hvm_start_info *start_info) {
                  start_info->memmap_entries);
   if (ret < 0) {
     kprintf("failed to init physical memory management subsystem\n");
+    goto out;
+  }
+
+  ret = vmm_init();
+  if (ret < 0) {
+    kprintf("failed to init virtual memory subsystem\n");
     goto out;
   }
 

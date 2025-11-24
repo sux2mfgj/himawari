@@ -1,4 +1,4 @@
-#include <string.h>
+#include <hm/string.h>
 
 #include <stdint.h>
 
@@ -12,4 +12,10 @@ bool memcmp(void *a, void *b, size_t size) {
   }
 
   return true;
+}
+
+void memset(void *a, uint8_t byte, size_t size) {
+  uint8_t *ap = (uint8_t *)a;
+  for (int i = 0; i < size; i++)
+    *ap = byte;
 }
