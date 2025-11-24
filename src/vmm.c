@@ -227,6 +227,8 @@ int vmm_init(void) {
   if (initialized)
     return -1;
 
+  memset(pml4, 0, sizeof(pml4));
+
   int ret;
   struct mem_block *phys_mem_blocks;
   int n_phys_mem_block;
