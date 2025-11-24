@@ -27,7 +27,7 @@
 
 #define PTE_MASK_PAGE_SIZE (1 << 7)
 
-static uint64_t pml4[512];
+static uint64_t pml4[512] __attribute__((aligned(4096)));
 
 enum page_size {
   PAGE_SIZE_4K,
