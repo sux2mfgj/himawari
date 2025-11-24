@@ -36,12 +36,12 @@ struct sdt_header_t {
 
 struct xsdt_t {
   struct sdt_header_t header;
-  uint8_t entry[];
+  uint64_t entry[];
 } __attribute__((packed));
 
 struct rsdt_t {
   struct sdt_header_t header;
-  uint8_t entry[];
+  uint32_t entry[];
 };
 
 #define DESC_TABLE_SIG_XSDT "XSDT"
