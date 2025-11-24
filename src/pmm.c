@@ -70,10 +70,13 @@ int pmm_init(struct hvm_memmap_table_entry *table, int nentry) {
     if (table[i].type != HVM_MEMMAP_TYPE_RAM)
       continue;
 
-    phys_mem_info[phys_mem_info_size] = (struct mem_block){
+    struct mem_block block = {
         .base = table[i].addr,
         .npages = table[i].size / PAGE_SIZE,
     };
+
+    phys_mem_info[phys_mem_info_size] = block;
+    mem_free_blocks[phys_mem_info_size] = block;
 
     kprintf("pmm: ram 0x%x (%d pages)\n",
             phys_mem_info[phys_mem_info_size].base,
