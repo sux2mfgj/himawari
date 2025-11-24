@@ -58,12 +58,29 @@ static void exclude_null_page(void) {
   }
 }
 
+static void dump_mmap_table_entry(struct hvm_memmap_table_entry *table) {
+  switch (table->type) {
+  case HVM_MEMMAP_TYPE_RAM:
+    kprintf("RAM: 0x%x\n", table->addr);
+    break;
+  case HVM_MEMMAP_TYPE_ACPI:
+    kprintf("ACPI: 0x%x\n", table->addr);
+    break;
+  default:
+    kprintf("unknwon(%d): 0x%x\n", table->type, table->addr);
+    break;
+  }
+}
+
 int pmm_init(struct hvm_memmap_table_entry *table, int nentry) {
 
   if (initialized)
     return -1;
 
   for (int i = 0; i < nentry; i++) {
+
+    dump_mmap_table_entry(&table[i]);
+
     if (table[i].type != HVM_MEMMAP_TYPE_RAM)
       continue;
 
