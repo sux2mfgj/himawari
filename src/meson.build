@@ -6,5 +6,6 @@ srcs += files('print.c')
 srcs += files('pmm.c')
 srcs += files('vmm.c')
 srcs += files('string.c')
-srcs += files('acpi.c')
 
+subdir('acpi')
+subdir('pci')

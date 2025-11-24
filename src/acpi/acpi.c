@@ -1,4 +1,5 @@
 #include <acpi.h>
+#include <hm/acpi.h>
 #include <hm/print.h>
 #include <hm/string.h>
 #include <hm/vmm.h>
@@ -32,9 +33,19 @@ static int parse_sdt_32(struct rsdt_t *rsdt) {
 
   int nentry = (rsdt->header.length - sizeof(*rsdt)) / sizeof(rsdt->entry[0]);
 
+  int ret;
   for (int i = 0; i < nentry; i++) {
     struct sdt_header_t *hdr = (struct sdt_header_t *)(uintptr_t)rsdt->entry[i];
     dump_sdt_header(hdr);
+
+    if (memcmp(hdr->signature, DESC_TABLE_SIG_MCFG,
+               sizeof(DESC_TABLE_SIG_MCFG) - 1)) {
+      ret = acpi_table_parse_mcfg(hdr);
+      if (ret < 0) {
+        kprintf("failed to parse MCFG table");
+        return -1;
+      }
+    }
   }
 
   return 0;
@@ -75,6 +86,7 @@ int acpi_init(struct rsdp_v1_t *rsdp) {
     if (!validate_xsdt((struct xsdt_t *)root_sdt))
       return false;
 
+    return -1;
     break;
   }
   default:
