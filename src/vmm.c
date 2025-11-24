@@ -71,9 +71,15 @@ static void set_table_entry_for_next_table(uint64_t *entry, uint64_t *table,
   *entry = (uint64_t)table | flags;
 }
 
+struct mmap_param {
+  int write;
+  int user;
+  int write_through;
+  int cache_disable;
+};
+
 static int set_table_entry(uint64_t *entry, enum page_size psize, uint64_t addr,
-                           int write, int user, int write_through,
-                           int cache_disable) {
+                           struct mmap_param *param) {
 
   if (*entry & PTE_PRESENT) {
     kprintf("already mapped range\n");
@@ -81,13 +87,13 @@ static int set_table_entry(uint64_t *entry, enum page_size psize, uint64_t addr,
   }
 
   uint64_t flags = PTE_PRESENT;
-  if (write)
+  if (param->write)
     flags |= PTE_WRITE;
-  if (user)
+  if (param->user)
     flags |= PTE_USER;
-  if (write_through)
+  if (param->write_through)
     flags |= PTE_MASK_CACHE_WT;
-  if (cache_disable)
+  if (param->cache_disable)
     flags |= PTE_MASK_CACHE_DISABLE;
 
   uint64_t mask;
@@ -156,7 +162,8 @@ static uint64_t *page_walk(uint64_t vaddr, enum page_size psize) {
   return pt_entry;
 }
 
-static int vmm_map_ram_straight_2m(struct mem_block *block) {
+static int vmm_map_straight_2m(struct mem_block *block,
+                               struct mmap_param *param) {
 
   uint64_t *entry = page_walk(block->base, PAGE_SIZE_2M);
   if (!entry) {
@@ -164,19 +171,20 @@ static int vmm_map_ram_straight_2m(struct mem_block *block) {
     return -1;
   }
 
-  return set_table_entry(entry, PAGE_SIZE_2M, block->base, 1, 0, 0, 0);
+  return set_table_entry(entry, PAGE_SIZE_2M, block->base, param);
 }
 
-static int vmm_map_ram_straight_4k(struct mem_block *block) {
+static int vmm_map_straight_4k(struct mem_block *block,
+                               struct mmap_param *param) {
   uint64_t *entry = page_walk(block->base, PAGE_SIZE_4K);
   if (!entry) {
     kprintf("Failed to setup the page table entry for 4k\n");
     return -1;
   }
-  return set_table_entry(entry, PAGE_SIZE_4K, block->base, 1, 0, 0, 0);
+  return set_table_entry(entry, PAGE_SIZE_4K, block->base, param);
 }
 
-int vmm_map_ram_straight(struct mem_block *block) {
+int _vmm_map_straight(struct mem_block *block, struct mmap_param *param) {
   int ret;
 
   // check if 2M aligned
@@ -186,7 +194,7 @@ int vmm_map_ram_straight(struct mem_block *block) {
         .npages = 512,
     };
 
-    ret = vmm_map_ram_straight_2m(&block_2m);
+    ret = vmm_map_straight_2m(&block_2m, param);
     if (ret < 0)
       return ret;
 
@@ -202,7 +210,7 @@ int vmm_map_ram_straight(struct mem_block *block) {
         .base = block->base,
         .npages = 1,
     };
-    ret = vmm_map_ram_straight_4k(&block_4k);
+    ret = vmm_map_straight_4k(&block_4k, param);
     if (ret < 0)
       return ret;
 
@@ -212,7 +220,38 @@ int vmm_map_ram_straight(struct mem_block *block) {
     return 0;
   }
 
+  kprintf("vmm: found an invalid request\n");
+
   return -1;
+}
+
+int vmm_map_straight(struct mem_block *block, struct mmap_param *param) {
+  while (block->npages) {
+    int ret = _vmm_map_straight(block, param);
+    if (ret < 0)
+      return ret;
+  }
+
+  return 0;
+}
+
+int vmm_map_ram_straight(struct mem_block *block) {
+
+  struct mmap_param param = {
+      .write = 1,
+  };
+
+  return vmm_map_straight(block, &param);
+}
+
+int vmm_map_device(struct mem_block *block) {
+  struct mmap_param param = {
+      .write = 1,
+      .write_through = 1,
+      .cache_disable = 1,
+  };
+
+  return vmm_map_straight(block, &param);
 }
 
 static void set_cr3(uint64_t pml4) {
@@ -238,13 +277,11 @@ int vmm_init(void) {
 
   for (int i = 0; i < n_phys_mem_block; i++) {
     struct mem_block block = phys_mem_blocks[i];
-    while (block.npages) {
-      ret = vmm_map_ram_straight(&block);
-      if (ret < 0) {
-        kprintf("Failed to map the ram range: 0x%x(%d npages)\n", block.base,
-                block.npages);
-        return -1;
-      }
+    ret = vmm_map_ram_straight(&block);
+    if (ret < 0) {
+      kprintf("Failed to map the ram range: 0x%x(%d npages)\n", block.base,
+              block.npages);
+      return -1;
     }
   }
 
