@@ -1,6 +1,7 @@
 #include <hm/acpi.h>
 #include <hm/pmm.h>
 #include <hm/print.h>
+#include <hm/string.h>
 #include <hm/vmm.h>
 #include <pvh.h>
 
@@ -20,6 +21,14 @@ void kernel_cmain(struct hvm_start_info *start_info) {
     kprintf("failed to init physical memory management subsystem\n");
     goto out;
   }
+
+  struct hvm_start_info *copied_start_info = pmm_alloc(1);
+  if (!copied_start_info) {
+    kprintf("");
+    goto out;
+  }
+  memcpy(copied_start_info, start_info, 0x1000);
+  start_info = copied_start_info;
 
   ret = vmm_init();
   if (ret < 0) {
