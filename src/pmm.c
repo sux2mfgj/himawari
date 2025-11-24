@@ -104,7 +104,7 @@ int pmm_get_phys_mem_info(struct mem_block **mem_info, int *nentry) {
 
 void *pmm_alloc(size_t size) {
 
-  int npages = size / PAGE_SIZE;
+  int npages = size / PAGE_SIZE + !!(size % PAGE_SIZE);
 
   for (int i = 0; i < MEM_FREE_BLOCK_SIZE; i++) {
     if (mem_free_blocks[i].npages < npages)
