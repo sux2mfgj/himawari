@@ -1,0 +1,1 @@
+rssrc += files('lib.rs')
