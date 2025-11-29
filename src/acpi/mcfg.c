@@ -35,8 +35,8 @@ int acpi_table_parse_mcfg(struct sdt_header_t *hdr) {
     };
     vmm_map_device(&block);
 
-    ret = pci_scan_bus((void *)record->base_addr, record->start_bus_number,
-                       record->end_bus_number);
+    ret = pci_register_ecam((void *)record->base_addr, record->start_bus_number,
+                            record->end_bus_number);
 
     if (ret < 0)
       return ret;
