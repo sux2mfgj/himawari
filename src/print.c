@@ -4,9 +4,14 @@ static void (*putc)(char c);
 
 void register_putc(void (*func)(char)) { putc = func; }
 
-static void puts(const char *text) {
+void puts(const char *text) {
   for (; *text; text++)
     putc(*text);
+}
+
+void putsn(const char *text, unsigned long len) {
+  for (unsigned long i = 0; i < len; i++)
+    putc(text[i]);
 }
 
 static void put_hex_num(unsigned int x) {
