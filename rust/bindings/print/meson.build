@@ -3,10 +3,10 @@ rust = import('rust')
 
 # Generate bindings using Meson's native rust.bindgen()
 print_bindings = rust.bindgen(
-  input: files('../../../inc/hm/print.h'),
+  input: files('../../../inc/hm/puts.h'),
   output: 'bindings.rs',
   include_directories: include_directories('../../../inc'),
-  args: ['--ctypes-prefix', '::std::os::raw'],
+  args: ['--use-core', '--ctypes-prefix', '::core::ffi'],
 )
 
 print_rs = static_library('print_rs',
