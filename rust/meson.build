@@ -1,4 +1,5 @@
 subdir('bindings')
+subdir('runtime')
 
 cbindgen_prog = find_program('cbindgen', required: true, native: true)
 
