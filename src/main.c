@@ -2,6 +2,7 @@
 #include <hm/int.h>
 #include <hm/pmm.h>
 #include <hm/print.h>
+#include <hm/print_setup.h>
 #include <hm/string.h>
 #include <hm/vmm.h>
 #include <pvh.h>
