@@ -1,5 +1,3 @@
-#srcs += files('pci.c')
-
 rssrc = []
 subdir('src')
 
@@ -7,7 +5,8 @@ libs += static_library(
   'pci',
   sources : rssrc,
   rust_abi: 'c',
-  link_with: print_rs,
+  rust_args: ['-C', 'panic=abort'],
+  link_with: [print_rs, runtime_rs],
 )
 
 rs_hdr += [['hm/pci.h', rssrc]]
