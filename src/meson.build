@@ -8,6 +8,8 @@ srcs += files('vmm.c')
 srcs += files('string.c')
 srcs += files('int.S')
 srcs += files('int.c')
+srcs += files('core.c')
 
 subdir('acpi')
 subdir('pci')
+subdir('apic')

@@ -47,3 +47,4 @@ struct rsdt_t {
 #define DESC_TABLE_SIG_XSDT "XSDT"
 #define DESC_TABLE_SIG_RSDT "RSDT"
 #define DESC_TABLE_SIG_MCFG "MCFG"
+#define DESC_TABLE_SIG_MADT "APIC"

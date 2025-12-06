@@ -1,5 +1,6 @@
 #include <acpi.h>
 #include <hm/acpi.h>
+// #include <hm/madt.h>
 #include <hm/print.h>
 #include <hm/string.h>
 #include <hm/vmm.h>
@@ -42,7 +43,16 @@ static int parse_sdt_32(struct rsdt_t *rsdt) {
                sizeof(DESC_TABLE_SIG_MCFG) - 1)) {
       ret = acpi_table_parse_mcfg(hdr);
       if (ret < 0) {
-        kprintf("failed to parse MCFG table");
+        kprintf("failed to parse MCFG table\n");
+        return -1;
+      }
+    }
+
+    if (memcmp(hdr->signature, DESC_TABLE_SIG_MADT,
+               sizeof(DESC_TABLE_SIG_MADT) - 1)) {
+      ret = acpi_table_parse_madt(hdr);
+      if (ret < 0) {
+        kprintf("failed to parse MADT table\n");
         return -1;
       }
     }
