@@ -22,6 +22,7 @@ qemu-system-x86_64 \
     -kernel "$KERNEL" \
     -debugcon file:debugcon.txt \
     -M q35 \
+    -smp 2 \
     -device virtio-net-pci,netdev=net0 \
     -netdev user,id=net0 \
     -d int,cpu_reset \
