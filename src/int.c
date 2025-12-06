@@ -127,4 +127,5 @@ struct context {
 
 void irq_handler(struct context *context) {
   kprintf("exception occured for %d", context->reason);
+  asm volatile("hlt");
 }
