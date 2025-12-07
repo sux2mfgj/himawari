@@ -295,11 +295,23 @@ int vm_init(struct hvm_memmap_table_entry *entries, size_t nentry) {
     if (entry->size == 0 || entry->size >= (1ULL << 32))
       continue;
 
-    if (entry->type != HVM_MEMMAP_TYPE_RAM)
+    // Map RAM, RESERVED, and ACPI regions
+    if (entry->type != HVM_MEMMAP_TYPE_RAM &&
+        entry->type != HVM_MEMMAP_TYPE_RESERVED &&
+        entry->type != HVM_MEMMAP_TYPE_ACPI)
       continue;
 
     int npages = entry->size / PAGE_SIZE;
-    ret = vm_map_ram_straight(entry->addr, npages);
+
+    // Use different mapping functions based on type
+    if (entry->type == HVM_MEMMAP_TYPE_RAM) {
+      // RAM: cached, write-back
+      ret = vm_map_ram_straight(entry->addr, npages);
+    } else {
+      // RESERVED/ACPI: uncached (write-through + cache-disable)
+      ret = vm_map_device_straight(entry->addr, npages);
+    }
+
     if (ret < 0) {
       kprintf("Failed to map the range: 0x%x(%d npages)\n", entry->addr,
               npages);

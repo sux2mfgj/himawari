@@ -115,9 +115,9 @@ static int exclude_kernel_space(void) {
     struct mem_info *next_entry =
         (struct mem_info *)(kernel_start_addr + npages * PAGE_SIZE);
 
-    *next_entry = (struct mem_info){
-        .npages = entry->npages - npages,
-    };
+    next_entry->next = NULL;
+    next_entry->prev = NULL;
+    next_entry->npages = entry->npages - npages;
 
     insert_free_list(entry, next_entry);
 
@@ -130,6 +130,40 @@ static int exclude_kernel_space(void) {
   return 0;
 }
 
+static int exclude_ap_boot_space(void) {
+
+  uintptr_t ap_entry_addr = (uintptr_t)&_ap_start;
+  uintptr_t ap_entry_end = (uintptr_t)&_ap_end;
+
+  int n_ap_pages = (ap_entry_end - ap_entry_addr) / PAGE_SIZE;
+
+  struct mem_info *entry =
+      find_free_list_entry_containing(ap_entry_addr, n_ap_pages);
+  if (!entry)
+    return -1;
+
+  if ((uintptr_t)entry == ap_entry_addr)
+    return -1;
+
+  int n_whole_pages = entry->npages;
+  int n_before_ap_entry_pages = (ap_entry_addr - (uintptr_t)entry) / PAGE_SIZE;
+  /*(e)
+   * | before ap entry | ap entry code | after ap entry |
+   */
+
+  struct mem_info *after_ap_space = (struct mem_info *)ap_entry_end;
+
+  after_ap_space->next = NULL;
+  after_ap_space->prev = NULL;
+  after_ap_space->npages = n_whole_pages - n_ap_pages - n_before_ap_entry_pages;
+
+  entry->npages = n_before_ap_entry_pages;
+
+  insert_free_list(entry, after_ap_space);
+
+  return 0;
+}
+
 static int exclude_null_page(void) {
 
   struct mem_info *entry = free_head.next;
@@ -137,13 +171,15 @@ static int exclude_null_page(void) {
   if (&free_head == entry)
     return -1;
 
-  if (entry != NULL)
+  // Check if entry starts at address 0
+  if ((uintptr_t)entry != 0)
     return 0;
 
   struct mem_info *new = (struct mem_info *)0x1000;
-  *new = (struct mem_info){
-      .npages = entry->npages - 1,
-  };
+  new->next = NULL;
+  new->prev = NULL;
+  new->npages = entry->npages - 1;
+
   remove_free_list(entry);
   insert_free_list(&free_head, new);
 
@@ -164,74 +200,6 @@ static void dump_mmap_table_entry(struct hvm_memmap_table_entry *table) {
   }
 }
 
-static int register_ram_spaces(struct hvm_memmap_table_entry *entries,
-                               size_t nentry) {
-  for (int i = 0; i < nentry; i++) {
-    struct hvm_memmap_table_entry *entry = &entries[i];
-
-    dump_mmap_table_entry(entry);
-
-    if (entry->type != HVM_MEMMAP_TYPE_RAM)
-      continue;
-
-    struct mem_info *free_entry = (struct mem_info *)entry->addr;
-    *free_entry = (struct mem_info){
-        .next = NULL,
-        .prev = NULL,
-        .npages = entry->size / PAGE_SIZE,
-    };
-
-    add_free_list(free_entry);
-  }
-
-  return 0;
-}
-
-static int remove_null_space(struct hvm_memmap_table_entry *entry,
-                             struct mem_info **mem_info) {
-  if (entry->addr != (uint64_t)NULL)
-    return 0;
-
-  struct mem_info *new = (struct mem_info *)(entry->addr + PAGE_SIZE);
-
-  int npages = entry->size / PAGE_SIZE;
-
-  new->next = NULL;
-  new->prev = NULL;
-  new->npages = npages - 1; // exclude NULL page.
-
-  *mem_info = new;
-
-  return 1;
-}
-
-static int remove_kernel_space(struct hvm_memmap_table_entry *entry,
-                               struct mem_info **mem_info) {
-  uintptr_t kernel_start_addr = (uintptr_t)&_kernel_start;
-  if (entry->addr != kernel_start_addr)
-    return 1;
-
-  uintptr_t kernel_end_addr = (uintptr_t)&_kernel_end;
-  size_t kernel_size = kernel_end_addr - kernel_start_addr;
-  size_t npages = kernel_size / PAGE_SIZE;
-
-  if (entry->size < kernel_size)
-    return -1;
-
-  kprintf("kernel space 0x%x (%d pages)\n", kernel_start_addr, npages);
-
-  struct mem_info *after_kernel =
-      (struct mem_info *)(kernel_start_addr + npages * PAGE_SIZE);
-
-  after_kernel->next = NULL;
-  after_kernel->prev = NULL;
-  after_kernel->npages = (entry->size / PAGE_SIZE) - npages;
-
-  *mem_info = after_kernel;
-
-  return 0;
-}
-
 int mm_init(struct hvm_memmap_table_entry *entries, size_t nentry) {
   int ret;
 
@@ -241,6 +209,11 @@ int mm_init(struct hvm_memmap_table_entry *entries, size_t nentry) {
   if (mm_initialized)
     return -1;
 
+  // Re-initialize free list for the full memory map
+  init_free_list();
+
+  // TODO: free the early heap.
+
   for (int i = 0; i < nentry; i++) {
     struct hvm_memmap_table_entry *entry = &entries[i];
 
@@ -250,27 +223,24 @@ int mm_init(struct hvm_memmap_table_entry *entries, size_t nentry) {
       continue;
 
     struct mem_info *free_entry = (struct mem_info *)entry->addr;
-    ret = remove_null_space(entry, &free_entry);
-    if (ret)
-      goto updated;
-
-    ret = remove_kernel_space(entry, &free_entry);
-    if (ret)
-      goto updated;
-
     free_entry->next = NULL;
     free_entry->prev = NULL;
     free_entry->npages = entry->size / PAGE_SIZE;
 
-  updated:
     add_free_list(free_entry);
   }
 
-  // register_ram_spaces(entries, nentry);
+  ret = exclude_null_page();
+  if (ret)
+    return ret;
 
-  // ret = exclude_ap_boot_space();
-  // if (ret < 0)
-  //   return ret;
+  ret = exclude_kernel_space();
+  if (ret)
+    return ret;
+
+  ret = exclude_ap_boot_space();
+  if (ret)
+    return ret;
 
   mm_initialized = true;
   return 0;

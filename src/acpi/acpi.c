@@ -65,8 +65,6 @@ static int parse_sdt_32(struct rsdt_t *rsdt) {
 int acpi_init(struct rsdp_v1_t *rsdp) {
   int ret;
 
-  vm_map_device_straight((uint64_t)rsdp, sizeof(struct rsdp_v2_t));
-
   if (!memcmp(rsdp->signature, RSDP_SIGNATURE, sizeof(RSDP_SIGNATURE) - 1))
     return -1;
 
