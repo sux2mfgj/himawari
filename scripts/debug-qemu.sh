@@ -13,5 +13,4 @@ echo ""
 
 gdb "$KERNEL" \
     -ex 'target remote :1234' \
-    -ex 'layout asm' \
     -ex 'layout regs'
