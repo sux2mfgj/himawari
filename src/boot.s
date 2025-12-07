@@ -64,7 +64,7 @@ long_mode:
   mov ss, ax
 
   # Setup stack
-  mov rsp, OFFSET __early_stack_top
+  mov rsp, OFFSET _early_stack_top
 
   # prepare an argument to pass hvm_start_info to C code.
   mov rdi, rbx

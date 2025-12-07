@@ -1,8 +1,8 @@
 #include <acpi.h>
-#include <hm/pci.h>
+// #include <hm/pci.h>
 #include <hm/print.h>
 #include <hm/string.h>
-#include <hm/vmm.h>
+#include <hm/vm.h>
 
 struct acpi_mcfg_record {
   uint64_t base_addr;
@@ -29,11 +29,8 @@ int acpi_table_parse_mcfg(struct sdt_header_t *hdr) {
             record->base_addr, record->pci_segment_group_number,
             record->start_bus_number, record->end_bus_number);
 
-    struct mem_block block = {
-        .base = record->base_addr,
-        .npages = (256 * 1024 * 1024) / 0x1000, // 256 MiB(range) / 4KiB(page),
-    };
-    vmm_map_device(&block);
+    // 256 MiB(range)
+    vm_map_device_straight(record->base_addr, (256 * 1024 * 1024));
 
     ret = pci_register_ecam((void *)record->base_addr, record->start_bus_number,
                             record->end_bus_number);

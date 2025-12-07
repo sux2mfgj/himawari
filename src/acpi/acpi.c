@@ -1,9 +1,10 @@
 #include <acpi.h>
 #include <hm/acpi.h>
 // #include <hm/madt.h>
+#include <hm/mm.h>
 #include <hm/print.h>
 #include <hm/string.h>
-#include <hm/vmm.h>
+#include <hm/vm.h>
 
 static bool validate_rsdt(struct rsdt_t *rsdt) {
   if (!memcmp(rsdt->header.signature, DESC_TABLE_SIG_RSDT,
@@ -64,6 +65,8 @@ static int parse_sdt_32(struct rsdt_t *rsdt) {
 int acpi_init(struct rsdp_v1_t *rsdp) {
   int ret;
 
+  vm_map_device_straight((uint64_t)rsdp, sizeof(struct rsdp_v2_t));
+
   if (!memcmp(rsdp->signature, RSDP_SIGNATURE, sizeof(RSDP_SIGNATURE) - 1))
     return -1;
 
@@ -73,11 +76,8 @@ int acpi_init(struct rsdp_v1_t *rsdp) {
     kprintf("ACPI rev 1\n");
     root_sdt = (void *)(uint64_t)rsdp->rsdt_address;
 
-    struct mem_block block = {
-        .base = (uint64_t)root_sdt & ~(0x1000 - 1),
-        .npages = 1,
-    };
-    vmm_map_ram_straight(&block);
+    uint64_t aligned = (uint64_t)root_sdt & ~(PAGE_SIZE - 1);
+    vm_map_ram_straight(aligned, 1);
 
     if (!validate_rsdt(root_sdt))
       return false;
@@ -87,11 +87,8 @@ int acpi_init(struct rsdp_v1_t *rsdp) {
     struct rsdp_v2_t *rsdp_v2 = (struct rsdp_v2_t *)rsdp;
     root_sdt = (void *)rsdp_v2->xsdt_address;
 
-    struct mem_block block = {
-        .base = (uint64_t)root_sdt & ~(0x1000 - 1),
-        .npages = 1,
-    };
-    vmm_map_ram_straight(&block);
+    uint64_t aligned = (uint64_t)root_sdt & ~(PAGE_SIZE - 1);
+    vm_map_ram_straight(aligned, 1);
 
     if (!validate_xsdt((struct xsdt_t *)root_sdt))
       return false;

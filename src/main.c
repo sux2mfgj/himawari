@@ -1,19 +1,26 @@
 #include <hm/acpi.h>
 #include <hm/int.h>
-#include <hm/pmm.h>
+#include <hm/mm.h>
 #include <hm/print.h>
 #include <hm/print_setup.h>
 #include <hm/string.h>
-#include <hm/vmm.h>
+#include <hm/vm.h>
 #include <pvh.h>
 
 void qemu_debugcon_putc(char c);
 
-void kernel_cmain(struct hvm_start_info *start_info) {
+static struct hvm_start_info start_info;
+
+static void move_start_inifo(struct hvm_start_info *sinfo) {
+  memcpy(&start_info, sinfo, sizeof(*sinfo));
+}
+
+void kernel_cmain(struct hvm_start_info *sinfo) {
+  int ret;
   register_putc(qemu_debugcon_putc);
   kprintf("hello world\n");
 
-  int ret;
+  move_start_inifo(sinfo);
 
   ret = int_init();
   if (ret < 0) {
@@ -21,34 +28,27 @@ void kernel_cmain(struct hvm_start_info *start_info) {
     goto fail;
   }
 
-  ret = pmm_init((struct hvm_memmap_table_entry *)start_info->memmap_paddr,
-                 start_info->memmap_entries);
+  ret = mm_early_init();
   if (ret < 0) {
-    kprintf("failed to init physical memory management subsystem\n");
+    kprintf("failed to init early mm\n");
     goto fail;
   }
 
-  struct hvm_start_info *copied_start_info = pmm_alloc(1);
-  if (!copied_start_info) {
-    kprintf("");
-    goto fail;
-  }
-  memcpy(copied_start_info, start_info, 0x1000);
-  start_info = copied_start_info;
-
-  ret = vmm_init();
+  ret = vm_init((struct hvm_memmap_table_entry *)start_info.memmap_paddr,
+                start_info.memmap_entries);
   if (ret < 0) {
     kprintf("failed to init virtual memory subsystem\n");
     goto fail;
   }
 
-  struct mem_block block = {
-      .base = start_info->rsdp_paddr & ~(0x1000 - 1),
-      .npages = 1,
-  };
-  vmm_map_ram_straight(&block);
+  ret = mm_init((struct hvm_memmap_table_entry *)start_info.memmap_paddr,
+                start_info.memmap_entries);
+  if (ret < 0) {
+    kprintf("failed to init physical memory management subsystem\n");
+    goto fail;
+  }
 
-  ret = acpi_init((struct rsdp_v1_t *)start_info->rsdp_paddr);
+  ret = acpi_init((struct rsdp_v1_t *)start_info.rsdp_paddr);
   if (ret < 0) {
     kprintf("failed to init acpi subsystem\n");
     goto fail;

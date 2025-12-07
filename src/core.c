@@ -1,5 +1,5 @@
 #include <hm/core.h>
-#include <hm/pmm.h>
+#include <hm/mm.h>
 #include <hm/print.h>
 #include <stdbool.h>
 
@@ -35,7 +35,7 @@ int core_init(uint64_t boot_core_id) {
 
   boot_cid = boot_core_id;
 
-  core_info = pmm_alloc(0x1000);
+  core_info = mm_alloc(0x1000);
   if (!core_info)
     return -1;
 
