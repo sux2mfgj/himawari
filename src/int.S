@@ -62,7 +62,7 @@ irqh_common:
   pop rcx
   pop rdx
   pop rsi
-  pop rsi
+  pop rdi
   pop rbp
   pop r8
   pop r9
