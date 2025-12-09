@@ -48,7 +48,7 @@ struct idtr {
 static struct idt_entry idt[IDT_MAX_ENTRY];
 
 static inline void load_idt(struct idtr *idtr) {
-  asm volatile("lidt %0" : : "m"(idtr) : "memory");
+  asm volatile("lidt (%0)" : : "r"(idtr) : "memory");
 }
 
 static int fill_idt_entry(int ec_num, void (*asm_irq_handler)(void)) {
@@ -74,7 +74,7 @@ int int_init(void) {
   memset(idt, 0x00, sizeof(idt));
 
   struct idtr idtr = {
-      .limit = IDT_MAX_ENTRY - 1,
+      .limit = sizeof(idt) - 1,  // Size in bytes minus 1
       .base = (uint64_t)idt,
   };
 
