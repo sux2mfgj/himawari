@@ -9,14 +9,9 @@ PHDRS {
 
 SECTIONS {
 
-  /* AP entry */
-  . = 0x10000;
-  _ap_start = .;
-  .text : {
-    *(.text.boot16)
-  } :text
-  . = ALIGN(4096);
-  _ap_end = .;
+  /* Reserve space for AP boot code at 0x10000 */
+  _ap_start = 0x10000;
+  _ap_end = 0x11000;
 
   . = 1M;
   _kernel_start = .;
@@ -27,6 +22,11 @@ SECTIONS {
 
   .text : {
     *(.text)
+    . = ALIGN(4096);
+    _ap_boot_code_start = .;
+    *(.text.boot16)
+    . = ALIGN(4096);
+    _ap_boot_code_end = .;
   } :text
 
   .rodata : {

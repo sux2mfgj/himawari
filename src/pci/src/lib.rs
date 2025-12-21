@@ -57,6 +57,11 @@ fn pci_scan_device(base: *const u8, bus: u8, dev: u8) -> Result<(), i32> {
         device_id
     );
 
+    // This is a virtio net device
+    if vendor_id == 0x1af4 && device_id == 0x1000 {
+        vnet_init(base);
+    }
+
     // TODO: check the device type and etc.
 
     Ok(())

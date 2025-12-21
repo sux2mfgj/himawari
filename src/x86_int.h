@@ -21,3 +21,5 @@ extern void irq_handler_18(void);
 extern void irq_handler_19(void);
 extern void irq_handler_20(void);
 extern void irq_handler_21(void);
+extern void irq_handler_32(void);
+extern void irq_handler_255(void);

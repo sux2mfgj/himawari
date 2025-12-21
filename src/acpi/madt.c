@@ -74,6 +74,7 @@ int acpi_table_parse_madt(struct sdt_header_t *hdr) {
     kprintf("failed to get local apic id", bsp_id);
     return ret;
   }
+
   ret = core_init(bsp_id);
   if (ret) {
     kprintf("failed to set boot core id: %d", bsp_id);

@@ -21,3 +21,5 @@
 #define EXC_NUM_SIMD_FP 19
 #define EXC_NUM_VIRT 20
 #define EXC_NUM_CONTROL_PROTECT 21
+
+#define IRQ_NUM_TIMER 32

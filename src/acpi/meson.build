@@ -2,6 +2,7 @@
 srcs += files('acpi.c')
 srcs += files('mcfg.c')
 srcs += files('madt.c')
+srcs += files('hpet.c')
 
 #madt_rssrc = [files('madt.rs')]
 

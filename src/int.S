@@ -39,6 +39,11 @@ irqh_noerr EXC_NUM_SIMD_FP
 irqh_noerr EXC_NUM_VIRT
 irqh_err EXC_NUM_CONTROL_PROTECT
 
+irqh_noerr IRQ_NUM_TIMER
+
+// Spurious interrupt (vector 255)
+irqh_noerr 255
+
 irqh_common:
   push r15
   push r14

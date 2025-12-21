@@ -309,7 +309,7 @@ int vm_init(struct hvm_memmap_table_entry *entries, size_t nentry) {
       ret = vm_map_ram_straight(entry->addr, npages);
     } else {
       // RESERVED/ACPI: uncached (write-through + cache-disable)
-      ret = vm_map_device_straight(entry->addr, npages);
+      // ret = vm_map_device_straight(entry->addr, npages);
     }
 
     if (ret < 0) {

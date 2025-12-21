@@ -1,9 +1,12 @@
 #include <hm/acpi.h>
+#include <hm/core.h>
+#include <hm/device.h>
 #include <hm/int.h>
 #include <hm/mm.h>
 #include <hm/print.h>
 #include <hm/print_setup.h>
 #include <hm/string.h>
+#include <hm/timer.h>
 #include <hm/vm.h>
 #include <pvh.h>
 
@@ -48,17 +51,38 @@ void kernel_cmain(struct hvm_start_info *sinfo) {
     goto fail;
   }
 
+  ret = device_init();
+  if (ret < 0) {
+    kprintf("failed to init device subsystem\n");
+    goto fail;
+  }
+
+  // ret = timer_init();
+  if (ret < 0) {
+    kprintf("failed to setup timer\n");
+    goto fail;
+  }
+
   ret = acpi_init((struct rsdp_v1_t *)start_info.rsdp_paddr);
   if (ret < 0) {
     kprintf("failed to init acpi subsystem\n");
     goto fail;
   }
 
+  // ret = core_start_aps();
+  // if (ret < 0) {
+  //   kprintf("failed to start APs\n");
+  //   goto fail;
+  // }
+
   kprintf("success\n");
   goto out;
 
 fail:
   kprintf("fail\n");
+
 out:
   asm volatile("hlt");
+  while (1)
+    ;
 }

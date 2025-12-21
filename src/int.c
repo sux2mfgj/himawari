@@ -63,7 +63,7 @@ static int fill_idt_entry(int ec_num, void (*asm_irq_handler)(void)) {
       .offset_31_16 = (addr >> 16) & 0xffff,
       .offset_63_32 = addr >> 32 & 0xffffffff,
       .segment_selector = 0x8,
-      .flags = 0x8e,
+      .flags = 0x8e00,  // P=1 (bit 15), DPL=0 (bits 13-14), Type=0xE (bits 8-11), IST=0 (bits 0-2)
   };
 
   return 0;
@@ -99,6 +99,8 @@ int int_init(void) {
   fill_idt_entry(EXC_NUM_SIMD_FP, irq_handler_19);
   fill_idt_entry(EXC_NUM_VIRT, irq_handler_20);
   fill_idt_entry(EXC_NUM_CONTROL_PROTECT, irq_handler_21);
+  fill_idt_entry(IRQ_NUM_TIMER, irq_handler_32);
+  fill_idt_entry(255, irq_handler_255);  // Spurious interrupt vector
 
   load_idt(&idtr);
 
@@ -106,6 +108,7 @@ int int_init(void) {
 }
 
 struct context {
+  // Registers pushed by our interrupt handler
   uint64_t rax;
   uint64_t rbx;
   uint64_t rcx;
@@ -123,9 +126,78 @@ struct context {
   uint64_t r15;
   uint64_t reason;
   uint64_t err_code;
+  // Values automatically pushed by CPU
+  uint64_t rip;
+  uint64_t cs;
+  uint64_t rflags;
+  uint64_t rsp;
+  uint64_t ss;
 } __attribute__((packed));
 
+// Simple counter to track timer interrupts without using kprintf
+volatile int timer_interrupt_count = 0;
+volatile uint32_t irq_handler_called_marker = 0;
+
+// Debug: use multiple markers to track execution flow
+volatile uint32_t irq_handler_entry_marker = 0;
+volatile uint32_t irq_handler_exit_marker = 0;
+volatile uint64_t page_fault_addr = 0;
+volatile uint64_t page_fault_err_code = 0;
+
 void irq_handler(struct context *context) {
-  kprintf("exception occured for %d", context->reason);
+  // Mark entry
+  irq_handler_entry_marker = 0x11111111;
+
+  // Write vector number to marker to see what interrupt occurred
+  irq_handler_called_marker = context->reason;
+
+  if (context->reason == EXC_NUM_DOUBLE_FAULT) {
+    // Double fault - very serious
+    irq_handler_entry_marker = 0xDEADDEAD;
+    kprintf("DOUBLE FAULT! err_code=0x%x\n", context->err_code);
+    asm volatile("hlt");
+  }
+
+  if (context->reason == IRQ_NUM_TIMER) {
+    // Timer interrupt
+    timer_interrupt_count++;
+    irq_handler_entry_marker = 0x22222222;
+
+    // Write to EOI register directly at APIC_BASE + 0x80
+    *(volatile uint32_t *)0xfee00080UL = 0;
+
+    irq_handler_exit_marker = 0x33333333;
+    return;
+  }
+
+  if (context->reason == EXC_NUM_INVALID_OPCODE) {
+    // Invalid Opcode (#UD) exception
+    irq_handler_entry_marker = 0xBADC0DE;
+    kprintf("INVALID OPCODE! rip=0x%x, cs=0x%x, rflags=0x%x\n",
+            context->rip, context->cs, context->rflags);
+    asm volatile("hlt");
+  }
+
+  if (context->reason == EXC_NUM_PAGE_FAULT) {
+    // Page fault - save info to markers first
+    asm volatile("mov %%cr2, %0" : "=r"(page_fault_addr));
+    page_fault_err_code = context->err_code;
+    irq_handler_entry_marker = 0xDEADBEEF;  // Mark that we got to page fault handler
+
+    // Now try kprintf (might cause issues)
+    kprintf("PAGE FAULT! addr=0x%x, err_code=0x%x, rip=0x%x\n",
+            page_fault_addr, page_fault_err_code, context->rip);
+    asm volatile("hlt");
+  }
+
+  if (context->reason == 255) {
+    // Spurious interrupt - don't send EOI for spurious interrupts
+    irq_handler_exit_marker = 0x44444444;
+    return;
+  }
+
+  // Unexpected interrupt - send EOI anyway and halt
+  *(volatile uint32_t *)0xfee00080UL = 0;
+  kprintf("unexpected interrupt: vector=%d, rip=0x%x\n", context->reason, context->rip);
   asm volatile("hlt");
 }

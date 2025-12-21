@@ -57,6 +57,16 @@ static int parse_sdt_32(struct rsdt_t *rsdt) {
         return -1;
       }
     }
+
+    if (memcmp(hdr->signature, DESC_TABLE_SIG_HPET,
+               sizeof(DESC_TABLE_SIG_HPET) - 1)) {
+
+      ret = acpi_table_parse_hpet(hdr);
+      if (ret < 0) {
+        kprintf("failed to parse HPTE table\n");
+        return -1;
+      }
+    }
   }
 
   return 0;
@@ -64,6 +74,8 @@ static int parse_sdt_32(struct rsdt_t *rsdt) {
 
 int acpi_init(struct rsdp_v1_t *rsdp) {
   int ret;
+
+  vm_map_device_straight((uintptr_t)rsdp, 1);
 
   if (!memcmp(rsdp->signature, RSDP_SIGNATURE, sizeof(RSDP_SIGNATURE) - 1))
     return -1;

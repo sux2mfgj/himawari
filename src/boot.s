@@ -85,12 +85,14 @@ gdt_start:
   .quad 0x00CF92000000FFFF    # 64-bit data segment (selector 0x10)
 gdt_end:
 
+.global gdt_ptr
 gdt_ptr:
   .word gdt_end - gdt_start - 1
   .quad gdt_start
 
 # Page tables for identity mapping first 2MB
 .align 4096
+.global pml4_table
 pml4_table:
   .quad pdp_table + 0x3   # Present, writable
   .fill 511, 8, 0

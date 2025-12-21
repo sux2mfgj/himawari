@@ -30,7 +30,7 @@ int acpi_table_parse_mcfg(struct sdt_header_t *hdr) {
             record->start_bus_number, record->end_bus_number);
 
     // 256 MiB(range)
-    vm_map_device_straight(record->base_addr, (256 * 1024 * 1024));
+    vm_map_device_straight(record->base_addr, (256 * 1024 * 1024) / 0x1000);
 
     ret = pci_register_ecam((void *)record->base_addr, record->start_bus_number,
                             record->end_bus_number);

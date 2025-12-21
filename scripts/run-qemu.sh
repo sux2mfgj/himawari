@@ -21,6 +21,7 @@ fi
 qemu-system-x86_64 \
     -kernel "$KERNEL" \
     -debugcon file:debugcon.txt \
+    -cpu max \
     -M q35 \
     -smp 2 \
     -device virtio-net-pci,netdev=net0 \

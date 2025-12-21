@@ -1,0 +1,164 @@
+#include <hm/device.h>
+#include <hm/mm.h>
+#include <hm/pci.h>
+#include <hm/print.h>
+#include <hm/string.h>
+#include <stdint.h>
+
+static void *calc_config_base(void *ecam_base, uint8_t bus, uint8_t device,
+                              uint8_t function) {
+  uintptr_t base =
+      (uintptr_t)ecam_base + ((bus << 20) | (device << 15) | (function << 12));
+  return (void *)base;
+}
+
+/* Read 8-bit value from PCI configuration space */
+uint8_t pci_read_config_byte(void *config_space, uint8_t offset) {
+  volatile uint8_t *addr = config_space + offset;
+  if (!addr) {
+    return 0xFF;
+  }
+
+  return *addr;
+}
+
+/* Read 16-bit value from PCI configuration space */
+uint16_t pci_read_config_word(void *config_space, uint8_t offset) {
+  volatile uint16_t *addr = config_space + offset;
+  if (!addr) {
+    return 0xFFFF;
+  }
+
+  return *addr;
+}
+
+/* Read 32-bit value from PCI configuration space */
+uint32_t pci_read_config_dword(void *config_space, uint8_t offset) {
+  volatile uint32_t *addr = config_space + offset;
+  if (!addr) {
+    return 0xFFFFFFFF;
+  }
+
+  return *addr;
+}
+
+/* Write 8-bit value to PCI configuration space */
+void pci_write_config_byte(void *config_space, uint8_t offset, uint8_t value) {
+  volatile uint8_t *addr = config_space + offset;
+  if (addr) {
+    *addr = value;
+  }
+}
+
+/* Write 16-bit value to PCI configuration space */
+void pci_write_config_word(void *config_space, uint8_t offset, uint16_t value) {
+  volatile uint16_t *addr = config_space + offset;
+  if (addr) {
+    *addr = value;
+  }
+}
+
+/* Write 32-bit value to PCI configuration space */
+void pci_write_config_dword(void *config_space, uint8_t offset,
+                            uint32_t value) {
+  volatile uint32_t *addr = config_space + offset;
+  if (addr) {
+    *addr = value;
+  }
+}
+
+/* Check if a device exists at the given location */
+static int pci_device_exists(void *ecam_base, uint8_t bus, uint8_t device,
+                             uint8_t function) {
+  void *config_base = calc_config_base(ecam_base, bus, device, function);
+  uint16_t vendor_id = pci_read_config_word(config_base, PCI_CONFIG_VENDOR_ID);
+  return vendor_id != PCI_VENDOR_INVALID;
+}
+
+/* Scan a specific function */
+struct pcie_device {
+  struct device dev;
+  void *config_space;
+};
+
+static char *gen_pci_device_name(uint8_t bus, uint8_t device,
+                                 uint8_t function) {
+  size_t size = sizeof("PCI BB:DD:FF");
+  char *name = mm_alloc(size);
+
+  snprintf(name, size, "PCI %x:%x:%x", bus, device, function);
+
+  return name;
+}
+
+static int pci_register_device(void *ecam_base, uint8_t bus, uint8_t device,
+                               uint8_t function) {
+
+  struct pcie_device *pdev = mm_alloc(sizeof(*pdev));
+
+  void *config_base = calc_config_base(ecam_base, bus, device, function);
+
+  uint16_t vendor_id = pci_read_config_word(config_base, PCI_CONFIG_VENDOR_ID);
+  uint16_t device_id = pci_read_config_word(config_base, PCI_CONFIG_VENDOR_ID);
+
+  pdev->dev = (struct device){
+      .type = PCIE,
+      .match.pcie =
+          {
+              .vendor_id = vendor_id,
+              .device_id = device_id,
+          },
+      .name = gen_pci_device_name(bus, device, function),
+  };
+
+  pdev->config_space = config_base;
+
+  return register_device(&pdev->dev);
+}
+
+/* Scan a specific device (all functions) */
+static void pci_scan_device(void *ecam_base, uint8_t bus, uint8_t device) {
+  if (!pci_device_exists(ecam_base, bus, device, 0))
+    return;
+
+  void *config_base = calc_config_base(ecam_base, bus, device, 0);
+
+  /* Scan function 0 */
+  pci_register_device(ecam_base, bus, device, 0);
+
+  /* Check if this is a multi-function device */
+  uint8_t header_type =
+      pci_read_config_byte(config_base, PCI_CONFIG_HEADER_TYPE);
+
+  if (header_type & PCI_HEADER_TYPE_MULTIFUNCTION) {
+    /* Scan functions 1-7 */
+    for (uint8_t function = 1; function < 8; function++) {
+      if (pci_device_exists(ecam_base, bus, device, function))
+        pci_register_device(ecam_base, bus, device, function);
+    }
+  }
+}
+
+/* Scan a specific bus (all devices) */
+static void pci_scan_bus(void *ecam_base, uint8_t bus) {
+  for (uint8_t device = 0; device < 32; device++) {
+    pci_scan_device(ecam_base, bus, device);
+  }
+}
+
+int pci_register_ecam(void *ecam_base, uint8_t start_bus, uint8_t end_bus) {
+  if (start_bus) {
+    kprintf("no support the start_bus is not started from 0\n");
+    return -1;
+  }
+
+  if (!ecam_base || start_bus > end_bus) {
+    return -1;
+  }
+
+  for (int16_t bus = start_bus; bus <= end_bus; bus++) {
+    pci_scan_bus(ecam_base, bus);
+  }
+
+  return 0;
+}

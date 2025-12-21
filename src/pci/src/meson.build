@@ -1,1 +1,1 @@
-rssrc += files('lib.rs')
+#rssrc += files('lib.rs')
