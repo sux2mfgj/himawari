@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hm/device.h>
 #include <stdint.h>
 
 /* PCI Configuration Space Registers */
@@ -26,5 +27,20 @@
 /* Invalid vendor ID */
 #define PCI_VENDOR_INVALID 0xFFFF
 
+struct pcie_device {
+  struct device dev;
+  void *config_space;
+};
+
 /* Function prototypes */
 int pci_register_ecam(void *base, uint8_t start_bus, uint8_t end_bus);
+
+uint8_t pci_read_config_byte(void *config_space, uint8_t offset);
+uint16_t pci_read_config_word(void *config_space, uint8_t offset);
+uint32_t pci_read_config_dword(void *config_space, uint8_t offset);
+void pci_write_config_byte(void *config_space, uint8_t offset, uint8_t value);
+void pci_write_config_word(void *config_space, uint8_t offset, uint16_t value);
+void pci_write_config_dword(void *config_space, uint8_t offset, uint32_t value);
+
+#define VIRTIO_PCIE_CAP_ID 0x09
+#define MSIX_PCIE_CAP_ID 0x11

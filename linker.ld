@@ -31,6 +31,12 @@ SECTIONS {
 
   .rodata : {
     *(.rodata)
+
+    /* Module init function pointers */
+    . = ALIGN(8);
+    __module_init_start = .;
+    *(.module_init)
+    __module_init_end = .;
   } :text
 
   .data : {

@@ -3,6 +3,7 @@
 #include <hm/device.h>
 #include <hm/int.h>
 #include <hm/mm.h>
+#include <hm/module.h>
 #include <hm/print.h>
 #include <hm/print_setup.h>
 #include <hm/string.h>
@@ -57,23 +58,23 @@ void kernel_cmain(struct hvm_start_info *sinfo) {
     goto fail;
   }
 
-  // ret = timer_init();
-  if (ret < 0) {
-    kprintf("failed to setup timer\n");
-    goto fail;
-  }
-
   ret = acpi_init((struct rsdp_v1_t *)start_info.rsdp_paddr);
   if (ret < 0) {
     kprintf("failed to init acpi subsystem\n");
     goto fail;
   }
 
-  // ret = core_start_aps();
-  // if (ret < 0) {
-  //   kprintf("failed to start APs\n");
-  //   goto fail;
-  // }
+  ret = module_init_all();
+  if (ret < 0) {
+    kprintf("failed to init modules\n");
+    goto fail;
+  }
+
+  ret = probe_drivers();
+  if (ret < 0) {
+    kprintf("failed to probe drivers\n");
+    goto fail;
+  }
 
   kprintf("success\n");
   goto out;

@@ -76,17 +76,15 @@ static int pci_device_exists(void *ecam_base, uint8_t bus, uint8_t device,
 }
 
 /* Scan a specific function */
-struct pcie_device {
-  struct device dev;
-  void *config_space;
-};
 
-static char *gen_pci_device_name(uint8_t bus, uint8_t device,
+static char *gen_pci_device_name(uint16_t vendor_id, uint16_t device_id,
+                                 uint8_t bus, uint8_t device,
                                  uint8_t function) {
-  size_t size = sizeof("PCI BB:DD:FF");
+  size_t size = sizeof("PCI VVVV:DDDD (BB:DD:FF)");
   char *name = mm_alloc(size);
 
-  snprintf(name, size, "PCI %x:%x:%x", bus, device, function);
+  snprintf(name, size, "PCI %x:%x (%x:%x:%x)", vendor_id, device_id, bus,
+           device, function);
 
   return name;
 }
@@ -99,7 +97,7 @@ static int pci_register_device(void *ecam_base, uint8_t bus, uint8_t device,
   void *config_base = calc_config_base(ecam_base, bus, device, function);
 
   uint16_t vendor_id = pci_read_config_word(config_base, PCI_CONFIG_VENDOR_ID);
-  uint16_t device_id = pci_read_config_word(config_base, PCI_CONFIG_VENDOR_ID);
+  uint16_t device_id = pci_read_config_word(config_base, PCI_CONFIG_DEVICE_ID);
 
   pdev->dev = (struct device){
       .type = PCIE,
@@ -108,7 +106,7 @@ static int pci_register_device(void *ecam_base, uint8_t bus, uint8_t device,
               .vendor_id = vendor_id,
               .device_id = device_id,
           },
-      .name = gen_pci_device_name(bus, device, function),
+      .name = gen_pci_device_name(vendor_id, device_id, bus, device, function),
   };
 
   pdev->config_space = config_base;
