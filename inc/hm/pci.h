@@ -30,6 +30,7 @@
 struct pcie_device {
   struct device dev;
   void *config_space;
+  struct msix *msix;
 };
 
 /* Function prototypes */
@@ -41,6 +42,9 @@ uint32_t pci_read_config_dword(void *config_space, uint8_t offset);
 void pci_write_config_byte(void *config_space, uint8_t offset, uint8_t value);
 void pci_write_config_word(void *config_space, uint8_t offset, uint16_t value);
 void pci_write_config_dword(void *config_space, uint8_t offset, uint32_t value);
+
+int pci_get_bar(struct pcie_device *pdev, int idx, uint64_t *bar,
+                uint64_t *size);
 
 #define VIRTIO_PCIE_CAP_ID 0x09
 #define MSIX_PCIE_CAP_ID 0x11

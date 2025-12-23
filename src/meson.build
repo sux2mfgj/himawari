@@ -13,6 +13,7 @@ srcs += files('device.c')
 srcs += files('module.c')
 srcs += files('virtio-net.c')
 srcs += files('virtio.c')
+srcs += files('packed_virtq.c')
 
 subdir('mm')
 subdir('acpi')

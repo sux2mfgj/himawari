@@ -12,3 +12,4 @@ subdir('src')
 rs_hdr += [['hm/pci.h', rssrc]]
 
 srcs += files('pci.c')
+srcs += files('msix.c')

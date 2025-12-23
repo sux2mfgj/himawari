@@ -160,3 +160,87 @@ int pci_register_ecam(void *ecam_base, uint8_t start_bus, uint8_t end_bus) {
 
   return 0;
 }
+
+#define PCI_BAR_TYPE_MASK 0x01
+#define PCI_BAR_TYPE_MEM 0x00
+#define PCI_BAR_TYPE_IO 0x00
+
+#define PCI_BAR_MEM_TYPE_MASK 0x06
+#define PCI_BAR_MEM_TYPE_32BIT 0x00
+#define PCI_BAR_MEM_TYPE_64BIT 0x04
+
+static int pci_bar_is_memory(uint32_t bar) {
+  return (bar & PCI_BAR_TYPE_MASK) == PCI_BAR_TYPE_MEM;
+}
+
+static int pci_bar_is_64bit(uint32_t bar) {
+  if (!pci_bar_is_memory(bar))
+    return 0;
+
+  return (bar & PCI_BAR_MEM_TYPE_MASK) == PCI_BAR_MEM_TYPE_64BIT;
+}
+
+int pci_get_bar(struct pcie_device *pdev, int idx, uint64_t *bar,
+                uint64_t *size) {
+  uint8_t bar_offset = PCI_CONFIG_BAR0 + idx * 4;
+
+  uint32_t bar_lo = pci_read_config_dword(pdev->config_space, bar_offset);
+
+  if (!pci_bar_is_64bit(bar_lo)) {
+    // 32-bit BAR
+    *bar = (uint64_t)(bar_lo & ~0xF);
+
+    if (size) {
+      // Save original value
+      uint32_t original = bar_lo;
+
+      // Write all 1s
+      pci_write_config_dword(pdev->config_space, bar_offset, 0xFFFFFFFF);
+
+      // Read back
+      uint32_t readback = pci_read_config_dword(pdev->config_space, bar_offset);
+
+      // Restore original
+      pci_write_config_dword(pdev->config_space, bar_offset, original);
+
+      // Calculate size
+      readback &= ~0xF;  // Mask off lower 4 bits
+      *size = (~readback) + 1;
+    }
+
+    return 0;
+  }
+
+  // 64-bit BAR
+  uint8_t bar_offset_hi = PCI_CONFIG_BAR0 + (idx + 1) * 4;
+  uint32_t bar_hi = pci_read_config_dword(pdev->config_space, bar_offset_hi);
+
+  uint64_t bar64 = (uint64_t)(bar_lo & ~0xF);
+  bar64 |= (uint64_t)bar_hi << 32;
+  *bar = bar64;
+
+  if (size) {
+    // Save original values
+    uint32_t original_lo = bar_lo;
+    uint32_t original_hi = bar_hi;
+
+    // Write all 1s to both parts
+    pci_write_config_dword(pdev->config_space, bar_offset, 0xFFFFFFFF);
+    pci_write_config_dword(pdev->config_space, bar_offset_hi, 0xFFFFFFFF);
+
+    // Read back
+    uint32_t readback_lo = pci_read_config_dword(pdev->config_space, bar_offset);
+    uint32_t readback_hi = pci_read_config_dword(pdev->config_space, bar_offset_hi);
+
+    // Restore original values
+    pci_write_config_dword(pdev->config_space, bar_offset, original_lo);
+    pci_write_config_dword(pdev->config_space, bar_offset_hi, original_hi);
+
+    // Calculate size
+    uint64_t size64 = (uint64_t)(readback_lo & ~0xF);
+    size64 |= (uint64_t)readback_hi << 32;
+    *size = (~size64) + 1;
+  }
+
+  return 0;
+}

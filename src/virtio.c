@@ -1,3 +1,4 @@
+#include <hm/msix.h>
 #include <hm/print.h>
 #include <hm/virtio.h>
 #include <hm/vm.h>
@@ -13,6 +14,7 @@ static int virtio_is_set_capabilities(struct virtio_device *vdev) {
 
 int virtio_find_capabilities(struct virtio_device *vdev) {
 
+  int ret;
   uint8_t *config_space = vdev->pdev->config_space;
 
   uint8_t next = pci_read_config_byte(config_space, CAP_POINTER_OFFSET);
@@ -38,7 +40,7 @@ int virtio_find_capabilities(struct virtio_device *vdev) {
 
       switch (vcap->cfg_type) {
       case VIRTIO_PCI_CAP_COMMON_CFG: {
-        vdev->common_cfg = (uint8_t *)(uintptr_t)bar;
+        vdev->common_cfg = (struct virtio_pci_common_cfg *)(uintptr_t)bar;
         break;
       }
       case VIRTIO_PCI_CAP_NOTIFY_CFG:
@@ -59,15 +61,19 @@ int virtio_find_capabilities(struct virtio_device *vdev) {
     }
 
     if (cap->cap_id == MSIX_PCIE_CAP_ID) {
-      kprintf("MSI-X capability is not supported yet\n");
+      ret = msix_init(vdev->pdev, (struct msix_capability *)cap);
+      if (ret < 0) {
+        kprintf("failed to init msix\n");
+        return -1;
+      }
     }
 
     next = cap->cap_next;
   } while (next);
 
-  if (!virtio_is_set_capabilities(vdev)) {
+  ret = virtio_is_set_capabilities(vdev);
+  if (!ret)
     return -1;
-  }
 
   return 0;
 }
@@ -81,15 +87,33 @@ int virtio_device_reset(struct virtio_device *vdev) {
   return 0;
 }
 
-uint32_t virtio_read_feature(struct virtio_device *vdev) {
+uint64_t virtio_read_feature(struct virtio_device *vdev) {
   volatile uint32_t *device_feature = &vdev->common_cfg->device_feature;
+  volatile uint32_t *device_feature_select =
+      &vdev->common_cfg->device_feature_select;
 
-  return *device_feature;
+  *device_feature_select = 0;
+
+  uint64_t feature = 0;
+  feature |= (uint64_t)*device_feature;
+
+  *device_feature_select = 1;
+
+  feature |= (uint64_t)*device_feature << 32;
+
+  return feature;
 }
 
-void virtio_write_feature(struct virtio_device *vdev, uint32_t feature) {
-  volatile uint32_t *device_feature = &vdev->common_cfg->device_feature;
-  *device_feature = feature;
+void virtio_write_feature(struct virtio_device *vdev, uint64_t feature) {
+  volatile uint32_t *driver_feature = &vdev->common_cfg->driver_feature;
+  volatile uint32_t *driver_feature_select =
+      &vdev->common_cfg->driver_feature_select;
+
+  *driver_feature_select = 0;
+  *driver_feature = (uint32_t)(feature & 0xFFFFFFFF);
+
+  *driver_feature_select = 1;
+  *driver_feature = (uint32_t)(feature >> 32);
 }
 
 uint8_t virtio_read_status(struct virtio_device *vdev) {

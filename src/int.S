@@ -40,6 +40,8 @@ irqh_noerr EXC_NUM_VIRT
 irqh_err EXC_NUM_CONTROL_PROTECT
 
 irqh_noerr IRQ_NUM_TIMER
+irqh_noerr IRQ_VIRTIO_NET_RX
+irqh_noerr IRQ_VIRTIO_NET_TX
 
 // Spurious interrupt (vector 255)
 irqh_noerr 255

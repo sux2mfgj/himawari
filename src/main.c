@@ -83,6 +83,7 @@ fail:
   kprintf("fail\n");
 
 out:
+  asm volatile("sti");
   asm volatile("hlt");
   while (1)
     ;

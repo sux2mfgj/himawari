@@ -63,7 +63,8 @@ static int fill_idt_entry(int ec_num, void (*asm_irq_handler)(void)) {
       .offset_31_16 = (addr >> 16) & 0xffff,
       .offset_63_32 = addr >> 32 & 0xffffffff,
       .segment_selector = 0x8,
-      .flags = 0x8e00,  // P=1 (bit 15), DPL=0 (bits 13-14), Type=0xE (bits 8-11), IST=0 (bits 0-2)
+      .flags = 0x8e00, // P=1 (bit 15), DPL=0 (bits 13-14), Type=0xE (bits
+                       // 8-11), IST=0 (bits 0-2)
   };
 
   return 0;
@@ -74,7 +75,7 @@ int int_init(void) {
   memset(idt, 0x00, sizeof(idt));
 
   struct idtr idtr = {
-      .limit = sizeof(idt) - 1,  // Size in bytes minus 1
+      .limit = sizeof(idt) - 1, // Size in bytes minus 1
       .base = (uint64_t)idt,
   };
 
@@ -99,8 +100,12 @@ int int_init(void) {
   fill_idt_entry(EXC_NUM_SIMD_FP, irq_handler_19);
   fill_idt_entry(EXC_NUM_VIRT, irq_handler_20);
   fill_idt_entry(EXC_NUM_CONTROL_PROTECT, irq_handler_21);
+
   fill_idt_entry(IRQ_NUM_TIMER, irq_handler_32);
-  fill_idt_entry(255, irq_handler_255);  // Spurious interrupt vector
+  fill_idt_entry(IRQ_VIRTIO_NET_RX, irq_handler_33);
+  fill_idt_entry(IRQ_VIRTIO_NET_TX, irq_handler_33);
+
+  fill_idt_entry(255, irq_handler_255); // Spurious interrupt vector
 
   load_idt(&idtr);
 
@@ -173,8 +178,8 @@ void irq_handler(struct context *context) {
   if (context->reason == EXC_NUM_INVALID_OPCODE) {
     // Invalid Opcode (#UD) exception
     irq_handler_entry_marker = 0xBADC0DE;
-    kprintf("INVALID OPCODE! rip=0x%x, cs=0x%x, rflags=0x%x\n",
-            context->rip, context->cs, context->rflags);
+    kprintf("INVALID OPCODE! rip=0x%x, cs=0x%x, rflags=0x%x\n", context->rip,
+            context->cs, context->rflags);
     asm volatile("hlt");
   }
 
@@ -182,11 +187,12 @@ void irq_handler(struct context *context) {
     // Page fault - save info to markers first
     asm volatile("mov %%cr2, %0" : "=r"(page_fault_addr));
     page_fault_err_code = context->err_code;
-    irq_handler_entry_marker = 0xDEADBEEF;  // Mark that we got to page fault handler
+    irq_handler_entry_marker =
+        0xDEADBEEF; // Mark that we got to page fault handler
 
     // Now try kprintf (might cause issues)
-    kprintf("PAGE FAULT! addr=0x%x, err_code=0x%x, rip=0x%x\n",
-            page_fault_addr, page_fault_err_code, context->rip);
+    kprintf("PAGE FAULT! addr=0x%x, err_code=0x%x, rip=0x%x\n", page_fault_addr,
+            page_fault_err_code, context->rip);
     asm volatile("hlt");
   }
 
@@ -198,6 +204,7 @@ void irq_handler(struct context *context) {
 
   // Unexpected interrupt - send EOI anyway and halt
   *(volatile uint32_t *)0xfee00080UL = 0;
-  kprintf("unexpected interrupt: vector=%d, rip=0x%x\n", context->reason, context->rip);
+  kprintf("unexpected interrupt: vector=%d, rip=0x%x\n", context->reason,
+          context->rip);
   asm volatile("hlt");
 }
