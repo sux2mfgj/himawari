@@ -103,7 +103,7 @@ int int_init(void) {
 
   fill_idt_entry(IRQ_NUM_TIMER, irq_handler_32);
   fill_idt_entry(IRQ_VIRTIO_NET_RX, irq_handler_33);
-  fill_idt_entry(IRQ_VIRTIO_NET_TX, irq_handler_33);
+  fill_idt_entry(IRQ_VIRTIO_NET_TX, irq_handler_34);
 
   fill_idt_entry(255, irq_handler_255); // Spurious interrupt vector
 
