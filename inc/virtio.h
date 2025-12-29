@@ -38,6 +38,7 @@ struct virtio_pci_common_cfg {
 
 struct virtio_cap {
   struct pcie_cap base;
+  uint8_t cap_len;
   uint8_t cfg_type;
   uint8_t bar;
   uint8_t id;

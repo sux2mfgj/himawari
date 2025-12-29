@@ -1,5 +1,7 @@
+#include <acpi.h>
 #include <hm/acpi.h>
 #include <hm/print.h>
+#include <hm/string.h>
 #include <hm/vm.h>
 
 struct acpi_address {
@@ -55,6 +57,10 @@ static int hpet_init(uint8_t *reg_base) {
 int acpi_table_parse_hpet(struct sdt_header_t *hdr) {
 
   int ret;
+
+  if (memcmp(hdr->signature, DESC_TABLE_SIG_HPET,
+             sizeof(DESC_TABLE_SIG_HPET) - 1))
+    return -1;
 
   struct hpet_table *hpet = (struct hpet_table *)hdr;
 

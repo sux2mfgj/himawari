@@ -53,8 +53,8 @@ int acpi_table_parse_madt(struct sdt_header_t *hdr) {
 
   int ret;
 
-  if (!memcmp(hdr->signature, DESC_TABLE_SIG_MADT,
-              sizeof(DESC_TABLE_SIG_MADT) - 1))
+  if (memcmp(hdr->signature, DESC_TABLE_SIG_MADT,
+             sizeof(DESC_TABLE_SIG_MADT) - 1))
     return -1;
 
   struct madt *madt = (struct madt *)hdr;

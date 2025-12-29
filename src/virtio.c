@@ -32,7 +32,8 @@ int virtio_find_capabilities(struct virtio_device *vdev) {
 
       // Read BAR value and mask off the low bits (PCI BAR flags)
       // For memory BARs, bits 0-3 are flags, bit 4+ is the base address
-      uint32_t bar_raw = pci_read_config_dword(config_space, PCI_CONFIG_BAR0 + vcap->bar * 4);
+      uint32_t bar_raw =
+          pci_read_config_dword(config_space, PCI_CONFIG_BAR0 + vcap->bar * 4);
       uint32_t bar = (bar_raw & ~0xF) + vcap->offset;
 
       kprintf("virtio cap: type %d, bar %d(offset 0x%x, length 0x%x: 0x%x)\n",
@@ -43,14 +44,6 @@ int virtio_find_capabilities(struct virtio_device *vdev) {
       case VIRTIO_PCI_CAP_COMMON_CFG: {
         vdev->common_cfg = (struct virtio_pci_common_cfg *)(uintptr_t)bar;
         kprintf("common_cfg mapped at: 0x%lx\n", (uint64_t)vdev->common_cfg);
-
-        // Test if we can access the registers
-        volatile uint16_t *num_queues = &vdev->common_cfg->num_queues;
-        kprintf("num_queues: %d\n", *num_queues);
-
-        volatile uint16_t *queue_select = &vdev->common_cfg->queue_select;
-        kprintf("queue_select addr: 0x%lx, initial value: %d\n",
-                (uint64_t)queue_select, *queue_select);
         break;
       }
       case VIRTIO_PCI_CAP_NOTIFY_CFG: {
@@ -184,17 +177,21 @@ void virtio_notify_queue(struct virtio_device *vdev, uint16_t queue_idx) {
 
   // Calculate the notify address and write the queue index
   uint32_t offset = notify_off * vdev->notify_off_multiplier;
-  volatile uint16_t *notify_addr = (volatile uint16_t *)(vdev->notify_cfg + offset);
+  volatile uint16_t *notify_addr =
+      (volatile uint16_t *)(vdev->notify_cfg + offset);
 
-  kprintf("virtio_notify_queue[%d]: notify_off=%d, multiplier=%d, offset=%d, addr=0x%lx\n",
-          queue_idx, notify_off, vdev->notify_off_multiplier, offset, (uint64_t)notify_addr);
+  kprintf("virtio_notify_queue[%d]: notify_off=%d, multiplier=%d, offset=%d, "
+          "addr=0x%lx\n",
+          queue_idx, notify_off, vdev->notify_off_multiplier, offset,
+          (uint64_t)notify_addr);
 
   // Write the queue index to the notify address
   *notify_addr = queue_idx;
 
   // Read back to verify
   uint16_t readback = *notify_addr;
-  kprintf("virtio_notify_queue[%d]: wrote %d, readback %d\n", queue_idx, queue_idx, readback);
+  kprintf("virtio_notify_queue[%d]: wrote %d, readback %d\n", queue_idx,
+          queue_idx, readback);
 
   // Memory barrier to ensure the write completes
   __asm__ volatile("mfence" ::: "memory");

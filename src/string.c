@@ -10,16 +10,16 @@ typedef struct {
   size_t pos;
 } snprintf_ctx_t;
 
-bool memcmp(void *a, void *b, size_t size) {
-  uint8_t *ap = (uint8_t *)a;
-  uint8_t *bp = (uint8_t *)b;
+int memcmp(const void *a, const void *b, size_t size) {
+  const uint8_t *ap = (const uint8_t *)a;
+  const uint8_t *bp = (const uint8_t *)b;
 
-  for (int i = 0; i < size; i++) {
+  for (size_t i = 0; i < size; i++) {
     if (ap[i] != bp[i])
-      return false;
+      return ap[i] - bp[i];
   }
 
-  return true;
+  return 0;
 }
 
 void memset(void *a, uint8_t byte, size_t size) {

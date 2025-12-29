@@ -70,15 +70,14 @@ void kernel_cmain(struct hvm_start_info *sinfo) {
     goto fail;
   }
 
+  kprintf("Enabling interrupts\n");
+  asm volatile("sti");
+
   ret = module_init_all();
   if (ret < 0) {
     kprintf("failed to init modules\n");
     goto fail;
   }
-
-  // Enable interrupts BEFORE probing drivers so MSI-X interrupts can be delivered
-  kprintf("Enabling interrupts\n");
-  asm volatile("sti");
 
   ret = probe_drivers();
   if (ret < 0) {
@@ -93,7 +92,7 @@ fail:
   kprintf("fail\n");
 
 out:
-  asm volatile("hlt");
+
   while (1)
-    ;
+    asm volatile("hlt");
 }

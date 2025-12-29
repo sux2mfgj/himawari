@@ -1,5 +1,6 @@
 #include "x86_int.h"
 #include "x86_int_def.h"
+#include <hm/exception.h>
 #include <hm/int.h>
 #include <hm/print.h>
 #include <hm/string.h>
@@ -70,6 +71,63 @@ static int fill_idt_entry(int ec_num, void (*asm_irq_handler)(void)) {
   return 0;
 }
 
+static irq_handler_t irq_handlers[256];
+static uint64_t irq_handler_bitmap[4]; // 64 * 4 == 256
+
+static void reset_irq_handler_bitmap(void) {
+  memset(irq_handler_bitmap, 0x00, sizeof(uint64_t) * 4);
+}
+
+static int find_first_empty(void) {
+  for (int i = 0; i < 4; i++) {
+    uint64_t tmp = irq_handler_bitmap[i];
+    if (!tmp)
+      continue;
+
+    uint64_t mask = 1;
+    for (int j = 0; j < 64; j++, mask <<= 1) {
+
+      if (tmp & mask)
+        continue;
+
+      return 64 * i + j;
+    }
+  }
+
+  return -1;
+}
+
+int set_irq_handler(uint64_t irqn, irq_handler_t irq_handler) {
+  int idx = irqn / 64;
+  int offset = irqn % 64;
+  uint64_t tmp = irq_handler_bitmap[idx];
+
+  if (tmp & (1ULL << offset))
+    kprintf("overwrite the interrupt hanlder for %d\n", irqn);
+
+  tmp |= 1ULL << offset;
+
+  irq_handler_bitmap[idx] = tmp;
+
+  irq_handlers[irqn] = irq_handler;
+
+  return 0;
+}
+
+int register_irq_handler(irq_handler_t irq_handler, uint16_t *irqn) {
+
+  int idx = find_first_empty();
+  if (idx < 0)
+    return -1;
+
+  int ret = set_irq_handler(idx, irq_handler);
+  if (ret)
+    return -1;
+
+  *irqn = idx; // Set the allocated IRQ number
+  return 0;
+}
+
 int int_init(void) {
 
   memset(idt, 0x00, sizeof(idt));
@@ -109,6 +167,9 @@ int int_init(void) {
 
   fill_idt_entry(255, irq_handler_255); // Spurious interrupt vector
 
+  reset_irq_handler_bitmap();
+  set_exception_handlers();
+
   // Fill all remaining IDT entries with default handler to prevent triple fault
   for (int i = 0; i < IDT_MAX_ENTRY; i++) {
     if (idt[i].offset_0_15 == 0 && idt[i].offset_31_16 == 0 &&
@@ -122,128 +183,13 @@ int int_init(void) {
   return 0;
 }
 
-struct context {
-  // Registers pushed by our interrupt handler
-  uint64_t rax;
-  uint64_t rbx;
-  uint64_t rcx;
-  uint64_t rdx;
-  uint64_t rsi;
-  uint64_t rdi;
-  uint64_t rbp;
-  uint64_t r8;
-  uint64_t r9;
-  uint64_t r10;
-  uint64_t r11;
-  uint64_t r12;
-  uint64_t r13;
-  uint64_t r14;
-  uint64_t r15;
-  uint64_t reason;
-  uint64_t err_code;
-  // Values automatically pushed by CPU
-  uint64_t rip;
-  uint64_t cs;
-  uint64_t rflags;
-  uint64_t rsp;
-  uint64_t ss;
-} __attribute__((packed));
-
-// Simple counter to track timer interrupts without using kprintf
-volatile int timer_interrupt_count = 0;
-volatile uint32_t irq_handler_called_marker = 0;
-
-// Debug: use multiple markers to track execution flow
-volatile uint32_t irq_handler_entry_marker = 0;
-volatile uint32_t irq_handler_exit_marker = 0;
-volatile uint64_t page_fault_addr = 0;
-volatile uint64_t page_fault_err_code = 0;
-
 void irq_handler(struct context *context) {
-  // Mark entry
-  irq_handler_entry_marker = 0x11111111;
-
-  // Write vector number to marker to see what interrupt occurred
-  irq_handler_called_marker = context->reason;
 
   // Debug: print all non-timer interrupts
-  if (context->reason != IRQ_NUM_TIMER && context->reason != 255) {
+  if (context->reason != 255)
     kprintf("IRQ: vector=%d\n", context->reason);
-  }
 
-  if (context->reason == EXC_NUM_DOUBLE_FAULT) {
-    // Double fault - very serious
-    irq_handler_entry_marker = 0xDEADDEAD;
-    kprintf("DOUBLE FAULT! err_code=0x%x\n", context->err_code);
-    asm volatile("hlt");
-  }
+  irq_handlers[context->reason](context->reason, context);
 
-  if (context->reason == IRQ_NUM_TIMER) {
-    // Timer interrupt
-    timer_interrupt_count++;
-    irq_handler_entry_marker = 0x22222222;
-
-    // Write to EOI register directly at APIC_BASE + 0x80
-    *(volatile uint32_t *)0xfee00080UL = 0;
-
-    irq_handler_exit_marker = 0x33333333;
-    return;
-  }
-
-  if (context->reason == EXC_NUM_INVALID_OPCODE) {
-    // Invalid Opcode (#UD) exception
-    irq_handler_entry_marker = 0xBADC0DE;
-    kprintf("INVALID OPCODE! rip=0x%x, cs=0x%x, rflags=0x%x\n", context->rip,
-            context->cs, context->rflags);
-    asm volatile("hlt");
-  }
-
-  if (context->reason == EXC_NUM_PAGE_FAULT) {
-    // Page fault - save info to markers first
-    asm volatile("mov %%cr2, %0" : "=r"(page_fault_addr));
-    page_fault_err_code = context->err_code;
-    irq_handler_entry_marker =
-        0xDEADBEEF; // Mark that we got to page fault handler
-
-    // Now try kprintf (might cause issues)
-    kprintf("PAGE FAULT! addr=0x%x, err_code=0x%x, rip=0x%x\n", page_fault_addr,
-            page_fault_err_code, context->rip);
-    asm volatile("hlt");
-  }
-
-  if (context->reason == 33) {
-    // MSI-X interrupt for virtio-net config changes
-    kprintf("virtio-net config change interrupt (vector 33)\n");
-    *(volatile uint32_t *)0xfee00080UL = 0; // Send EOI
-    irq_handler_exit_marker = 0x55555555;
-    return;
-  }
-
-  if (context->reason == 34) {
-    // MSI-X interrupt for virtio-net RX queue
-    kprintf("virtio-net RX interrupt (vector 34)\n");
-    *(volatile uint32_t *)0xfee00080UL = 0; // Send EOI
-    irq_handler_exit_marker = 0x66666666;
-    return;
-  }
-
-  if (context->reason == 35) {
-    // MSI-X interrupt for virtio-net TX queue
-    kprintf("virtio-net TX interrupt (vector 35)\n");
-    *(volatile uint32_t *)0xfee00080UL = 0; // Send EOI
-    irq_handler_exit_marker = 0x77777777;
-    return;
-  }
-
-  if (context->reason == 255) {
-    // Spurious interrupt - don't send EOI for spurious interrupts
-    irq_handler_exit_marker = 0x44444444;
-    return;
-  }
-
-  // Unexpected interrupt - send EOI anyway and halt
-  *(volatile uint32_t *)0xfee00080UL = 0;
-  kprintf("unexpected interrupt: vector=%d, rip=0x%x\n", context->reason,
-          context->rip);
-  asm volatile("hlt");
+  return;
 }

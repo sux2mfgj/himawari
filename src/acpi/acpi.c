@@ -7,8 +7,8 @@
 #include <hm/vm.h>
 
 static bool validate_rsdt(struct rsdt_t *rsdt) {
-  if (!memcmp(rsdt->header.signature, DESC_TABLE_SIG_RSDT,
-              sizeof(DESC_TABLE_SIG_RSDT) - 1))
+  if (memcmp(rsdt->header.signature, DESC_TABLE_SIG_RSDT,
+             sizeof(DESC_TABLE_SIG_RSDT) - 1))
     return false;
 
   return true;
@@ -16,8 +16,8 @@ static bool validate_rsdt(struct rsdt_t *rsdt) {
 
 static bool validate_xsdt(struct xsdt_t *xsdt) {
 
-  if (!memcmp(xsdt->header.signature, DESC_TABLE_SIG_XSDT,
-              sizeof(DESC_TABLE_SIG_XSDT) - 1))
+  if (memcmp(xsdt->header.signature, DESC_TABLE_SIG_XSDT,
+             sizeof(DESC_TABLE_SIG_XSDT) - 1))
     return false;
 
   return true;
@@ -34,14 +34,15 @@ static void dump_sdt_header(struct sdt_header_t *hdr) {
 static int parse_sdt_32(struct rsdt_t *rsdt) {
 
   int nentry = (rsdt->header.length - sizeof(*rsdt)) / sizeof(rsdt->entry[0]);
+  kprintf("RSDT: %d entries to parse\n", nentry);
 
   int ret;
   for (int i = 0; i < nentry; i++) {
     struct sdt_header_t *hdr = (struct sdt_header_t *)(uintptr_t)rsdt->entry[i];
     dump_sdt_header(hdr);
 
-    if (memcmp(hdr->signature, DESC_TABLE_SIG_MCFG,
-               sizeof(DESC_TABLE_SIG_MCFG) - 1)) {
+    if (!memcmp(hdr->signature, DESC_TABLE_SIG_MCFG,
+                sizeof(DESC_TABLE_SIG_MCFG) - 1)) {
       ret = acpi_table_parse_mcfg(hdr);
       if (ret < 0) {
         kprintf("failed to parse MCFG table\n");
@@ -49,8 +50,8 @@ static int parse_sdt_32(struct rsdt_t *rsdt) {
       }
     }
 
-    if (memcmp(hdr->signature, DESC_TABLE_SIG_MADT,
-               sizeof(DESC_TABLE_SIG_MADT) - 1)) {
+    if (!memcmp(hdr->signature, DESC_TABLE_SIG_MADT,
+                sizeof(DESC_TABLE_SIG_MADT) - 1)) {
       ret = acpi_table_parse_madt(hdr);
       if (ret < 0) {
         kprintf("failed to parse MADT table\n");
@@ -58,8 +59,8 @@ static int parse_sdt_32(struct rsdt_t *rsdt) {
       }
     }
 
-    if (memcmp(hdr->signature, DESC_TABLE_SIG_HPET,
-               sizeof(DESC_TABLE_SIG_HPET) - 1)) {
+    if (!memcmp(hdr->signature, DESC_TABLE_SIG_HPET,
+                sizeof(DESC_TABLE_SIG_HPET) - 1)) {
 
       ret = acpi_table_parse_hpet(hdr);
       if (ret < 0) {
@@ -77,7 +78,7 @@ int acpi_init(struct rsdp_v1_t *rsdp) {
 
   vm_map_device_straight((uintptr_t)rsdp, 1);
 
-  if (!memcmp(rsdp->signature, RSDP_SIGNATURE, sizeof(RSDP_SIGNATURE) - 1))
+  if (memcmp(rsdp->signature, RSDP_SIGNATURE, sizeof(RSDP_SIGNATURE) - 1))
     return -1;
 
   void *root_sdt = NULL;
@@ -90,7 +91,7 @@ int acpi_init(struct rsdp_v1_t *rsdp) {
     vm_map_ram_straight(aligned, 1);
 
     if (!validate_rsdt(root_sdt))
-      return false;
+      return -1;
     break;
   case RSDP_REV_ACPI_2: {
     kprintf("ACPI rev 2\n");
@@ -101,7 +102,7 @@ int acpi_init(struct rsdp_v1_t *rsdp) {
     vm_map_ram_straight(aligned, 1);
 
     if (!validate_xsdt((struct xsdt_t *)root_sdt))
-      return false;
+      return -1;
 
     return -1;
     break;
