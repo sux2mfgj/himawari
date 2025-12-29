@@ -101,11 +101,21 @@ int int_init(void) {
   fill_idt_entry(EXC_NUM_VIRT, irq_handler_20);
   fill_idt_entry(EXC_NUM_CONTROL_PROTECT, irq_handler_21);
 
-  fill_idt_entry(IRQ_NUM_TIMER, irq_handler_32);
-  fill_idt_entry(IRQ_VIRTIO_NET_RX, irq_handler_33);
-  fill_idt_entry(IRQ_VIRTIO_NET_TX, irq_handler_34);
+  fill_idt_entry(32, irq_handler_32);
+  fill_idt_entry(33, irq_handler_33);
+  fill_idt_entry(34, irq_handler_34);
+  fill_idt_entry(35, irq_handler_35);
+  fill_idt_entry(36, irq_handler_36);
 
   fill_idt_entry(255, irq_handler_255); // Spurious interrupt vector
+
+  // Fill all remaining IDT entries with default handler to prevent triple fault
+  for (int i = 0; i < IDT_MAX_ENTRY; i++) {
+    if (idt[i].offset_0_15 == 0 && idt[i].offset_31_16 == 0 &&
+        idt[i].offset_63_32 == 0) {
+      fill_idt_entry(i, irq_handler_255);
+    }
+  }
 
   load_idt(&idtr);
 
@@ -156,6 +166,11 @@ void irq_handler(struct context *context) {
   // Write vector number to marker to see what interrupt occurred
   irq_handler_called_marker = context->reason;
 
+  // Debug: print all non-timer interrupts
+  if (context->reason != IRQ_NUM_TIMER && context->reason != 255) {
+    kprintf("IRQ: vector=%d\n", context->reason);
+  }
+
   if (context->reason == EXC_NUM_DOUBLE_FAULT) {
     // Double fault - very serious
     irq_handler_entry_marker = 0xDEADDEAD;
@@ -194,6 +209,30 @@ void irq_handler(struct context *context) {
     kprintf("PAGE FAULT! addr=0x%x, err_code=0x%x, rip=0x%x\n", page_fault_addr,
             page_fault_err_code, context->rip);
     asm volatile("hlt");
+  }
+
+  if (context->reason == 33) {
+    // MSI-X interrupt for virtio-net config changes
+    kprintf("virtio-net config change interrupt (vector 33)\n");
+    *(volatile uint32_t *)0xfee00080UL = 0; // Send EOI
+    irq_handler_exit_marker = 0x55555555;
+    return;
+  }
+
+  if (context->reason == 34) {
+    // MSI-X interrupt for virtio-net RX queue
+    kprintf("virtio-net RX interrupt (vector 34)\n");
+    *(volatile uint32_t *)0xfee00080UL = 0; // Send EOI
+    irq_handler_exit_marker = 0x66666666;
+    return;
+  }
+
+  if (context->reason == 35) {
+    // MSI-X interrupt for virtio-net TX queue
+    kprintf("virtio-net TX interrupt (vector 35)\n");
+    *(volatile uint32_t *)0xfee00080UL = 0; // Send EOI
+    irq_handler_exit_marker = 0x77777777;
+    return;
   }
 
   if (context->reason == 255) {

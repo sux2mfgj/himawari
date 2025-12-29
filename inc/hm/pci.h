@@ -46,5 +46,20 @@ void pci_write_config_dword(void *config_space, uint8_t offset, uint32_t value);
 int pci_get_bar(struct pcie_device *pdev, int idx, uint64_t *bar,
                 uint64_t *size);
 
+void pci_enable_bus_master(struct pcie_device *pdev);
+
 #define VIRTIO_PCIE_CAP_ID 0x09
 #define MSIX_PCIE_CAP_ID 0x11
+
+/* PCI Command Register bits */
+#define PCI_COMMAND_IO 0x0001
+#define PCI_COMMAND_MEMORY 0x0002
+#define PCI_COMMAND_MASTER 0x0004
+#define PCI_COMMAND_SPECIAL 0x0008
+#define PCI_COMMAND_INVALIDATE 0x0010
+#define PCI_COMMAND_VGA_PALETTE 0x0020
+#define PCI_COMMAND_PARITY 0x0040
+#define PCI_COMMAND_WAIT 0x0080
+#define PCI_COMMAND_SERR 0x0100
+#define PCI_COMMAND_FAST_BACK 0x0200
+#define PCI_COMMAND_INTX_DISABLE 0x0400

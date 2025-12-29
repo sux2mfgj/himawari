@@ -244,3 +244,14 @@ int pci_get_bar(struct pcie_device *pdev, int idx, uint64_t *bar,
 
   return 0;
 }
+
+void pci_enable_bus_master(struct pcie_device *pdev) {
+  uint16_t cmd = pci_read_config_word(pdev->config_space, PCI_CONFIG_COMMAND);
+  kprintf("PCI Command before: 0x%x\n", cmd);
+
+  cmd |= PCI_COMMAND_MASTER | PCI_COMMAND_MEMORY;
+  pci_write_config_word(pdev->config_space, PCI_CONFIG_COMMAND, cmd);
+
+  uint16_t cmd_after = pci_read_config_word(pdev->config_space, PCI_CONFIG_COMMAND);
+  kprintf("PCI Command after: 0x%x\n", cmd_after);
+}

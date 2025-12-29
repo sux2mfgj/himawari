@@ -46,6 +46,11 @@ struct virtio_cap {
   uint32_t length;
 } __attribute__((packed));
 
+struct virtio_notify_cap {
+  struct virtio_cap base;
+  uint32_t notify_off_multiplier;
+} __attribute__((packed));
+
 #define VIRTIO_PCI_CAP_COMMON_CFG 1
 #define VIRTIO_PCI_CAP_NOTIFY_CFG 2
 #define VIRTIO_PCI_CAP_ISR_CFG 3
@@ -53,6 +58,8 @@ struct virtio_cap {
 #define VIRTIO_PCI_CAP_PCI_CFG 5
 
 // common features
+#define VIRTIO_F_RING_INDIRECT_DESC (0x1ULL << 28)
+#define VIRTIO_F_RING_EVENT_IDX (0x1ULL << 29)
 #define VIRTIO_F_VERSION_1 (0x1ULL << 32)
 #define VIRTIO_F_ACCESS_PLATFORM (0x1ULL << 33)
 #define VIRTIO_F_RING_PACKED (0x1ULL << 34)

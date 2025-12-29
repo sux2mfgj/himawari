@@ -4,6 +4,8 @@
 #include <hm/int.h>
 #include <hm/mm.h>
 #include <hm/module.h>
+#include <hm/pic.h>
+#include <hm/pit.h>
 #include <hm/print.h>
 #include <hm/print_setup.h>
 #include <hm/string.h>
@@ -31,6 +33,10 @@ void kernel_cmain(struct hvm_start_info *sinfo) {
     kprintf("failed to setup exception handlers\n");
     goto fail;
   }
+
+  // Disable legacy 8259 PIC and PIT before enabling APIC
+  pic_disable();
+  pit_disable();
 
   ret = mm_early_init();
   if (ret < 0) {
@@ -70,6 +76,10 @@ void kernel_cmain(struct hvm_start_info *sinfo) {
     goto fail;
   }
 
+  // Enable interrupts BEFORE probing drivers so MSI-X interrupts can be delivered
+  kprintf("Enabling interrupts\n");
+  asm volatile("sti");
+
   ret = probe_drivers();
   if (ret < 0) {
     kprintf("failed to probe drivers\n");
@@ -83,7 +93,6 @@ fail:
   kprintf("fail\n");
 
 out:
-  asm volatile("sti");
   asm volatile("hlt");
   while (1)
     ;

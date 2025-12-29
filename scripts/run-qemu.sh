@@ -24,10 +24,12 @@ qemu-system-x86_64 \
     -cpu max \
     -M q35 \
     -smp 2 \
+    -netdev tap,ifname=tap0,id=net0 \
     -device virtio-net-pci,netdev=net0,packed=on,disable-modern=off,disable-legacy=on \
-     \
-    -netdev user,id=net0 \
-    -d int,cpu_reset \
+    -d int,cpu_reset,guest_errors \
+    -D qemu_debug.log \
     -m 128M \
     ${args}
+
+
 

@@ -11,6 +11,7 @@ struct virtio_device {
   struct pcie_device *pdev;
   volatile struct virtio_pci_common_cfg *common_cfg;
   uint8_t *notify_cfg;
+  uint32_t notify_off_multiplier;
   uint8_t *isr_cfg;
   uint8_t *device_cfg;
   // uint8_t *pci_cfg;
@@ -42,3 +43,5 @@ void virtio_enable_pvirtq(struct virtio_device *vdev, uint16_t idx);
 
 int virtio_set_msix(struct virtio_device *vdev, uint16_t vq_idx,
                     uint16_t msix_vector);
+
+void virtio_notify_queue(struct virtio_device *vdev, uint16_t queue_idx);
