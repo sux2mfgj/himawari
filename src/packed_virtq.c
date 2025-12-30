@@ -33,6 +33,9 @@ struct packed_virtq *virtio_alloc_pvirtq(size_t nent) {
       .vq = vq,
       .size = nent,
       .avail_wrap_count = 1,  // VirtIO 1.1 spec: initial wrap counter is 1
+      .used_wrap_count = 1,   // Initial used wrap counter is also 1
+      .last_avail_idx = 0,    // Start from index 0
+      .last_used_idx = 0,     // Start checking from index 0
       .dev_suppress = dev_sup,
       .drv_suppress = drv_sup,
   };

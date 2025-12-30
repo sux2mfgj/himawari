@@ -8,3 +8,5 @@ int local_apic_init(uint32_t base, struct local_apic **lapic);
 int local_apic_read_id(struct local_apic *lapic, uint32_t *id);
 void local_apic_eoi(struct local_apic *lapic);
 int local_apic_start_ap(uint64_t ap_id, void *entry);
+uint32_t local_apic_read_isr(struct local_apic *lapic, uint8_t vector);
+uint32_t local_apic_read_irr(struct local_apic *lapic, uint8_t vector);

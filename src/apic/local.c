@@ -5,7 +5,8 @@
 
 #define REG_OFFSET_ID (0x020)
 #define REG_OFFSET_VER (0x030)
-#define REG_OFFSET_EOI (0x080)
+#define REG_OFFSET_TPR (0x080)  // Task Priority Register
+#define REG_OFFSET_EOI (0x0B0)  // End of Interrupt Register
 #define REG_OFFSET_SIVR (0x0f0)
 #define REG_OFFSET_ICR (0x300)
 #define REG_OFFSET_ICR_CTRL (0x300)
@@ -47,7 +48,7 @@
 #define REG_OFFSET_CUR_CR (0x390)
 #define REG_OFFSET_DCR (0x3e0)
 #define REG_OFFSET_IRR (0x200)  // Interrupt Request Register base
-#define REG_OFFSET_TPR (0x080)  // Task Priority Register
+#define REG_OFFSET_ISR (0x100)  // In-Service Register base
 #define REG_OFFSET_ESR (0x280)  // Error Status Register
 
 struct local_apic {
@@ -172,6 +173,35 @@ void local_apic_eoi(struct local_apic *lapic) {
 
   volatile uint32_t *eoi = (uint32_t *)(lapic->base + REG_OFFSET_EOI);
   *eoi = 0;
+
+  // Memory barrier to ensure EOI write completes
+  __asm__ volatile("mfence" ::: "memory");
+}
+
+uint32_t local_apic_read_isr(struct local_apic *lapic, uint8_t vector) {
+  if (!lapic)
+    lapic = &bsp_local_apic;
+
+  // ISR is an array of 8 32-bit registers (0x100-0x170)
+  // Each register covers 32 vectors
+  uint32_t reg_index = vector / 32;
+  uint32_t bit_index = vector % 32;
+
+  volatile uint32_t *isr = (uint32_t *)(lapic->base + REG_OFFSET_ISR + (reg_index * 0x10));
+  return (*isr >> bit_index) & 1;
+}
+
+uint32_t local_apic_read_irr(struct local_apic *lapic, uint8_t vector) {
+  if (!lapic)
+    lapic = &bsp_local_apic;
+
+  // IRR is an array of 8 32-bit registers (0x200-0x270)
+  // Each register covers 32 vectors
+  uint32_t reg_index = vector / 32;
+  uint32_t bit_index = vector % 32;
+
+  volatile uint32_t *irr = (uint32_t *)(lapic->base + REG_OFFSET_IRR + (reg_index * 0x10));
+  return (*irr >> bit_index) & 1;
 }
 
 static inline uint64_t create_icrc_val(uint8_t vector, uint8_t deliv_mode,

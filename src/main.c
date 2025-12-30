@@ -70,9 +70,6 @@ void kernel_cmain(struct hvm_start_info *sinfo) {
     goto fail;
   }
 
-  kprintf("Enabling interrupts\n");
-  asm volatile("sti");
-
   ret = module_init_all();
   if (ret < 0) {
     kprintf("failed to init modules\n");
@@ -93,6 +90,16 @@ fail:
 
 out:
 
-  while (1)
+  kprintf("Enabling interrupts\n");
+  asm volatile("sti");
+
+  while (1) {
+    // Periodically check IF flag
+    {
+      uint64_t rflags;
+      __asm__ volatile("pushfq; pop %0" : "=r"(rflags));
+      kprintf("%lx (IF is %d)\n", rflags, !!(rflags & (1 << 9)));
+    }
     asm volatile("hlt");
+  }
 }

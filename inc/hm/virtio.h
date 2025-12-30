@@ -33,6 +33,9 @@ struct packed_virtq {
   struct pvirtq_event_suppress *drv_suppress;
   uint16_t size;
   uint8_t avail_wrap_count;
+  uint8_t used_wrap_count;
+  uint16_t last_avail_idx;  // Next index to make available to device
+  uint16_t last_used_idx;   // Next index to check for used buffers
 };
 
 struct packed_virtq *virtio_alloc_pvirtq(size_t nent);
