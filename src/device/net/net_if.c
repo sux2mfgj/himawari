@@ -1,9 +1,9 @@
 #include <hm/module.h>
+#include <hm/net.h>
 #include <hm/net_if.h>
 
-int net_receive_packet(struct net_if *nif, uint8_t *packet, size_t length) {
-
-  return 0;
+int netif_receive_packet(struct net_if *nif, uint8_t *packet, size_t length) {
+  return handle_rx_packet(packet, (uint32_t)length);
 }
 
 static struct net_if net_if_head;

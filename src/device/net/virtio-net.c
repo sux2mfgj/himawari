@@ -69,7 +69,8 @@ struct virtio_net_hdr {
   uint16_t gso_size;
   uint16_t csum_start;
   uint16_t csum_offset;
-  uint16_t num_buffers;
+  // num_buffers field is only present if VIRTIO_NET_F_MRG_RXBUF is negotiated
+  // Since we don't negotiate that feature, header is only 10 bytes
 } __attribute__((packed));
 
 static int fill_rx_buffers(struct virtio_net *vnet) {
@@ -183,10 +184,13 @@ static int vnet_rx_irq_handler(uint16_t irqn, struct context *_ctx, void *ctx) {
     uint64_t buf_addr = rxq->vq[idx].addr;
     uint32_t buf_len = rxq->vq[idx].size;
 
-    // Parse virtio-net header
+    // Parse virtio-net header (10 bytes without VIRTIO_NET_F_MRG_RXBUF)
     struct virtio_net_hdr *hdr = (struct virtio_net_hdr *)buf_addr;
     uint8_t *packet_data = (uint8_t *)(buf_addr + sizeof(*hdr));
     uint32_t packet_len = buf_len - sizeof(*hdr);
+
+    // Pass packet to network stack
+    netif_receive_packet(&vnet->nif, packet_data, packet_len);
 
     VNET_LOG("RX packet #%d (idx=%d): total_len=%d, hdr.flags=0x%02x, "
              "hdr.gso_type=0x%02x",

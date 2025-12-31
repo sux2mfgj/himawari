@@ -8,4 +8,4 @@ struct net_if {
 };
 
 int netif_register(struct net_if *nif);
-int net_receive_packet(struct net_if *nif, uint8_t *packet, size_t length);
+int netif_receive_packet(struct net_if *nif, uint8_t *packet, size_t length);
