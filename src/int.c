@@ -71,7 +71,13 @@ static int fill_idt_entry(int ec_num, void (*asm_irq_handler)(void)) {
   return 0;
 }
 
-static irq_handler_t irq_handlers[256];
+struct irq_handler_with_ctx {
+  irq_handler_t handler;
+  void *ctx;
+};
+
+// static irq_handler_t irq_handlers[256];
+static struct irq_handler_with_ctx irq_handlers[256];
 static uint64_t irq_handler_bitmap[4]; // 64 * 4 == 256
 
 static void reset_irq_handler_bitmap(void) {
@@ -97,7 +103,7 @@ static int find_first_empty(void) {
   return -1;
 }
 
-int set_irq_handler(uint64_t irqn, irq_handler_t irq_handler) {
+int set_irq_handler(uint64_t irqn, irq_handler_t irq_handler, void *ctx) {
   int idx = irqn / 64;
   int offset = irqn % 64;
   uint64_t tmp = irq_handler_bitmap[idx];
@@ -109,18 +115,21 @@ int set_irq_handler(uint64_t irqn, irq_handler_t irq_handler) {
 
   irq_handler_bitmap[idx] = tmp;
 
-  irq_handlers[irqn] = irq_handler;
+  irq_handlers[irqn] = (struct irq_handler_with_ctx){
+      .handler = irq_handler,
+      .ctx = ctx,
+  };
 
   return 0;
 }
 
-int register_irq_handler(irq_handler_t irq_handler, uint16_t *irqn) {
+int register_irq_handler(irq_handler_t irq_handler, uint16_t *irqn, void *ctx) {
 
   int idx = find_first_empty();
   if (idx < 0)
     return -1;
 
-  int ret = set_irq_handler(idx, irq_handler);
+  int ret = set_irq_handler(idx, irq_handler, ctx);
   if (ret)
     return -1;
 
@@ -189,7 +198,8 @@ void irq_handler(struct context *context) {
   if (context->reason != 255)
     kprintf("IRQ: vector=%d\n", context->reason);
 
-  irq_handlers[context->reason](context->reason, context);
+  irq_handlers[context->reason].handler(context->reason, context,
+                                        irq_handlers[context->reason].ctx);
 
   return;
 }

@@ -4,6 +4,7 @@
 #include <hm/mm.h>
 #include <hm/module.h>
 #include <hm/msix.h>
+#include <hm/net_if.h>
 #include <hm/pci.h>
 #include <hm/print.h>
 #include <hm/virtio.h>
@@ -55,6 +56,7 @@ struct virtio_net_device_config {
 
 struct virtio_net {
   struct virtio_device vdev;
+  struct net_if nif;
   volatile struct virtio_net_device_config *device_config;
   struct packed_virtq *txq;
   struct packed_virtq *rxq;
@@ -100,11 +102,12 @@ static int fill_rx_buffers(struct virtio_net *vnet) {
   // Memory barrier to ensure all descriptor writes are visible to device
   __asm__ volatile("mfence" ::: "memory");
 
-  // All buffers are now available, so last_avail_idx should be at size (will wrap to 0)
-  // But actually, we've filled indices 0..size-1, so next available is 0 (with potential wrap)
-  // Since we started with idx=0 and filled all, the next idx to fill is 0 again
-  // But we need to track that we've made size buffers available
-  pvq->last_avail_idx = 0;  // Next buffer to add (will wrap)
+  // All buffers are now available, so last_avail_idx should be at size (will
+  // wrap to 0) But actually, we've filled indices 0..size-1, so next available
+  // is 0 (with potential wrap) Since we started with idx=0 and filled all, the
+  // next idx to fill is 0 again But we need to track that we've made size
+  // buffers available
+  pvq->last_avail_idx = 0; // Next buffer to add (will wrap)
   // Note: avail_wrap_count should NOT be toggled here as we haven't wrapped yet
 
   VNET_LOG("Filled %d RX buffers, wrap_count=%d, flags=0x%x", pvq->size,
@@ -114,11 +117,15 @@ static int fill_rx_buffers(struct virtio_net *vnet) {
   return 0;
 }
 
-static int vnet_config_irq_handler(uint16_t irqn, struct context *ctx) {
+static int vnet_config_irq_handler(uint16_t irqn, struct context *_ctx,
+                                   void *ctx) {
+  struct virtio_net *vnet = (struct virtio_net *)ctx;
+
   return 0;
 }
 
-static int vnet_tx_irq_handler(uint16_t irqn, struct context *ctx) {
+static int vnet_tx_irq_handler(uint16_t irqn, struct context *_ctx, void *ctx) {
+  struct virtio_net *vnet = (struct virtio_net *)ctx;
   VNET_DEBUG("TX interrupt fired! irqn=%d", irqn);
 
   // TODO: Process TX completion (free buffers, etc.)
@@ -128,9 +135,9 @@ static int vnet_tx_irq_handler(uint16_t irqn, struct context *ctx) {
   return 0;
 }
 
-static struct virtio_net *g_vnet = NULL; // Global pointer for RX handler
+static int vnet_rx_irq_handler(uint16_t irqn, struct context *_ctx, void *ctx) {
 
-static int vnet_rx_irq_handler(uint16_t irqn, struct context *ctx) {
+  struct virtio_net *vnet = (struct virtio_net *)ctx;
 
   // Check IF flag at entry (should be 0 due to Interrupt Gate)
   uint64_t rflags_entry;
@@ -141,20 +148,15 @@ static int vnet_rx_irq_handler(uint16_t irqn, struct context *ctx) {
   uint32_t irr_before = local_apic_read_irr(NULL, irqn);
 
   VNET_DEBUG("RX interrupt fired! irqn=%d, RFLAGS=0x%lx, IF=%d, ISR=%d, IRR=%d",
-             irqn, rflags_entry, (rflags_entry >> 9) & 1, isr_before, irr_before);
+             irqn, rflags_entry, (rflags_entry >> 9) & 1, isr_before,
+             irr_before);
 
-  if (!g_vnet || !g_vnet->rxq) {
-    VNET_LOG("ERROR: RX handler called but vnet not initialized");
-    local_apic_eoi(NULL);  // Send EOI even on error
-    return 0;
-  }
+  struct packed_virtq *rxq = vnet->rxq;
+  struct virtio_device *vdev = &vnet->vdev;
 
-  struct packed_virtq *rxq = g_vnet->rxq;
-  struct virtio_device *vdev = &g_vnet->vdev;
-
-  // Determine expected AVAIL/USED flags for available (not-yet-used) descriptors
-  // When used_wrap_count=1: used desc has AVAIL=1, USED=1
-  // When used_wrap_count=0: used desc has AVAIL=0, USED=0
+  // Determine expected AVAIL/USED flags for available (not-yet-used)
+  // descriptors When used_wrap_count=1: used desc has AVAIL=1, USED=1 When
+  // used_wrap_count=0: used desc has AVAIL=0, USED=0
   uint16_t expected_used_avail = rxq->used_wrap_count ? VIRTQ_DESC_F_AVAIL : 0;
   uint16_t expected_used_used = rxq->used_wrap_count ? VIRTQ_DESC_F_USED : 0;
   uint16_t expected_used_flags = expected_used_avail | expected_used_used;
@@ -186,9 +188,9 @@ static int vnet_rx_irq_handler(uint16_t irqn, struct context *ctx) {
     uint8_t *packet_data = (uint8_t *)(buf_addr + sizeof(*hdr));
     uint32_t packet_len = buf_len - sizeof(*hdr);
 
-    VNET_LOG(
-        "RX packet #%d (idx=%d): total_len=%d, hdr.flags=0x%02x, hdr.gso_type=0x%02x",
-        packets_received, idx, buf_len, hdr->flags, hdr->gso_type);
+    VNET_LOG("RX packet #%d (idx=%d): total_len=%d, hdr.flags=0x%02x, "
+             "hdr.gso_type=0x%02x",
+             packets_received, idx, buf_len, hdr->flags, hdr->gso_type);
 
     // Dump first 64 bytes of packet (Ethernet header + some payload)
     kprintf("  Packet data (first %d bytes): ",
@@ -206,7 +208,7 @@ static int vnet_rx_irq_handler(uint16_t irqn, struct context *ctx) {
     rxq->last_used_idx++;
     if (rxq->last_used_idx >= rxq->size) {
       rxq->last_used_idx = 0;
-      rxq->used_wrap_count ^= 1;  // Toggle wrap counter
+      rxq->used_wrap_count ^= 1; // Toggle wrap counter
       // Update expected flags for next iteration
       expected_used_avail = rxq->used_wrap_count ? VIRTQ_DESC_F_AVAIL : 0;
       expected_used_used = rxq->used_wrap_count ? VIRTQ_DESC_F_USED : 0;
@@ -234,15 +236,15 @@ static int vnet_rx_irq_handler(uint16_t irqn, struct context *ctx) {
     // Another fence after updating flags
     __asm__ volatile("mfence" ::: "memory");
 
-    VNET_DEBUG("Refilled idx=%d: flags 0x%04x->0x%04x, size %d->0x1000",
-               idx, old_flags, new_flags, old_size);
+    VNET_DEBUG("Refilled idx=%d: flags 0x%04x->0x%04x, size %d->0x1000", idx,
+               old_flags, new_flags, old_size);
 
     // Update last_avail_idx to track this refilled buffer
     // In packed virtqueues, we refill in place, so last_avail moves forward
     rxq->last_avail_idx++;
     if (rxq->last_avail_idx >= rxq->size) {
       rxq->last_avail_idx = 0;
-      rxq->avail_wrap_count ^= 1;  // Toggle wrap counter
+      rxq->avail_wrap_count ^= 1; // Toggle wrap counter
       VNET_DEBUG("Avail wrap toggled to %d", rxq->avail_wrap_count);
     }
   }
@@ -259,13 +261,16 @@ static int vnet_rx_irq_handler(uint16_t irqn, struct context *ctx) {
     virtio_notify_queue(vdev, 0); // Notify device of refilled buffers
 
     // Log descriptor state after refill
-    VNET_DEBUG("After refill: wrap_count=%d, drv_suppress.flags=0x%x, dev_suppress.flags=0x%x",
-               rxq->avail_wrap_count, rxq->drv_suppress->flags, rxq->dev_suppress->flags);
+    VNET_DEBUG("After refill: wrap_count=%d, drv_suppress.flags=0x%x, "
+               "dev_suppress.flags=0x%x",
+               rxq->avail_wrap_count, rxq->drv_suppress->flags,
+               rxq->dev_suppress->flags);
 
     // Dump first few descriptors to verify state
     for (int j = 0; j < 4 && j < rxq->size; j++) {
-      VNET_DEBUG("  desc[%d]: addr=0x%lx, size=0x%x, id=%d, flags=0x%04x",
-                 j, rxq->vq[j].addr, rxq->vq[j].size, rxq->vq[j].id, rxq->vq[j].flags);
+      VNET_DEBUG("  desc[%d]: addr=0x%lx, size=0x%x, id=%d, flags=0x%04x", j,
+                 rxq->vq[j].addr, rxq->vq[j].size, rxq->vq[j].id,
+                 rxq->vq[j].flags);
     }
   } else {
     VNET_DEBUG("RX interrupt but no packets found (spurious?)");
@@ -287,8 +292,8 @@ static int vnet_rx_irq_handler(uint16_t irqn, struct context *ctx) {
     }
   }
 
-  VNET_DEBUG("After EOI: ISR[%d]=%d, IRR[%d]=%d, other_ISR=%d",
-             irqn, isr_after, irqn, irr_after, other_isr_set);
+  VNET_DEBUG("After EOI: ISR[%d]=%d, IRR[%d]=%d, other_ISR=%d", irqn, isr_after,
+             irqn, irr_after, other_isr_set);
 
   return 0;
 }
@@ -370,9 +375,6 @@ int vnet_probe(struct device *dev) {
   vnet->txq = txq;
   vnet->rxq = rxq;
 
-  // Store global pointer for RX interrupt handler
-  g_vnet = vnet;
-
   // Enable PCI bus mastering before enabling MSI-X
   pci_enable_bus_master(pdev);
 
@@ -380,11 +382,11 @@ int vnet_probe(struct device *dev) {
   msix_enable(pdev);
 
   uint16_t config_irq;
-  register_irq_handler(vnet_config_irq_handler, &config_irq);
+  register_irq_handler(vnet_config_irq_handler, &config_irq, vnet);
   uint16_t rx_irq;
-  register_irq_handler(vnet_rx_irq_handler, &rx_irq);
+  register_irq_handler(vnet_rx_irq_handler, &rx_irq, vnet);
   uint16_t tx_irq;
-  register_irq_handler(vnet_tx_irq_handler, &tx_irq);
+  register_irq_handler(vnet_tx_irq_handler, &tx_irq, vnet);
 
   VNET_LOG("IRQ numbers: config=%d, rx=%d, tx=%d", config_irq, rx_irq, tx_irq);
 
@@ -476,6 +478,8 @@ int vnet_probe(struct device *dev) {
   kprintf("  TX dev_suppress addr: 0x%lx\n", (uint64_t)vnet->txq->dev_suppress);
 
   kprintf("\nDriver initialization complete\n");
+
+  netif_register(&vnet->nif);
 
   return 0;
 }

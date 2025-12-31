@@ -29,8 +29,8 @@ struct context {
   uint64_t ss;
 } __attribute__((packed));
 
-typedef int (*irq_handler_t)(uint16_t, struct context *);
+typedef int (*irq_handler_t)(uint16_t, struct context *, void *);
 
 int int_init(void);
-int register_irq_handler(irq_handler_t irq_handler, uint16_t *irqn);
-int set_irq_handler(uint64_t irqn, irq_handler_t irq_handler);
+int register_irq_handler(irq_handler_t irq_handler, uint16_t *irqn, void *ctx);
+int set_irq_handler(uint64_t irqn, irq_handler_t irq_handler, void *ctx);
