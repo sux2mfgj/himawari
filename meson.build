@@ -4,12 +4,21 @@ srcs = []
 incs = []
 libs = []
 
-# `rs_hdr` is used to generate C header file from Rust code.
-# More details, see the rust/meson.build.
+# `rs_hdr` is used to generate C header files from Rust code.
+# Source files add entries to this array in format: [['hm/net.h'], [lib.rs, ...]]
+# Header generation is handled by tools/meson.build
 rs_hdr = []
 
+# Build Rust dependencies (bindings and runtime libraries)
 subdir('rust')
+
+# Process source files (populates rs_hdr array)
 subdir('src')
+
+# Generate C headers from Rust using cbindgen
+subdir('tools')
+
+# Include header directories
 subdir('inc')
 
 configure_file(
