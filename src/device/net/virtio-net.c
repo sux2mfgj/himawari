@@ -140,18 +140,6 @@ static int vnet_rx_irq_handler(uint16_t irqn, struct context *_ctx, void *ctx) {
 
   struct virtio_net *vnet = (struct virtio_net *)ctx;
 
-  // Check IF flag at entry (should be 0 due to Interrupt Gate)
-  uint64_t rflags_entry;
-  __asm__ volatile("pushfq; pop %0" : "=r"(rflags_entry));
-
-  // Check APIC ISR and IRR status before processing
-  uint32_t isr_before = local_apic_read_isr(NULL, irqn);
-  uint32_t irr_before = local_apic_read_irr(NULL, irqn);
-
-  VNET_DEBUG("RX interrupt fired! irqn=%d, RFLAGS=0x%lx, IF=%d, ISR=%d, IRR=%d",
-             irqn, rflags_entry, (rflags_entry >> 9) & 1, isr_before,
-             irr_before);
-
   struct packed_virtq *rxq = vnet->rxq;
   struct virtio_device *vdev = &vnet->vdev;
 
@@ -196,16 +184,6 @@ static int vnet_rx_irq_handler(uint16_t irqn, struct context *_ctx, void *ctx) {
              "hdr.gso_type=0x%02x",
              packets_received, idx, buf_len, hdr->flags, hdr->gso_type);
 
-    // Dump first 64 bytes of packet (Ethernet header + some payload)
-    kprintf("  Packet data (first %d bytes): ",
-            packet_len < 64 ? packet_len : 64);
-    for (uint32_t j = 0; j < 64 && j < packet_len; j++) {
-      kprintf("%02x ", packet_data[j]);
-      if ((j + 1) % 16 == 0)
-        kprintf("\n                                 ");
-    }
-    kprintf("\n");
-
     packets_received++;
 
     // Increment last_used_idx and wrap if necessary
@@ -219,10 +197,6 @@ static int vnet_rx_irq_handler(uint16_t irqn, struct context *_ctx, void *ctx) {
       expected_used_flags = expected_used_avail | expected_used_used;
       VNET_DEBUG("Used wrap toggled to %d at idx wrap", rxq->used_wrap_count);
     }
-
-    // Refill this buffer at the SAME index position (make it available again)
-    uint16_t old_flags = flags;
-    uint32_t old_size = buf_len;
 
     // Restore buffer size to original
     rxq->vq[idx].size = 0x1000;
@@ -239,9 +213,6 @@ static int vnet_rx_irq_handler(uint16_t irqn, struct context *_ctx, void *ctx) {
 
     // Another fence after updating flags
     __asm__ volatile("mfence" ::: "memory");
-
-    VNET_DEBUG("Refilled idx=%d: flags 0x%04x->0x%04x, size %d->0x1000", idx,
-               old_flags, new_flags, old_size);
 
     // Update last_avail_idx to track this refilled buffer
     // In packed virtqueues, we refill in place, so last_avail moves forward
@@ -264,18 +235,6 @@ static int vnet_rx_irq_handler(uint16_t irqn, struct context *_ctx, void *ctx) {
     // Final notification after all buffers refilled
     virtio_notify_queue(vdev, 0); // Notify device of refilled buffers
 
-    // Log descriptor state after refill
-    VNET_DEBUG("After refill: wrap_count=%d, drv_suppress.flags=0x%x, "
-               "dev_suppress.flags=0x%x",
-               rxq->avail_wrap_count, rxq->drv_suppress->flags,
-               rxq->dev_suppress->flags);
-
-    // Dump first few descriptors to verify state
-    for (int j = 0; j < 4 && j < rxq->size; j++) {
-      VNET_DEBUG("  desc[%d]: addr=0x%lx, size=0x%x, id=%d, flags=0x%04x", j,
-                 rxq->vq[j].addr, rxq->vq[j].size, rxq->vq[j].id,
-                 rxq->vq[j].flags);
-    }
   } else {
     VNET_DEBUG("RX interrupt but no packets found (spurious?)");
   }
@@ -295,9 +254,6 @@ static int vnet_rx_irq_handler(uint16_t irqn, struct context *_ctx, void *ctx) {
       other_isr_set = 1;
     }
   }
-
-  VNET_DEBUG("After EOI: ISR[%d]=%d, IRR[%d]=%d, other_ISR=%d", irqn, isr_after,
-             irqn, irr_after, other_isr_set);
 
   return 0;
 }
