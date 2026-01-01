@@ -1,5 +1,6 @@
 # Generate C header files from Rust code using cbindgen
 
+fs = import('fs')
 cbindgen_prog = find_program('cbindgen', required: true, native: true)
 generated_headers = []
 
@@ -30,16 +31,30 @@ foreach r : rs_hdr
   endif
 
   # cbindgen only needs the crate root (lib.rs), which is the first file
+  # Check if cbindgen.toml exists in the same directory as lib.rs
+  lib_rs_path = rs_src[0]
+  lib_rs_dir = fs.parent(lib_rs_path)
+  cbindgen_config = lib_rs_dir / 'cbindgen.toml'
+
+  # Build cbindgen command
+  cbindgen_cmd = [
+    cbindgen_prog,
+    '--lang', 'c',
+    '--output', meson.project_source_root() / 'inc' / out_path,
+  ]
+
+  # Add config if it exists
+  if fs.exists(cbindgen_config)
+    cbindgen_cmd += ['--config', cbindgen_config]
+  endif
+
+  cbindgen_cmd += ['@INPUT@']
+
   gen_header = custom_target(
     out_file.underscorify(),
     output: out_file,
     input: rs_src[0],  # Only pass lib.rs to cbindgen
-    command: [
-      cbindgen_prog,
-      '--lang', 'c',
-      '--output', meson.project_source_root() / 'inc' / out_path,
-      '@INPUT@'
-    ],
+    command: cbindgen_cmd,
     build_by_default: true,
   )
   generated_headers += gen_header

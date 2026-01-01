@@ -6,8 +6,8 @@ pub struct EthernetFrame<'a> {
 
 #[derive(PartialEq, Debug)]
 pub enum EthernetFrameType {
-    IPv4 = 0x0800,
-    Arp = 0x0806,
+    IPv4,
+    Arp,
     Unknown,
 }
 
@@ -24,10 +24,15 @@ impl<'a> EthernetFrame<'a> {
         self.data[6..12].try_into().unwrap()
     }
 
-    //pub fn frame_type(&self) -> &'a [u8; 2] { self.data[12..14].try_into().unwrap() }
-
     pub fn frame_type(&self) -> EthernetFrameType {
-        match self.data[12..14] {
+        let mut start = 12;
+        // handle vlan
+        if self.data[12..14] == [0x81, 0x00] {
+            start += 4;
+            unimplemented!("vlan is not supporeted yet");
+        }
+
+        match self.data[start..start + 2] {
             [0x08, 0x00] => EthernetFrameType::IPv4,
             [0x08, 0x06] => EthernetFrameType::Arp,
             _ => EthernetFrameType::Unknown,

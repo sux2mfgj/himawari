@@ -1,0 +1,10 @@
+[package]
+name = "print-rs"
+version = "0.1.0"
+edition = "2021"
+
+# このクレートはテスト専用のモック
+# 本物の print_rs と同じ名前だが、テスト時にのみ使用される
+
+[dependencies]
+# テスト環境では標準ライブラリを使用できる

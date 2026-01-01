@@ -4,3 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+# Meson ビルド時は bindings_net はリンクされる
+# Cargo テスト時は build.rs で bindgen を実行して生成
+
+# build.rs で bindgen を実行するための依存
+[build-dependencies]
+bindgen = "0.70"
+
+# テスト時のみモックを使用
+[dev-dependencies]
+print-rs = { path = "../../rust/mocks/print-rs" }
+runtime-rs = { path = "../../rust/mocks/runtime-rs" }

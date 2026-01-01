@@ -1,0 +1,12 @@
+language = "C"
+
+# Add include directive before the generated content
+header = '''#include "net_if.h"
+'''
+
+[parse]
+parse_deps = false
+include = []
+
+[export]
+include = ["net_if"]

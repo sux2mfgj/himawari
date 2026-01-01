@@ -6,7 +6,9 @@ libs += static_library(
   sources: rssrc,
   rust_abi: 'c',
   rust_args: ['-C', 'panic=abort'],
-  link_with: [print_rs, runtime_rs],
+  link_with: [bindings_net, print_rs, runtime_rs],
 )
 
 rs_hdr += [['hm/net.h', rssrc]]
+
+srcs += files('net_if.c')

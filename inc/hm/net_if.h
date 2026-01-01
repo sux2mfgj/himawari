@@ -3,9 +3,24 @@
 #include <stddef.h>
 #include <stdint.h>
 
-struct net_if {
-  struct net_if *next, *prev;
+struct net_if;
+struct net_if_ops {
+  int (*tx_packet)(struct net_if *nif, uint8_t *packet, size_t length);
 };
 
-int netif_register(struct net_if *nif);
+typedef uint8_t mac_addr_t[6];
+typedef uint32_t ipv4_addr_t;
+
+struct net_if {
+  struct net_if *next, *prev;
+  struct net_if_ops *ops;
+  ipv4_addr_t ipv4_addr;
+  mac_addr_t mac_addr;
+};
+
+typedef struct net_if net_if;
+
+int netif_register(struct net_if *nif, struct net_if_ops *ops);
+int netif_set_mac_addr(struct net_if *nif, mac_addr_t mac_addr);
 int netif_receive_packet(struct net_if *nif, uint8_t *packet, size_t length);
+int netif_tx_packet(struct net_if *nif, uint8_t *packet, size_t length);

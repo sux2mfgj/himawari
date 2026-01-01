@@ -7,6 +7,8 @@
 #include <hm/net_if.h>
 #include <hm/pci.h>
 #include <hm/print.h>
+#include <hm/string.h>
+#include <hm/utils.h>
 #include <hm/virtio.h>
 #include <hm/vm.h>
 #include <stdint.h>
@@ -121,6 +123,7 @@ static int fill_rx_buffers(struct virtio_net *vnet) {
 static int vnet_config_irq_handler(uint16_t irqn, struct context *_ctx,
                                    void *ctx) {
   struct virtio_net *vnet = (struct virtio_net *)ctx;
+  VNET_DEBUG("Config interrupt fired");
 
   return 0;
 }
@@ -242,10 +245,6 @@ static int vnet_rx_irq_handler(uint16_t irqn, struct context *_ctx, void *ctx) {
   // Send EOI at the end, after all processing is complete
   local_apic_eoi(NULL);
 
-  // Check ISR and IRR after EOI
-  uint32_t isr_after = local_apic_read_isr(NULL, irqn);
-  uint32_t irr_after = local_apic_read_irr(NULL, irqn);
-
   // Also check if any OTHER ISR bits are set
   int other_isr_set = 0;
   for (int v = 0; v < 256; v++) {
@@ -255,6 +254,22 @@ static int vnet_rx_irq_handler(uint16_t irqn, struct context *_ctx, void *ctx) {
     }
   }
 
+  return 0;
+}
+
+static int vnet_tx_packet(struct net_if *nif, uint8_t *packet, size_t length) {
+  struct virtio_net *vnet = container_of(nif, struct virtio_net, nif);
+
+  return 0;
+}
+
+static struct net_if_ops vnet_netif_ops = {
+    .tx_packet = vnet_tx_packet,
+};
+
+static int vnet_obtain_mac_addr(struct virtio_net *vnet, mac_addr_t mac_addr) {
+
+  memcpy(mac_addr, (void *)vnet->device_config->mac, sizeof(uint8_t) * 6);
   return 0;
 }
 
@@ -422,24 +437,13 @@ int vnet_probe(struct device *dev) {
   // Also check TX queue
   __asm__ volatile("" ::: "memory");
 
-  // Check TX event suppression structures
-  kprintf("TX drv_suppress: counter=%d, flags=0x%x (driver tells device when "
-          "to suppress)\n",
-          vnet->txq->drv_suppress->counter, vnet->txq->drv_suppress->flags);
-  kprintf("TX dev_suppress: counter=%d, flags=0x%x (device tells driver when "
-          "to suppress)\n",
-          vnet->txq->dev_suppress->counter, vnet->txq->dev_suppress->flags);
+  netif_register(&vnet->nif, &vnet_netif_ops);
 
-  // Dump addresses to verify they're set correctly in device
-  kprintf("Event suppression addresses:\n");
-  kprintf("  RX drv_suppress addr: 0x%lx\n", (uint64_t)vnet->rxq->drv_suppress);
-  kprintf("  RX dev_suppress addr: 0x%lx\n", (uint64_t)vnet->rxq->dev_suppress);
-  kprintf("  TX drv_suppress addr: 0x%lx\n", (uint64_t)vnet->txq->drv_suppress);
-  kprintf("  TX dev_suppress addr: 0x%lx\n", (uint64_t)vnet->txq->dev_suppress);
+  mac_addr_t mac;
+  vnet_obtain_mac_addr(vnet, mac);
+  netif_set_mac_addr(&vnet->nif, mac);
 
   kprintf("\nDriver initialization complete\n");
-
-  netif_register(&vnet->nif);
 
   return 0;
 }

@@ -4,31 +4,55 @@
 #[macro_use]
 extern crate std;
 
+// テスト時はモックを使用
+#[cfg(test)]
 #[macro_use]
 extern crate print_rs;
+
+// Meson ビルド時は print_rs と runtime_rs をリンク
+#[cfg(not(cargo_build))]
 extern crate runtime_rs;
 
+// Meson ビルド時は bindings_net クレートを使用
+#[cfg(not(cargo_build))]
+extern crate bindings_net;
+#[cfg(not(cargo_build))]
+use bindings_net::net_if;
+
+// Cargo ビルド時は build.rs で生成されたバインディングを使用
+#[cfg(cargo_build)]
+mod bindings {
+    #![allow(non_upper_case_globals)]
+    #![allow(non_camel_case_types)]
+    #![allow(non_snake_case)]
+    include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+}
+#[cfg(cargo_build)]
+use bindings::net_if;
+
 mod ethernet;
-use ethernet::{EthernetFrame, EthernetFrameType};
 
 mod arp;
-use arp::Arp;
+use arp::handle_arp_packet;
+
+mod l2;
 
 #[no_mangle]
-pub extern "C" fn handle_rx_packet(data: *const u8, len: u32) -> i32 {
+pub extern "C" fn handle_rx_packet(nif: *mut net_if, data: *const u8, len: u32) -> i32 {
     unsafe {
-        if data.is_null() {
+        if data.is_null() || nif.is_null() {
             return -1;
         }
 
         let slice = core::slice::from_raw_parts(data, len as usize);
-        handle_mac_packet(slice)
+        let nif_ref = &*nif;
+        handle_mac_packet(nif_ref, slice)
     }
 }
 
-fn handle_mac_packet(packet: &[u8]) -> i32 {
+fn handle_mac_packet(nif: &net_if, packet: &[u8]) -> i32 {
     if packet.len() < 14 {
-        kprintln!("Packet too short: {} bytes", packet.len());
+        //kprintln!("Packet too short: {} bytes", packet.len());
         return -1;
     }
 
@@ -36,24 +60,12 @@ fn handle_mac_packet(packet: &[u8]) -> i32 {
     let ethertype_slice = &packet[12..14];
 
     match ethertype_slice {
-        [0x08, 0x06] => {
-            kprintln!("[Rust] Received ARP packet");
-            let _arp = Arp::new(packet);
-            0
-        }
+        [0x08, 0x06] => handle_arp_packet(nif, packet),
         [0x08, 0x00] => {
-            kprintln!("[Rust] Received IPv4 packet");
             unimplemented!("IPv4 packet handling not yet implemented");
         }
-        [0x86, 0xdd] => {
-            kprintln!("[Rust] Received IPv6 packet (ignored)");
-            0
-        }
-        _ => {
-            kprintln!("[Rust] Unknown EtherType: {:02x}{:02x}",
-                     ethertype_slice[0], ethertype_slice[1]);
-            0
-        }
+        [0x86, 0xdd] => 0,
+        _ => 0,
     }
 }
 
@@ -63,6 +75,13 @@ mod tests {
 
     #[test]
     fn handle_test() {}
+
+    #[test]
+    fn test_kprintln_macro() {
+        // モックのkprintln!が動作することを確認
+        kprintln!("Testing kprintln! macro");
+        kprintln!("Formatted output: {} + {} = {}", 1, 2, 3);
+    }
 }
 
 /*
