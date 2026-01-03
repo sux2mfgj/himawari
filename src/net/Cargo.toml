@@ -6,7 +6,8 @@ edition = "2021"
 [dependencies]
 # Meson ビルド時は bindings_net はリンクされる
 # Cargo ビルド時は以下のモックを使用
-mm-rs = { path = "../../rust/mocks/mm-rs" }
+mm = { path = "../../rust/mocks/mm" }
+print-rs = { path = "../../rust/mocks/print-rs" }
 
 # build.rs で bindgen を実行するための依存
 [build-dependencies]
@@ -14,5 +15,4 @@ bindgen = "0.70"
 
 # テスト時のみモックを使用
 [dev-dependencies]
-print-rs = { path = "../../rust/mocks/print-rs" }
 runtime-rs = { path = "../../rust/mocks/runtime-rs" }

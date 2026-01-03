@@ -16,7 +16,7 @@ mm_bindings = rust.bindgen(
   ],
 )
 
-bindings_mm = static_library('bindings_mm',
+bindings_mm = static_library('mm',
   structured_sources(
     'lib.rs',
     {'.': mm_bindings}

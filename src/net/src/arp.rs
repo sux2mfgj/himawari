@@ -3,30 +3,11 @@
 use core;
 use core::convert::TryInto;
 
-#[macro_use]
-use crate::print_rs;
-
-// Meson ビルド時
-#[cfg(not(cargo_build))]
 use bindings_net::net_if;
 
-// Cargo ビルド時
-#[cfg(cargo_build)]
-use crate::bindings::net_if;
-
-// net_if ヘルパー関数
-#[cfg(not(cargo_build))]
 use bindings_net::tx_arp_packet;
-#[cfg(cargo_build)]
-use crate::netif_helpers::tx_arp_packet;
 
-// Meson ビルド時は bindings_mm を使用
-#[cfg(not(cargo_build))]
-use bindings_mm::mm_alloc;
-
-// Cargo ビルド時（テスト）は mm_rs を使用
-#[cfg(cargo_build)]
-use mm_rs::mm_alloc;
+use mm::mm_alloc;
 
 use crate::l2::L2Packet;
 

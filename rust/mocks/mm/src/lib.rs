@@ -40,13 +40,13 @@ pub unsafe fn mm_alloc(size: usize) -> *mut core::ffi::c_void {
 /// mm_init のダミー実装（テストでは使用されない）
 #[no_mangle]
 pub unsafe fn mm_init(_entries: *mut core::ffi::c_void, _nentries: usize) -> i32 {
-    0  // 成功を返す
+    0 // 成功を返す
 }
 
 /// mm_early_init のダミー実装（テストでは使用されない）
 #[no_mangle]
 pub unsafe fn mm_early_init() -> i32 {
-    0  // 成功を返す
+    0 // 成功を返す
 }
 
 #[cfg(test)]

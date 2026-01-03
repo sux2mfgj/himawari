@@ -4,18 +4,8 @@
 #[macro_use]
 extern crate std;
 
-// テスト時はモックを使用
-#[cfg(test)]
 #[macro_use]
 extern crate print_rs;
-
-#[cfg(not(test))]
-#[macro_use]
-extern crate print_rs;
-
-// Cargo ビルド時は mm_rs を使用
-#[cfg(cargo_build)]
-extern crate mm_rs;
 
 // Meson ビルド時は print_rs と runtime_rs をリンク
 #[cfg(not(cargo_build))]
@@ -27,9 +17,7 @@ extern crate bindings_net;
 #[cfg(not(cargo_build))]
 use bindings_net::net_if;
 
-// Meson ビルド時のみ bindings_mm を使用
-#[cfg(not(cargo_build))]
-extern crate bindings_mm;
+extern crate mm;
 
 // Cargo ビルド時は build.rs で生成されたバインディングを使用
 #[cfg(cargo_build)]
