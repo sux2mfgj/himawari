@@ -5,7 +5,8 @@ edition = "2021"
 
 [dependencies]
 # Meson ビルド時は bindings_net はリンクされる
-# Cargo テスト時は build.rs で bindgen を実行して生成
+# Cargo ビルド時は以下のモックを使用
+mm-rs = { path = "../../rust/mocks/mm-rs" }
 
 # build.rs で bindgen を実行するための依存
 [build-dependencies]

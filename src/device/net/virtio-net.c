@@ -153,9 +153,6 @@ static int vnet_rx_irq_handler(uint16_t irqn, struct context *_ctx, void *ctx) {
   uint16_t expected_used_used = rxq->used_wrap_count ? VIRTQ_DESC_F_USED : 0;
   uint16_t expected_used_flags = expected_used_avail | expected_used_used;
 
-  VNET_DEBUG("Checking from idx=%d, used_wrap=%d, expected_used_flags=0x%x",
-             rxq->last_used_idx, rxq->used_wrap_count, expected_used_flags);
-
   int packets_received = 0;
 
   // Process used buffers starting from last_used_idx
@@ -259,6 +256,38 @@ static int vnet_rx_irq_handler(uint16_t irqn, struct context *_ctx, void *ctx) {
 
 static int vnet_tx_packet(struct net_if *nif, uint8_t *packet, size_t length) {
   struct virtio_net *vnet = container_of(nif, struct virtio_net, nif);
+  struct virtio_device *vdev = &vnet->vdev;
+
+  struct packed_virtq *txq = vnet->txq;
+
+  uint16_t avail_flag = txq->avail_wrap_count ? VIRTQ_DESC_F_AVAIL : 0;
+  uint16_t used_flag = txq->avail_wrap_count ? 0 : VIRTQ_DESC_F_USED;
+
+  uint16_t idx = txq->last_used_idx;
+
+  size_t vnet_packet_len = sizeof(struct virtio_net_hdr) + length;
+  void *vnet_packet = mm_alloc(vnet_packet_len);
+  if (!vnet_packet)
+    return -1;
+
+  struct virtio_net_hdr *vnet_hdr = vnet_packet;
+  memset(vnet_hdr, 0x00, sizeof(*vnet_hdr));
+
+  void *vnet_packet_payload = vnet_packet + sizeof(*vnet_hdr);
+  memcpy(vnet_packet_payload, packet, length);
+
+  txq->vq[idx].addr = (uint64_t)vnet_packet;
+  txq->vq[idx].size = vnet_packet_len;
+
+  // hexdump_mem(vnet_packet, vnet_packet_len);
+
+  txq->vq[idx].flags = avail_flag | used_flag;
+
+  txq->last_used_idx++;
+
+  virtio_notify_queue(vdev, 1); // Notify RX queue
+
+  VNET_DEBUG("tx packet");
 
   return 0;
 }
@@ -413,27 +442,6 @@ int vnet_probe(struct device *dev) {
   VNET_LOG("Notified device that RX buffers are available (after DRIVER_OK)%s",
            "");
 
-  // Debug: Read back queue configuration to verify
-  volatile uint16_t *queue_select = &vdev->common_cfg->queue_select;
-  *queue_select = 0; // Select RX queue
-  __asm__ volatile("" ::: "memory");
-
-  uint16_t qsize = vdev->common_cfg->queue_size;
-  uint16_t qenable = vdev->common_cfg->queue_enable;
-  uint16_t qmsix = vdev->common_cfg->queue_msix_vector;
-  uint64_t qdesc = vdev->common_cfg->queue_desc;
-  uint64_t qdrv = vdev->common_cfg->queue_driver;
-  uint64_t qdev = vdev->common_cfg->queue_device;
-  uint8_t dev_status = virtio_read_status(vdev);
-
-  kprintf("=== RX Queue Configuration Readback ===\n");
-  kprintf("  size=%d, enable=%d, msix_vec=%d\n", qsize, qenable, qmsix);
-  kprintf("  desc=0x%lx, driver=0x%lx, device=0x%lx\n", qdesc, qdrv, qdev);
-  kprintf("  device_status=0x%x\n", dev_status);
-  kprintf("  Expected: desc=0x%lx, driver=0x%lx, device=0x%lx\n",
-          (uint64_t)vnet->rxq->vq, (uint64_t)vnet->rxq->drv_suppress,
-          (uint64_t)vnet->rxq->dev_suppress);
-
   // Also check TX queue
   __asm__ volatile("" ::: "memory");
 
@@ -441,7 +449,11 @@ int vnet_probe(struct device *dev) {
 
   mac_addr_t mac;
   vnet_obtain_mac_addr(vnet, mac);
+  VNET_LOG("Mac addr: %02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2],
+           mac[3], mac[4], mac[5]);
   netif_set_mac_addr(&vnet->nif, mac);
+
+  netif_set_ipv4_addr(&vnet->nif, 0x0a000202);
 
   kprintf("\nDriver initialization complete\n");
 

@@ -15,10 +15,14 @@ rust/mocks/
 │   ├── Cargo.toml
 │   └── src/
 │       └── lib.rs         # kprint!, kprintln! マクロのモック実装
-└── runtime-rs/            # runtime_rs のモック
+├── runtime-rs/            # runtime_rs のモック
+│   ├── Cargo.toml
+│   └── src/
+│       └── lib.rs         # bcmp などのランタイム関数のモック実装
+└── mm-rs/                 # mm (メモリマネージャ) のモック
     ├── Cargo.toml
     └── src/
-        └── lib.rs         # bcmp などのランタイム関数のモック実装
+        └── lib.rs         # mm_alloc などのメモリ管理関数のモック実装
 ```
 
 ## モッククレート
@@ -61,6 +65,28 @@ kprintln!("x={}", 42);        // フォーマット対応
 pub unsafe fn bcmp(s1: *const u8, s2: *const u8, n: usize) -> i32;
 ```
 
+### mm-rs
+
+カーネルのメモリ管理関数を提供します。
+
+**本番環境:**
+- `mm_alloc()`: カーネルヒープからメモリを確保（解放なし）
+- `mm_init()`, `mm_early_init()`: メモリマネージャの初期化
+- `PAGE_SIZE` 定数: 4096
+
+**テスト環境（このモック）:**
+- `mm_alloc()`: `std::alloc::alloc` を使用してメモリを確保
+- 確保したメモリは解放されない（実際の動作と同じ）
+- テスト終了時にリークするが、テストなので問題ない
+
+**提供する関数:**
+```rust
+pub unsafe fn mm_alloc(size: usize) -> *mut c_void;
+pub unsafe fn mm_init(entries: *mut c_void, nentries: usize) -> i32;
+pub unsafe fn mm_early_init() -> i32;
+pub const PAGE_SIZE: u32 = 4096;
+```
+
 ## 使い方
 
 ### 1. Cargo.toml に dev-dependencies を追加
@@ -71,6 +97,7 @@ pub unsafe fn bcmp(s1: *const u8, s2: *const u8, n: usize) -> i32;
 [dev-dependencies]
 print-rs = { path = "../../rust/mocks/print-rs" }
 runtime-rs = { path = "../../rust/mocks/runtime-rs" }
+mm-rs = { path = "../../rust/mocks/mm-rs" }
 ```
 
 C FFI バインディング（例: `net_if` 構造体）が必要な場合は、`build.rs` で bindgen を使用してください。
@@ -269,6 +296,7 @@ Cargo テスト時:
 
 - ✅ `print-rs` モック: `kprint!`, `kprintln!` をテスト環境で使用可能
 - ✅ `runtime-rs` モック: `bcmp()` などのランタイム関数を提供
+- ✅ `mm-rs` モック: `mm_alloc()` などのメモリ管理関数を提供
 - ✅ Meson ビルドとCargo テストの両方に対応
 - ✅ 標準ライブラリを活用した簡易実装
 - ✅ C FFI バインディングは各クレートの `build.rs` で生成（bindgen使用）

@@ -1,0 +1,10 @@
+[package]
+name = "mm-rs"
+version = "0.1.0"
+edition = "2021"
+
+# このクレートはテスト専用のモック
+# 本物の bindings_mm と異なり、std::alloc を使用してメモリを確保
+
+[dependencies]
+# テスト環境では標準ライブラリを使用できる

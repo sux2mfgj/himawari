@@ -22,5 +22,7 @@ typedef struct net_if net_if;
 
 int netif_register(struct net_if *nif, struct net_if_ops *ops);
 int netif_set_mac_addr(struct net_if *nif, mac_addr_t mac_addr);
+int netif_set_ipv4_addr(struct net_if *nif, ipv4_addr_t addr);
 int netif_receive_packet(struct net_if *nif, uint8_t *packet, size_t length);
-int netif_tx_packet(struct net_if *nif, uint8_t *packet, size_t length);
+int netif_tx_packet(struct net_if *nif, mac_addr_t dst, uint16_t mac_type,
+                    uint8_t *payload, size_t length);

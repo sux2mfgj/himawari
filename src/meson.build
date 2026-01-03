@@ -15,6 +15,7 @@ srcs += files('pit.c')
 srcs += files('virtio.c')
 srcs += files('packed_virtq.c')
 srcs += files('exception.c')
+srcs += files('utils.c')
 
 subdir('mm')
 subdir('acpi')

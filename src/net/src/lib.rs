@@ -9,6 +9,14 @@ extern crate std;
 #[macro_use]
 extern crate print_rs;
 
+#[cfg(not(test))]
+#[macro_use]
+extern crate print_rs;
+
+// Cargo ビルド時は mm_rs を使用
+#[cfg(cargo_build)]
+extern crate mm_rs;
+
 // Meson ビルド時は print_rs と runtime_rs をリンク
 #[cfg(not(cargo_build))]
 extern crate runtime_rs;
@@ -18,6 +26,10 @@ extern crate runtime_rs;
 extern crate bindings_net;
 #[cfg(not(cargo_build))]
 use bindings_net::net_if;
+
+// Meson ビルド時のみ bindings_mm を使用
+#[cfg(not(cargo_build))]
+extern crate bindings_mm;
 
 // Cargo ビルド時は build.rs で生成されたバインディングを使用
 #[cfg(cargo_build)]
@@ -36,6 +48,8 @@ mod arp;
 use arp::handle_arp_packet;
 
 mod l2;
+
+mod netif_helpers;
 
 #[no_mangle]
 pub extern "C" fn handle_rx_packet(nif: *mut net_if, data: *const u8, len: u32) -> i32 {
@@ -60,7 +74,7 @@ fn handle_mac_packet(nif: &net_if, packet: &[u8]) -> i32 {
     let ethertype_slice = &packet[12..14];
 
     match ethertype_slice {
-        [0x08, 0x06] => handle_arp_packet(nif, packet),
+        [0x08, 0x06] => handle_arp_packet(nif, &packet[14..]),
         [0x08, 0x00] => {
             unimplemented!("IPv4 packet handling not yet implemented");
         }

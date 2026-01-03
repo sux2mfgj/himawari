@@ -180,18 +180,8 @@ void virtio_notify_queue(struct virtio_device *vdev, uint16_t queue_idx) {
   volatile uint16_t *notify_addr =
       (volatile uint16_t *)(vdev->notify_cfg + offset);
 
-  kprintf("virtio_notify_queue[%d]: notify_off=%d, multiplier=%d, offset=%d, "
-          "addr=0x%lx\n",
-          queue_idx, notify_off, vdev->notify_off_multiplier, offset,
-          (uint64_t)notify_addr);
-
   // Write the queue index to the notify address
   *notify_addr = queue_idx;
-
-  // Read back to verify
-  uint16_t readback = *notify_addr;
-  kprintf("virtio_notify_queue[%d]: wrote %d, readback %d\n", queue_idx,
-          queue_idx, readback);
 
   // Memory barrier to ensure the write completes
   __asm__ volatile("mfence" ::: "memory");

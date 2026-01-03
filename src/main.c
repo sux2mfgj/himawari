@@ -93,13 +93,6 @@ out:
   kprintf("Enabling interrupts\n");
   asm volatile("sti");
 
-  while (1) {
-    // Periodically check IF flag
-    {
-      uint64_t rflags;
-      __asm__ volatile("pushfq; pop %0" : "=r"(rflags));
-      kprintf("%lx (IF is %d)\n", rflags, !!(rflags & (1 << 9)));
-    }
+  while (1)
     asm volatile("hlt");
-  }
 }
