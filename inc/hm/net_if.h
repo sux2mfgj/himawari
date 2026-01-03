@@ -18,8 +18,6 @@ struct net_if {
   mac_addr_t mac_addr;
 };
 
-typedef struct net_if net_if;
-
 int netif_register(struct net_if *nif, struct net_if_ops *ops);
 int netif_set_mac_addr(struct net_if *nif, mac_addr_t mac_addr);
 int netif_set_ipv4_addr(struct net_if *nif, ipv4_addr_t addr);

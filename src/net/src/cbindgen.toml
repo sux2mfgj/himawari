@@ -1,12 +1,6 @@
 language = "C"
 
-# Add include directive before the generated content
-header = '''#include <hm/net_if.h>
-'''
+includes = ["hm/net_if.h"]
 
-[parse]
-parse_deps = false
-include = []
-
-[export]
-include = ["net_if"]
+[export.rename]
+"net_if" = "struct net_if"

@@ -15,6 +15,9 @@ use bindings_net::net_if;
 use crate::bindings::net_if;
 
 // net_if ヘルパー関数
+#[cfg(not(cargo_build))]
+use bindings_net::tx_arp_packet;
+#[cfg(cargo_build)]
 use crate::netif_helpers::tx_arp_packet;
 
 // Meson ビルド時は bindings_mm を使用
