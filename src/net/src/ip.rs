@@ -7,7 +7,7 @@ pub fn handle_ip_packet(nif: &net_if, packet: &[u8]) -> i32 {
     -1
 }
 
-struct IPv4<'a> {
+struct IP<'a> {
     data: &'a [u8],
 }
 
@@ -67,7 +67,7 @@ impl<'a> IP<'a> {
 
     pub fn protocol(&self) -> Protocol {
         match self.data[10] {
-            Protocol::ICMP => Protocol::ICMP,
+            1 => Protocol::ICMP,
             _ => Protocol::Unknown,
         }
     }
@@ -77,10 +77,10 @@ impl<'a> IP<'a> {
     }
 
     pub fn source_addr(&self) -> u32 {
-        read_be32(&self.data[13])
+        read_be32(&self.data[13..16])
     }
 
     pub fn dest_addr(&self) -> u32 {
-        read_be32(&self.data[17])
+        read_be32(&self.data[17..20])
     }
 }

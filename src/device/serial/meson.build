@@ -1,2 +1,2 @@
 
-subdir('qemu-debugcon')
+#subdir('qemu-debugcon')
