@@ -47,6 +47,9 @@ mod ethernet;
 mod arp;
 use arp::handle_arp_packet;
 
+mod ip;
+use ip::handle_ip_packet;
+
 mod l2;
 
 mod netif_helpers;
@@ -75,9 +78,7 @@ fn handle_mac_packet(nif: &net_if, packet: &[u8]) -> i32 {
 
     match ethertype_slice {
         [0x08, 0x06] => handle_arp_packet(nif, &packet[14..]),
-        [0x08, 0x00] => {
-            unimplemented!("IPv4 packet handling not yet implemented");
-        }
+        [0x08, 0x00] => handle_ipv4_packet(nif, &packet),
         [0x86, 0xdd] => 0,
         _ => 0,
     }
