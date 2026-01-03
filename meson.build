@@ -3,6 +3,7 @@ project('himawari', 'c', 'rust', version: '0.1.0')
 srcs = []
 incs = []
 libs = []
+rlibs = []
 
 # `rs_hdr` is used to generate C header files from Rust code.
 # Source files add entries to this array in format: [['hm/net.h'], [lib.rs, ...]]
@@ -32,6 +33,10 @@ link_args = ['-nostdlib', '-Tlinker.ld', '-static', '-Wl,-e,_boot']
 
 # Add build directory to include path for generated headers (e.g., build/hm/net.h)
 build_incs = include_directories('.')
+
+libs += static_library('rust', files('bridge.rs'), rust_abi: 'c', 
+  rust_args: ['-C', 'panic=abort'],
+  link_with: rlibs)
 
 executable('himawari.elf', srcs, include_directories: [incs, build_incs], c_args: c_args,
   link_args: link_args, link_with: libs)

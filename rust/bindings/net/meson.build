@@ -23,3 +23,5 @@ bindings_net = static_library('bindings_net',
   ),
   rust_abi: 'rust'
 )
+
+rlibs += bindings_net

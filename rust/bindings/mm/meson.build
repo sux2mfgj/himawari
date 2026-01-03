@@ -23,3 +23,5 @@ bindings_mm = static_library('bindings_mm',
   ),
   rust_abi: 'rust'
 )
+
+rlibs += bindings_mm

@@ -2,7 +2,6 @@
 srcs += files('boot.s')
 srcs += files('boot_ap.S')
 srcs += files('main.c')
-srcs += files('qemu-debugcon.c')
 srcs += files('print.c')
 srcs += files('string.c')
 srcs += files('int.S')

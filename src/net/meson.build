@@ -1,10 +1,10 @@
 rssrc = []
 subdir('src')
 
-libs += static_library(
+rlibs += static_library(
   'net',
   sources: rssrc,
-  rust_abi: 'c',
+  rust_abi: 'rust',
   rust_args: ['-C', 'panic=abort'],
   link_with: [bindings_net, print_rs, runtime_rs, bindings_mm],
 )
