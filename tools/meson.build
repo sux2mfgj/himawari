@@ -1,7 +1,7 @@
 # Generate C header files from Rust code using cbindgen
 
 fs = import('fs')
-cbindgen_prog = find_program('cbindgen', required: true, native: true)
+generate_header_script = files('generate_header.sh')
 generated_headers = []
 
 # rs_hdr format is expected like [['hm/net.h'], [file1.rs, file2.rs, ...]]
@@ -25,37 +25,41 @@ foreach r : rs_hdr
     out_file = out_path
   endif
 
-  # Create output directory if needed
-  if out_dir != ''
-    run_command('mkdir', '-p', meson.project_source_root() / 'inc' / out_dir, check: false)
-  endif
-
   # cbindgen only needs the crate root (lib.rs), which is the first file
   # Check if cbindgen.toml exists in the same directory as lib.rs
   lib_rs_path = rs_src[0]
   lib_rs_dir = fs.parent(lib_rs_path)
   cbindgen_config = lib_rs_dir / 'cbindgen.toml'
 
-  # Build cbindgen command
-  cbindgen_cmd = [
-    cbindgen_prog,
-    '--lang', 'c',
-    '--output', meson.project_source_root() / 'inc' / out_path,
+  # Real output path in build root (e.g., build/hm/net.h)
+  # We use meson.project_build_root() but construct a relative path
+  build_root = meson.global_build_root()
+  real_output_path = build_root / out_path
+
+  # Dummy output for Meson tracking
+  dummy_output = out_file
+
+  # Build command using helper script
+  # Usage: generate_header.sh <output_dummy> <real_output_path> <cbindgen_config> <input_crate>
+  gen_cmd = [
+    generate_header_script,
+    '@OUTPUT@',
+    real_output_path,
+    fs.exists(cbindgen_config) ? cbindgen_config : '',
+    '@INPUT@'
   ]
 
-  # Add config if it exists
-  if fs.exists(cbindgen_config)
-    cbindgen_cmd += ['--config', cbindgen_config]
-  endif
-
-  cbindgen_cmd += ['@INPUT@']
-
+  # Generate header in build directory
+  # Output must be just the filename for Meson tracking
   gen_header = custom_target(
-    out_file.underscorify(),
+    out_path.underscorify(),
     output: out_file,
-    input: rs_src[0],  # Only pass lib.rs to cbindgen
-    command: cbindgen_cmd,
+    input: rs_src[0],  # Only pass lib.rs (crate root) to cbindgen
+    command: gen_cmd,
     build_by_default: true,
   )
   generated_headers += gen_header
 endforeach
+
+# Add generated headers to sources so they're tracked as dependencies
+srcs += generated_headers

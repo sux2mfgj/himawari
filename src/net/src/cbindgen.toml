@@ -1,7 +1,7 @@
 language = "C"
 
 # Add include directive before the generated content
-header = '''#include "net_if.h"
+header = '''#include <hm/net_if.h>
 '''
 
 [parse]

@@ -30,5 +30,8 @@ configure_file(
 c_args = ['-nostdlib', '-ffreestanding', '-mno-mmx', '-mno-sse']
 link_args = ['-nostdlib', '-Tlinker.ld', '-static', '-Wl,-e,_boot']
 
-executable('himawari.elf', srcs, include_directories: incs, c_args: c_args, link_args: link_args,
-  link_with: libs)
+# Add build directory to include path for generated headers (e.g., build/hm/net.h)
+build_incs = include_directories('.')
+
+executable('himawari.elf', srcs, include_directories: [incs, build_incs], c_args: c_args,
+  link_args: link_args, link_with: libs)
