@@ -21,7 +21,8 @@ bindings_net = static_library('bindings_net',
     'lib.rs',
     {'.': net_bindings}
   ),
-  rust_abi: 'rust'
+  rust_abi: 'rust',
+  rust_args: rust_args,
 )
 
 rlibs += bindings_net

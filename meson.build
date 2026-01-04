@@ -35,7 +35,7 @@ link_args = ['-nostdlib', '-Tlinker.ld', '-static', '-Wl,-e,_boot']
 build_incs = include_directories('.')
 
 libs += static_library('rust', files('bridge.rs'), rust_abi: 'c', 
-  rust_args: ['-C', 'panic=abort'],
+  rust_args: rust_args,
   link_with: rlibs)
 
 executable('himawari.elf', srcs, include_directories: [incs, build_incs], c_args: c_args,

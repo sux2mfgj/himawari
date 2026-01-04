@@ -5,7 +5,7 @@ rlibs += static_library(
   'net',
   sources: rssrc,
   rust_abi: 'rust',
-  rust_args: ['-C', 'panic=abort'],
+  rust_args: rust_args,
   link_with: [bindings_net, print_rs, runtime_rs, bindings_mm],
 )
 

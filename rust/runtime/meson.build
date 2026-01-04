@@ -4,7 +4,7 @@
 runtime_rs = static_library('runtime_rs',
   'src/lib.rs',
   rust_abi: 'rust',
-  rust_args: ['-C', 'panic=abort'],
+  rust_args: rust_args,
   link_with: print_rs,
 )
 

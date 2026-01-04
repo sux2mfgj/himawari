@@ -17,7 +17,16 @@ extern crate print_rs;
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     kprintln!("\n!!! KERNEL PANIC !!!");
-    kprintln!("{}", info);
+
+    if let Some(location) = info.location() {
+        kprintln!(
+            "panic occurred in file '{}' at line {}",
+            location.file(),
+            location.line(),
+        );
+    }
+
+    kprintln!("message: {}", info.message());
 
     // Halt the CPU forever
     loop {

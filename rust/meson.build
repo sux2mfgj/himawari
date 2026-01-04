@@ -1,3 +1,7 @@
+rust_args = [
+  '-C', 'panic=abort',
+]
+
 # Build Rust bindings and runtime libraries
 subdir('bindings')
 subdir('runtime')

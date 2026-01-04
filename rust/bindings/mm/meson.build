@@ -21,7 +21,8 @@ bindings_mm = static_library('mm',
     'lib.rs',
     {'.': mm_bindings}
   ),
-  rust_abi: 'rust'
+  rust_abi: 'rust',
+  rust_args: rust_args,
 )
 
 rlibs += bindings_mm

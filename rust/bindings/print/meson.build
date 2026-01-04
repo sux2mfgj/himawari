@@ -15,6 +15,7 @@ print_rs = static_library('print_rs',
     {'.': print_bindings}
   ),
   rust_abi: 'rust',
+  rust_args: rust_args,
 )
 
 rlibs += print_rs
