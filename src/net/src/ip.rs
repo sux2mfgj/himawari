@@ -1,24 +1,71 @@
 // ref: https://datatracker.ietf.org/doc/html/rfc791
 
-#[cfg(not(cargo_build))]
-use bindings_net::net_if;
+use bindings_net::{ipv4_addr_t, net_if, packet_t};
 
-pub fn handle_ip_packet(nif: &net_if, packet: &[u8]) -> i32 {
-    -1
+use arp;
+use icmp::handle_icmp_packet;
+
+pub fn handle_ip_packet(nif: &mut net_if, packet: &[u8]) -> i32 {
+    let ip = IP::new(packet);
+
+    if ip.version() != Version::IPv4 {
+        return 0;
+    }
+
+    kprintln!(
+        "{}:{}: ver {:?} prot {:?}, src {:#x}, dst {:#x}",
+        file!(),
+        line!(),
+        ip.version(),
+        ip.protocol(),
+        ip.source_addr(),
+        ip.dest_addr()
+    );
+
+    match ip.protocol() {
+        Protocol::ICMP => handle_icmp_packet(nif, &ip),
+        Protocol::Unknown(prot) => {
+            kprintln!("found unknown ipv4 packet: {}", prot);
+            -1
+        }
+    }
 }
 
-struct IP<'a> {
+pub fn fill_headers(nif: &mut net_if, pkt: &mut packet_t, dst_ip: ipv4_addr_t) -> bool {
+    let Some(dest_mac) = arp::resolve_mac(nif, dst_ip) else {
+        return false;
+    };
+
+    let src_mac = nif.mac_addr;
+    // ethernet::fill_header(src_mac, dst_mac, &pkt);
+
+    // src mac <- net_if
+    // src ip  <- net_if
+    // dst mac <- dest ip <- arp table (or arp request)
+    // dst ip :必要
+    //
+    // ip header
+
+    unimplemented!();
+
+    true
+}
+
+#[derive(Debug)]
+pub struct IP<'a> {
     data: &'a [u8],
 }
 
-enum Version {
+#[derive(Debug, PartialEq)]
+pub enum Version {
     IPv4,
     Unknown,
 }
 
-enum Protocol {
-    ICMP = 1,
-    Unknown,
+#[derive(Debug)]
+pub enum Protocol {
+    ICMP,
+    Unknown(u8),
 }
 
 //enum ServiceType {}
@@ -33,7 +80,7 @@ impl<'a> IP<'a> {
     }
 
     pub fn version(&self) -> Version {
-        match self.data[0] & 0xf {
+        match self.data[0] >> 4 {
             4 => Version::IPv4,
             _ => Version::Unknown,
         }
@@ -46,11 +93,11 @@ impl<'a> IP<'a> {
     //pub fn type_of_service(&self) -> ServiceType { self.data[1] }
 
     pub fn total_length(&self) -> u16 {
-        (self.data[3] as u16) << 8 | self.data[4] as u16
+        (self.data[2] as u16) << 8 | self.data[3] as u16
     }
 
     pub fn id(&self) -> u16 {
-        (self.data[5] as u16) << 8 | self.data[6] as u16
+        (self.data[4] as u16) << 8 | self.data[5] as u16
     }
 
     //pub fn flags(&self) -> {
@@ -58,17 +105,17 @@ impl<'a> IP<'a> {
     //}
 
     pub fn fragment_offset(&self) -> u16 {
-        ((self.data[7] as u16) & 0x1f) << 8 | self.data[8] as u16
+        ((self.data[6] as u16) & 0x1f) << 8 | self.data[7] as u16
     }
 
     pub fn time_to_live(&self) -> u8 {
-        self.data[9]
+        self.data[8]
     }
 
     pub fn protocol(&self) -> Protocol {
-        match self.data[10] {
+        match self.data[9] {
             1 => Protocol::ICMP,
-            _ => Protocol::Unknown,
+            _ => Protocol::Unknown(self.data[9]),
         }
     }
 
@@ -77,10 +124,18 @@ impl<'a> IP<'a> {
     }
 
     pub fn source_addr(&self) -> u32 {
-        read_be32(&self.data[13..16])
+        read_be32(&self.data[12..16])
     }
 
     pub fn dest_addr(&self) -> u32 {
-        read_be32(&self.data[17..20])
+        read_be32(&self.data[16..20])
+    }
+
+    pub fn data(&self) -> Option<&[u8]> {
+        if self.data.len() < 20 {
+            return None;
+        }
+
+        Some(&self.data[20..])
     }
 }

@@ -2,17 +2,22 @@
 rust = import('rust')
 
 # Generate bindings using Meson's native rust.bindgen()
+# Using wrapper header to include both net_if.h and packet.h
 net_bindings = rust.bindgen(
-  input: files('../../../inc/hm/net_if.h'),
+  input: files('bindings_wrapper.h'),
   output: 'bindings.rs',
   include_directories: include_directories('../../../inc'),
   args: [
     '--use-core',
     '--ctypes-prefix', '::core::ffi',
+    # net_if.h bindings
     '--allowlist-type', 'net_if',
     '--allowlist-type', 'mac_addr_t',
     '--allowlist-type', 'ipv4_addr_t',
     '--allowlist-function', 'netif_.*',
+    # packet.h bindings
+    '--allowlist-type', 'packet_t',
+    '--allowlist-function', 'packet_buf_alloc',
   ],
 )
 

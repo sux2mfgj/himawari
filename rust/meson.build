@@ -1,5 +1,6 @@
 rust_args = [
   '-C', 'panic=abort',
+  '-C', 'target-feature=-sse,-mmx'
 ]
 
 # Build Rust bindings and runtime libraries

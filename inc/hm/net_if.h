@@ -11,11 +11,17 @@ struct net_if_ops {
 typedef uint8_t mac_addr_t[6];
 typedef uint32_t ipv4_addr_t;
 
+struct arp_entry {
+  ipv4_addr_t ipv4_addr;
+  mac_addr_t mac_addr;
+};
+
 struct net_if {
   struct net_if *next, *prev;
   struct net_if_ops *ops;
   ipv4_addr_t ipv4_addr;
   mac_addr_t mac_addr;
+  struct arp_entry arp_table[10];
 };
 
 int netif_register(struct net_if *nif, struct net_if_ops *ops);

@@ -12,3 +12,4 @@ rlibs += static_library(
 rs_hdr += [['hm/net.h', rssrc]]
 
 srcs += files('net_if.c')
+srcs += files('packet.c')

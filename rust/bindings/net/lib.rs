@@ -37,3 +37,44 @@ pub fn tx_arp_packet(nif: &net_if, dst: &[u8; 6], payload: &[u8]) -> i32 {
 pub fn tx_ipv4_packet(nif: &net_if, dst: &[u8; 6], payload: &[u8]) -> i32 {
     tx_packet(nif, dst, 0x0008, payload) // 0x0800 = IPv4 (big endian)
 }
+
+/// Safe wrapper around packet_buf_alloc
+///
+/// Allocates a packet buffer from the kernel's memory allocator.
+///
+/// # Arguments
+/// * `size` - Size of the buffer to allocate in bytes
+///
+/// # Returns
+/// * `Ok(&'static mut packet_t)` - Mutable reference to allocated packet on success
+/// * `Err(i32)` - Error code on failure (-1)
+///
+/// # Safety
+/// Returns a 'static lifetime because the kernel allocator does not support freeing.
+/// The allocated packet lives for the entire program lifetime.
+///
+/// # Example
+/// ```no_run
+/// match alloc_packet_buf(1500) {
+///     Ok(pkt) => {
+///         let buf = unsafe { core::slice::from_raw_parts_mut(pkt.buf, pkt.buf_size) };
+///         // Use the buffer...
+///     }
+///     Err(e) => {
+///         // Handle allocation failure
+///     }
+/// }
+/// ```
+pub fn alloc_packet_buf(size: usize) -> Result<&'static mut packet_t, i32> {
+    let mut pkt: *mut packet_t = core::ptr::null_mut();
+
+    let ret = unsafe {
+        packet_buf_alloc(size, &mut pkt as *mut *mut packet_t)
+    };
+
+    if ret == 0 && !pkt.is_null() {
+        Ok(unsafe { &mut *pkt })
+    } else {
+        Err(ret)
+    }
+}

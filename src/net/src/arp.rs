@@ -3,9 +3,7 @@
 use core;
 use core::convert::TryInto;
 
-use bindings_net::net_if;
-
-use bindings_net::tx_arp_packet;
+use bindings_net::{ipv4_addr_t, mac_addr_t, net_if, tx_arp_packet};
 
 use mm::mm_alloc;
 
@@ -27,7 +25,7 @@ pub enum ProtocolType {
     Unknown,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum Operation {
     Request,
     Reply,
@@ -202,6 +200,29 @@ impl ArpBuilder {
     }
 }
 
+fn generate_arp_request(nif: &net_if, target_addr: ipv4_addr_t) -> *mut u8 {
+    let packet = ArpBuilder::new()
+        .operation(Operation::Request)
+        .sender_mac(nif.mac_addr)
+        .sender_ip(nif.ipv4_addr)
+        .target_mac([0xff, 0xff, 0xff, 0xff, 0xff, 0xff])
+        .target_ip(target_addr)
+        .build();
+
+    // mm_alloc でメモリを確保（28バイト）
+    let ptr = unsafe { mm_alloc(28) as *mut u8 };
+    if ptr.is_null() {
+        panic!("mm_alloc failed");
+    }
+
+    // 確保したメモリにパケットをコピー
+    unsafe {
+        core::ptr::copy_nonoverlapping(packet.as_ptr(), ptr, 28);
+    }
+
+    ptr
+}
+
 fn generate_arp_response(nif: &net_if, req: &Arp) -> *mut u8 {
     // ArpBuilder でレスポンスパケットを構築
     let packet = ArpBuilder::new()
@@ -249,12 +270,13 @@ fn handle_arp_request(nif: &net_if, arp: &Arp) -> i32 {
     tx_arp_packet(nif, &dst_mac, payload)
 }
 
-fn handle_arp_reply(_nif: &net_if, _arp: &Arp) -> i32 {
-    // TODO: ARP応答を処理してARPテーブルを更新
-    unimplemented!();
+fn handle_arp_reply(nif: &mut net_if, arp: &Arp) -> i32 {
+    update_arp_table(nif, arp.sender_ip(), arp.sender_mac());
+
+    0
 }
 
-pub fn handle_arp_packet(nif: &net_if, packet: &[u8]) -> i32 {
+pub fn handle_arp_packet(nif: &mut net_if, packet: &[u8]) -> i32 {
     let arp = Arp::new(packet);
 
     if arp.hardware_type() != HardwareType::Ethernet {
@@ -265,6 +287,8 @@ pub fn handle_arp_packet(nif: &net_if, packet: &[u8]) -> i32 {
         return -1;
     }
 
+    kprintln!("handle arp: {:?}", arp.operation());
+
     match arp.operation() {
         Operation::Request => handle_arp_request(nif, &arp),
         Operation::Reply => handle_arp_reply(nif, &arp),
@@ -272,6 +296,42 @@ pub fn handle_arp_packet(nif: &net_if, packet: &[u8]) -> i32 {
             return -1;
         }
     }
+}
+
+fn update_arp_table(nif: &mut net_if, ipv4_addr: ipv4_addr_t, mac_addr: mac_addr_t) {
+    for entry in &mut nif.arp_table {
+        if entry.ipv4_addr != 0 {
+            continue;
+        }
+
+        entry.ipv4_addr = ipv4_addr;
+        entry.mac_addr = mac_addr;
+
+        return;
+    }
+
+    unimplemented!();
+}
+
+fn tx_arp_request(nif: &mut net_if, ipv4_addr: ipv4_addr_t) {
+    let ptr = generate_arp_request(nif, ipv4_addr);
+
+    let payload = unsafe { core::slice::from_raw_parts(ptr, 28) };
+
+    tx_arp_packet(nif, &[0xff, 0xff, 0xff, 0xff, 0xff, 0xff], payload);
+}
+
+pub fn resolve_mac(nif: &mut net_if, dst_ip: ipv4_addr_t) -> Option<mac_addr_t> {
+    for entry in &nif.arp_table {
+        if entry.ipv4_addr == dst_ip {
+            return Some(entry.mac_addr);
+        }
+    }
+
+    tx_arp_request(nif, dst_ip);
+    kprintln!("sent arp request: {:x}", dst_ip);
+
+    None
 }
 
 #[cfg(test)]

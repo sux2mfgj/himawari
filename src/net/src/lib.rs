@@ -38,6 +38,8 @@ use arp::handle_arp_packet;
 mod ip;
 use ip::handle_ip_packet;
 
+mod icmp;
+
 mod l2;
 
 #[no_mangle]
@@ -48,12 +50,11 @@ pub extern "C" fn handle_rx_packet(nif: *mut net_if, data: *const u8, len: u32) 
         }
 
         let slice = core::slice::from_raw_parts(data, len as usize);
-        let nif_ref = &*nif;
-        handle_mac_packet(nif_ref, slice)
+        handle_mac_packet(&mut *nif, slice)
     }
 }
 
-fn handle_mac_packet(nif: &net_if, packet: &[u8]) -> i32 {
+fn handle_mac_packet(nif: &mut net_if, packet: &[u8]) -> i32 {
     if packet.len() < 14 {
         //kprintln!("Packet too short: {} bytes", packet.len());
         return -1;
@@ -64,7 +65,7 @@ fn handle_mac_packet(nif: &net_if, packet: &[u8]) -> i32 {
 
     match ethertype_slice {
         [0x08, 0x06] => handle_arp_packet(nif, &packet[14..]),
-        [0x08, 0x00] => handle_ip_packet(nif, &packet),
+        [0x08, 0x00] => handle_ip_packet(nif, &packet[14..]),
         [0x86, 0xdd] => 0,
         _ => 0,
     }

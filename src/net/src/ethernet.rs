@@ -40,6 +40,9 @@ impl<'a> EthernetFrame<'a> {
     }
 }
 
+use bindings_net::packet_t;
+pub fn fill_ether_header(pkt: &packet_t) {}
+
 #[cfg(test)]
 mod tests {
     use super::*;

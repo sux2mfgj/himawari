@@ -9,16 +9,22 @@ fn main() {
 
     // テスト時のみ bindgen を実行
     println!("cargo:rerun-if-changed=../../inc/hm/net_if.h");
+    println!("cargo:rerun-if-changed=../../inc/hm/packet.h");
+    println!("cargo:rerun-if-changed=../../rust/bindings/net/bindings_wrapper.h");
 
     let bindings = bindgen::Builder::default()
-        .header("../../inc/hm/net_if.h")
+        .header("../../rust/bindings/net/bindings_wrapper.h")
         .clang_arg("-I../../inc")
         .use_core()
         .ctypes_prefix("core::ffi")
+        // net_if.h bindings
         .allowlist_type("net_if")
         .allowlist_type("mac_addr_t")
         .allowlist_type("ipv4_addr_t")
         .allowlist_function("netif_.*")
+        // packet.h bindings
+        .allowlist_type("packet_t")
+        .allowlist_function("packet_buf_alloc")
         .layout_tests(false)
         .generate()
         .expect("Unable to generate bindings");
