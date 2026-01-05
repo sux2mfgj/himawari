@@ -25,10 +25,10 @@ impl<'a> EthernetFrame<'a> {
     }
 
     pub fn frame_type(&self) -> EthernetFrameType {
-        let mut start = 12;
+        let start = 12;
         // handle vlan
         if self.data[12..14] == [0x81, 0x00] {
-            start += 4;
+            // VLAN tag present, offset would be +4
             unimplemented!("vlan is not supporeted yet");
         }
 
@@ -41,7 +41,7 @@ impl<'a> EthernetFrame<'a> {
 }
 
 use bindings_net::packet_t;
-pub fn fill_ether_header(pkt: &packet_t) {}
+pub fn fill_ether_header(_pkt: &packet_t) {}
 
 #[cfg(test)]
 mod tests {

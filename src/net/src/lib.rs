@@ -40,8 +40,6 @@ use ip::handle_ip_packet;
 
 mod icmp;
 
-mod l2;
-
 #[no_mangle]
 pub extern "C" fn handle_rx_packet(nif: *mut net_if, data: *const u8, len: u32) -> i32 {
     unsafe {

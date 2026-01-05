@@ -7,8 +7,6 @@ use bindings_net::{ipv4_addr_t, mac_addr_t, net_if, tx_arp_packet};
 
 use mm::mm_alloc;
 
-use crate::l2::L2Packet;
-
 pub struct Arp<'a> {
     data: &'a [u8],
 }
@@ -121,13 +119,6 @@ impl core::fmt::Display for Arp<'_> {
             target_mac[0], target_mac[1], target_mac[2], target_mac[3], target_mac[4], target_mac[5],
             (target_ip >> 24) & 0xff, (target_ip >> 16) & 0xff, (target_ip >> 8) & 0xff, target_ip & 0xff
         )
-    }
-}
-
-impl L2Packet for Arp<'_> {
-    fn fill_buffer(_buf: &mut [u8]) -> i32 {
-        // TODO: implement ARP packet serialization
-        unimplemented!("fill_buffer for ARP not yet implemented");
     }
 }
 
@@ -272,7 +263,6 @@ fn handle_arp_request(nif: &net_if, arp: &Arp) -> i32 {
 
 fn handle_arp_reply(nif: &mut net_if, arp: &Arp) -> i32 {
     update_arp_table(nif, arp.sender_ip(), arp.sender_mac());
-
     0
 }
 
