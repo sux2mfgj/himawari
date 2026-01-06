@@ -2,12 +2,14 @@
 
 use core::convert::TryInto;
 
-use bindings_net::{alloc_packet_buf, net_if, tx_ipv4_packet};
+use bindings_net::{alloc_packet_buf, net_if, packet_t};
 
 use ip;
-use ip::IP;
+use ip::{tx_ip_packet, IP};
 
 use arp;
+
+use crate::ip::Protocol;
 
 struct ICMP<'a> {
     ip: &'a IP<'a>,
@@ -157,24 +159,47 @@ impl<'a> ICMPEcho<'a> {
     }
 }
 
-fn gen_icmp_echo_reply_packet<'a>(buf: &mut [u8], req: ICMPEcho<'a>) {
+fn gen_icmp_echo_reply_packet<'a>(pkt: &mut packet_t, req: ICMPEcho<'a>) {
+    let buf: &mut [u8] = unsafe { core::slice::from_raw_parts_mut(pkt.buf, pkt.buf_size) };
+    let trans_offset = pkt.transport_offset as usize;
+
+    let mut icmp = &mut buf[trans_offset..];
+
     // type
-    buf[0] = 0;
+    icmp[0] = 0;
     // code
-    buf[1] = 0;
+    icmp[1] = 0;
     // checksum
-    buf[2];
-    buf[3];
+    icmp[2];
+    icmp[3];
     // identifier
-    buf[4] = (req.id() >> 8) as u8;
-    buf[5] = req.id() as u8;
+    icmp[4] = (req.id() >> 8) as u8;
+    icmp[5] = req.id() as u8;
     // sequence number
     let seq = req.seq() + 1;
-    buf[6] = (seq >> 8) as u8;
-    buf[7] = seq as u8;
+    icmp[6] = (seq >> 8) as u8;
+    icmp[7] = seq as u8;
     // data
     let data_len = req.data().len();
-    buf[8..(8 + data_len)].copy_from_slice(req.data());
+    icmp[8..(8 + data_len)].copy_from_slice(req.data());
+}
+
+pub fn handle_icmp_echo_request<'a>(nif: &mut net_if, req: ICMPEcho<'a>) -> i32 {
+    let l3_size = 8 + req.data().len();
+
+    let Ok(pkt_ref) = alloc_packet_buf(nif, l3_size) else {
+        return -1;
+    };
+
+    let dst_ip = req.ip.source_addr();
+
+    gen_icmp_echo_reply_packet(pkt_ref, req);
+
+    let Ok(()) = tx_ip_packet(nif, Protocol::ICMP, dst_ip, pkt_ref) else {
+        return -1;
+    };
+
+    0
 }
 
 pub fn handle_icmp_packet(nif: &mut net_if, ip: &IP) -> i32 {
@@ -185,42 +210,15 @@ pub fn handle_icmp_packet(nif: &mut net_if, ip: &IP) -> i32 {
     match icmp {
         Type::EchoRequest(req) => {
             kprintln!("icmp echo: req? {}", req.is_reqeust());
-            //unimplemented!();
 
-            let Ok(pkt) = alloc_packet_buf(1024) else {
-                return -1;
-            };
-
-            let dst_ip = ip.source_addr();
-            let Some(dst_mac) = arp::resolve_mac(nif, dst_ip) else {
-                return -1;
-            };
-
-            let Some(hdr_len) = ip::fill_headers(
-                nif,
-                pkt,
-                nif.ipv4_addr,
-                dst_ip,
-                ip::Protocol::ICMP,
-                ip.data().unwrap().len(),
-            ) else {
-                return -1;
-            };
-
-            // Convert raw pointer to mutable slice
-            let buf_slice = unsafe { core::slice::from_raw_parts_mut(pkt.buf, pkt.buf_size) };
-
-            gen_icmp_echo_reply_packet(&mut buf_slice[hdr_len..], req);
-
-            tx_ipv4_packet(nif, &dst_mac, buf_slice);
+            handle_icmp_echo_request(nif, req)
         }
         Type::Unknown(t) => {
             kprintln!("unknown icmp type: {}", t);
+            0
         }
         _ => {
             unimplemented!();
         }
     }
-
-    0
 }

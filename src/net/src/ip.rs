@@ -3,7 +3,10 @@
 use bindings_net::{ipv4_addr_t, net_if, packet_t};
 
 use arp;
+use ethernet::tx_eth_packet;
 use icmp::handle_icmp_packet;
+
+use crate::ethernet::EthernetFrameType;
 
 pub fn handle_ip_packet(nif: &mut net_if, packet: &[u8]) -> i32 {
     let ip = IP::new(packet);
@@ -29,6 +32,36 @@ pub fn handle_ip_packet(nif: &mut net_if, packet: &[u8]) -> i32 {
             -1
         }
     }
+}
+
+pub fn tx_ip_packet(
+    nif: &mut net_if,
+    prot: Protocol,
+    dst_ip: ipv4_addr_t,
+    pkt: &mut packet_t,
+) -> Result<(), &'static str> {
+    let Some(dst_mac) = arp::resolve_mac(nif, dst_ip) else {
+        return Err("failed to resolve mac");
+    };
+
+    let mut buf: &mut [u8] = unsafe { core::slice::from_raw_parts_mut(pkt.buf, pkt.buf_size) };
+
+    let net_offset = pkt.net_offset as usize;
+
+    let trans_offset = pkt.transport_offset as usize;
+    let payload_len = buf[trans_offset..].len();
+
+    let mut net = &mut buf[net_offset..];
+
+    IpBuilder::new(net)
+        .protocol(prot)
+        .source_addr(nif.ipv4_addr)
+        .dest_addr(dst_ip)
+        .ttl(64)
+        .build(payload_len)
+        .expect("Failed to build IP header");
+
+    tx_eth_packet(nif, dst_mac, EthernetFrameType::IPv4, pkt)
 }
 
 pub fn fill_headers(

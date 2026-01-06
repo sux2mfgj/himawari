@@ -215,6 +215,13 @@ fn setup_arp_resp_packet(nif: &net_if, pkt: &packet_t, arp: &Arp) -> Result<(), 
     let buf: &mut [u8] = unsafe { core::slice::from_raw_parts_mut(pkt.buf, pkt.buf_size) };
 
     let net_offset = pkt.net_offset as usize;
+    kprintln!(
+        "pkt len {}, offset mac {} net {} | arp len {}",
+        buf.len(),
+        pkt.mac_offset,
+        pkt.net_offset,
+        buf[net_offset..].len(),
+    );
 
     ArpBuilder::new(&mut buf[net_offset..])
         .operation(Operation::Reply)
@@ -241,6 +248,8 @@ fn handle_arp_request(nif: &mut net_if, arp: &Arp) -> i32 {
     };
     kprintln!("{}:{}", file!(), line!());
 
+    pkt_ref.buf_size = pkt_ref.net_offset as usize + 8 + 6 + 4 + 6 + 4;
+
     // ARPレスポンスパケットを生成
     if setup_arp_resp_packet(nif, pkt_ref, arp).is_err() {
         return -1;
@@ -250,7 +259,12 @@ fn handle_arp_request(nif: &mut net_if, arp: &Arp) -> i32 {
     let dst_mac = arp.sender_mac();
 
     kprintln!("{}:{}", file!(), line!());
-    let Ok(_len) = tx_eth_packet(nif, dst_mac, crate::ethernet::EthernetFrameType::Arp, pkt_ref) else {
+    let Ok(_len) = tx_eth_packet(
+        nif,
+        dst_mac,
+        crate::ethernet::EthernetFrameType::Arp,
+        pkt_ref,
+    ) else {
         return -1;
     };
     kprintln!("{}:{}", file!(), line!());

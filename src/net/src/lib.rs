@@ -22,8 +22,8 @@ extern crate mm;
 mod arp;
 mod ethernet;
 use ethernet::handle_eth_packet;
-//mod icmp;
-//mod ip;
+mod icmp;
+mod ip;
 
 #[no_mangle]
 pub extern "C" fn handle_rx_packet(nif: *mut net_if, data: *const u8, len: u32) -> i32 {
