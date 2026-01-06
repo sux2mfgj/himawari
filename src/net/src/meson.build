@@ -1,5 +1,5 @@
 rssrc += files('lib.rs')
 rssrc += files('ethernet.rs')
 rssrc += files('arp.rs')
-rssrc += files('ip.rs')
-rssrc += files('icmp.rs')
+#rssrc += files('ip.rs')
+#rssrc += files('icmp.rs')

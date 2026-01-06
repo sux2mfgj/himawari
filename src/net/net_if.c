@@ -11,33 +11,8 @@ int netif_receive_packet(struct net_if *nif, uint8_t *packet, size_t length) {
   return handle_rx_packet(nif, packet, (uint32_t)length);
 }
 
-static int netif_fill_mac_header(struct net_if *nif, mac_addr_t dst,
-                                 uint16_t type, uint8_t *pkt) {
-  // dst mac
-  memcpy(&pkt[0], dst, sizeof(uint8_t) * 8);
-  // src mac
-  memcpy(&pkt[6], nif->mac_addr, sizeof(uint8_t) * 8);
-  // type
-  memcpy(&pkt[12], &type, sizeof(type));
-
-  return 0;
-}
-
-int netif_tx_packet(struct net_if *nif, mac_addr_t dst, uint16_t mac_type,
-                    uint8_t *payload, size_t length) {
-
-  size_t pkt_len = 14 + max(46, length);
-  uint8_t *pkt = mm_alloc(pkt_len);
-  if (!pkt)
-    return -1;
-
-  netif_fill_mac_header(nif, dst, mac_type, pkt);
-
-  uint8_t *net = pkt + 14;
-
-  memcpy(net, payload, length);
-
-  return nif->ops->tx_packet(nif, pkt, pkt_len);
+int netif_tx_packet(struct net_if *nif, struct packet_t *pkt) {
+  return nif->ops->tx_packet(nif, pkt);
 }
 
 static struct net_if net_if_head;
@@ -51,10 +26,12 @@ static void append_netif(struct net_if *nif) {
   net_if_head.prev = nif;
 }
 
-int netif_register(struct net_if *nif, struct net_if_ops *ops) {
+int netif_register(struct net_if *nif, struct net_if_ops *ops,
+                   uint16_t mac_offset) {
 
   *nif = (struct net_if){
       .ops = ops,
+      .mac_offset = mac_offset,
   };
 
   append_netif(nif);
@@ -72,6 +49,19 @@ int netif_set_ipv4_addr(struct net_if *nif, ipv4_addr_t addr) {
     return -1;
 
   nif->ipv4_addr = addr;
+
+  return 0;
+}
+
+uint16_t netif_trasport_offset(struct net_if *nif) {
+  return nif->mac_offset + 14 + 20;
+}
+
+int netif_init_packet_offset(struct net_if *nif, struct packet_t *pkt) {
+
+  pkt->mac_offset = nif->mac_offset;
+  pkt->net_offset = nif->mac_offset + 14;
+  pkt->transport_offset = nif->mac_offset + 14 + 20;
 
   return 0;
 }

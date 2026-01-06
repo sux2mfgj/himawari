@@ -18,6 +18,7 @@ net_bindings = rust.bindgen(
     # packet.h bindings
     '--allowlist-type', 'packet_t',
     '--allowlist-function', 'packet_buf_alloc',
+    '--allowlist-function', 'packet_buf_free',
   ],
 )
 
@@ -28,6 +29,7 @@ bindings_net = static_library('bindings_net',
   ),
   rust_abi: 'rust',
   rust_args: rust_args,
+  link_with: [bindings_mm],
 )
 
 rlibs += bindings_net

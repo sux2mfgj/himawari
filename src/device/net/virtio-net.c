@@ -254,33 +254,28 @@ static int vnet_rx_irq_handler(uint16_t irqn, struct context *_ctx, void *ctx) {
   return 0;
 }
 
-static int vnet_tx_packet(struct net_if *nif, uint8_t *packet, size_t length) {
+static int vnet_tx_packet(struct net_if *nif, struct packet_t *pkt) {
   struct virtio_net *vnet = container_of(nif, struct virtio_net, nif);
   struct virtio_device *vdev = &vnet->vdev;
+  VNET_DEBUG("tx packet");
 
   struct packed_virtq *txq = vnet->txq;
 
   uint16_t avail_flag = txq->avail_wrap_count ? VIRTQ_DESC_F_AVAIL : 0;
   uint16_t used_flag = txq->avail_wrap_count ? 0 : VIRTQ_DESC_F_USED;
 
+  VNET_DEBUG("tx packet");
   uint16_t idx = txq->last_used_idx;
 
-  size_t vnet_packet_len = sizeof(struct virtio_net_hdr) + length;
-  void *vnet_packet = mm_alloc(vnet_packet_len);
-  if (!vnet_packet)
-    return -1;
-
-  struct virtio_net_hdr *vnet_hdr = vnet_packet;
+  struct virtio_net_hdr *vnet_hdr = (struct virtio_net_hdr *)pkt->buf;
   memset(vnet_hdr, 0x00, sizeof(*vnet_hdr));
+  VNET_DEBUG("tx packet");
 
-  void *vnet_packet_payload = vnet_packet + sizeof(*vnet_hdr);
-  memcpy(vnet_packet_payload, packet, length);
+  // Use data_len if set, otherwise fall back to buf_size
+  size_t tx_len = pkt->data_len > 0 ? pkt->data_len : pkt->buf_size;
 
-  txq->vq[idx].addr = (uint64_t)vnet_packet;
-  txq->vq[idx].size = vnet_packet_len;
-
-  // hexdump_mem(vnet_packet, vnet_packet_len);
-
+  txq->vq[idx].addr = (uint64_t)pkt->buf;
+  txq->vq[idx].size = tx_len;
   txq->vq[idx].flags = avail_flag | used_flag;
 
   txq->last_used_idx++;
@@ -445,7 +440,7 @@ int vnet_probe(struct device *dev) {
   // Also check TX queue
   __asm__ volatile("" ::: "memory");
 
-  netif_register(&vnet->nif, &vnet_netif_ops);
+  netif_register(&vnet->nif, &vnet_netif_ops, sizeof(struct virtio_net_hdr));
 
   mac_addr_t mac;
   vnet_obtain_mac_addr(vnet, mac);

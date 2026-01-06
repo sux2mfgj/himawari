@@ -3,9 +3,9 @@
 use core;
 use core::convert::TryInto;
 
-use bindings_net::{ipv4_addr_t, mac_addr_t, net_if, tx_arp_packet};
+use bindings_net::{alloc_packet_buf, ipv4_addr_t, mac_addr_t, net_if, packet_t};
 
-use mm::mm_alloc;
+use crate::ethernet::tx_eth_packet;
 
 pub struct Arp<'a> {
     data: &'a [u8],
@@ -123,142 +123,139 @@ impl core::fmt::Display for Arp<'_> {
 }
 
 // ARP パケット生成用のビルダー
-pub struct ArpBuilder {
-    buffer: [u8; 28],
+pub struct ArpBuilder<'a> {
+    buf: &'a mut [u8],
+    op_set: bool,
+    sender_mac_set: bool,
+    sender_ip_set: bool,
+    target_mac_set: bool,
+    target_ip_set: bool,
 }
 
-impl ArpBuilder {
+impl<'a> ArpBuilder<'a> {
     /// 新しい ArpBuilder を作成（デフォルト値を設定）
-    pub fn new() -> Self {
-        let mut buffer = [0u8; 28];
+    pub fn new(buf: &'a mut [u8]) -> Self {
+        if buf.len() < 28 {
+            panic!("Buffer too small for ARP packet (need at least 28 bytes)");
+        }
+
         // Hardware type: Ethernet
-        buffer[0..2].copy_from_slice(&[0x00, 0x01]);
+        buf[0..2].copy_from_slice(&[0x00, 0x01]);
         // Protocol type: IPv4
-        buffer[2..4].copy_from_slice(&[0x08, 0x00]);
+        buf[2..4].copy_from_slice(&[0x08, 0x00]);
         // Hardware address length: 6 (MAC)
-        buffer[4] = 6;
+        buf[4] = 6;
         // Protocol address length: 4 (IPv4)
-        buffer[5] = 4;
-        Self { buffer }
+        buf[5] = 4;
+
+        Self {
+            buf,
+            op_set: false,
+            sender_mac_set: false,
+            sender_ip_set: false,
+            target_mac_set: false,
+            target_ip_set: false,
+        }
     }
 
     /// Operation を設定
     pub fn operation(mut self, op: Operation) -> Self {
         match op {
-            Operation::Request => self.buffer[6..8].copy_from_slice(&[0x00, 0x01]),
-            Operation::Reply => self.buffer[6..8].copy_from_slice(&[0x00, 0x02]),
+            Operation::Request => self.buf[6..8].copy_from_slice(&[0x00, 0x01]),
+            Operation::Reply => self.buf[6..8].copy_from_slice(&[0x00, 0x02]),
             _ => {}
         }
+        self.op_set = true;
         self
     }
 
     /// Sender MAC address を設定
-    pub fn sender_mac(mut self, mac: [u8; 6]) -> Self {
-        self.buffer[8..14].copy_from_slice(&mac);
+    pub fn sender_mac(mut self, mac: &[u8; 6]) -> Self {
+        self.buf[8..14].copy_from_slice(mac);
+        self.sender_mac_set = true;
         self
     }
 
     /// Sender IP address を設定
     pub fn sender_ip(mut self, ip: u32) -> Self {
-        self.buffer[14..18].copy_from_slice(&ip.to_be_bytes());
+        self.buf[14..18].copy_from_slice(&ip.to_be_bytes());
+        self.sender_ip_set = true;
         self
     }
 
     /// Target MAC address を設定
-    pub fn target_mac(mut self, mac: [u8; 6]) -> Self {
-        self.buffer[18..24].copy_from_slice(&mac);
+    pub fn target_mac(mut self, mac: &[u8; 6]) -> Self {
+        self.buf[18..24].copy_from_slice(mac);
+        self.target_mac_set = true;
         self
     }
 
     /// Target IP address を設定
     pub fn target_ip(mut self, ip: u32) -> Self {
-        self.buffer[24..28].copy_from_slice(&ip.to_be_bytes());
+        self.buf[24..28].copy_from_slice(&ip.to_be_bytes());
+        self.target_ip_set = true;
         self
     }
 
-    /// パケットをバッファにコピーして返す
-    pub fn build(self) -> [u8; 28] {
-        self.buffer
-    }
-
-    /// 外部バッファに書き込む
-    pub fn write_to(self, dest: &mut [u8]) -> Result<usize, ()> {
-        if dest.len() < 28 {
+    /// パケット構築を完了し、バリデーションを行う
+    pub fn build(self) -> Result<usize, ()> {
+        if !self.op_set
+            || !self.sender_mac_set
+            || !self.sender_ip_set
+            || !self.target_mac_set
+            || !self.target_ip_set
+        {
             return Err(());
         }
-        dest[..28].copy_from_slice(&self.buffer);
         Ok(28)
     }
 }
 
-fn generate_arp_request(nif: &net_if, target_addr: ipv4_addr_t) -> *mut u8 {
-    let packet = ArpBuilder::new()
-        .operation(Operation::Request)
-        .sender_mac(nif.mac_addr)
-        .sender_ip(nif.ipv4_addr)
-        .target_mac([0xff, 0xff, 0xff, 0xff, 0xff, 0xff])
-        .target_ip(target_addr)
-        .build();
+fn setup_arp_resp_packet(nif: &net_if, pkt: &packet_t, arp: &Arp) -> Result<(), ()> {
+    let buf: &mut [u8] = unsafe { core::slice::from_raw_parts_mut(pkt.buf, pkt.buf_size) };
 
-    // mm_alloc でメモリを確保（28バイト）
-    let ptr = unsafe { mm_alloc(28) as *mut u8 };
-    if ptr.is_null() {
-        panic!("mm_alloc failed");
-    }
+    let net_offset = pkt.net_offset as usize;
 
-    // 確保したメモリにパケットをコピー
-    unsafe {
-        core::ptr::copy_nonoverlapping(packet.as_ptr(), ptr, 28);
-    }
-
-    ptr
-}
-
-fn generate_arp_response(nif: &net_if, req: &Arp) -> *mut u8 {
-    // ArpBuilder でレスポンスパケットを構築
-    let packet = ArpBuilder::new()
+    ArpBuilder::new(&mut buf[net_offset..])
         .operation(Operation::Reply)
-        .sender_mac(nif.mac_addr)
+        .sender_mac(&nif.mac_addr)
         .sender_ip(nif.ipv4_addr)
-        .target_mac(req.sender_mac())
-        .target_ip(req.sender_ip())
-        .build();
+        .target_mac(&arp.sender_mac())
+        .target_ip(arp.sender_ip())
+        .build()?;
 
-    // mm_alloc でメモリを確保（28バイト）
-    let ptr = unsafe { mm_alloc(28) as *mut u8 };
-    if ptr.is_null() {
-        panic!("mm_alloc failed");
-    }
-
-    // 確保したメモリにパケットをコピー
-    unsafe {
-        core::ptr::copy_nonoverlapping(packet.as_ptr(), ptr, 28);
-    }
-
-    ptr
+    Ok(())
 }
 
-fn handle_arp_request(nif: &net_if, arp: &Arp) -> i32 {
+fn handle_arp_request(nif: &mut net_if, arp: &Arp) -> i32 {
     let target_ip = arp.target_ip();
 
-    kprintln!("arp request: {:#x}({:#x})", target_ip, nif.ipv4_addr);
+    kprintln!("{}:{}", file!(), line!());
     if nif.ipv4_addr != target_ip {
         // ignore the request non addressed to me.
         return 0;
     }
 
+    let Ok(pkt_ref) = alloc_packet_buf(nif, 28) else {
+        return -1;
+    };
     kprintln!("{}:{}", file!(), line!());
-    // ARPレスポンスパケットを生成
-    let ptr = generate_arp_response(nif, arp);
 
+    // ARPレスポンスパケットを生成
+    if setup_arp_resp_packet(nif, pkt_ref, arp).is_err() {
+        return -1;
+    }
     kprintln!("{}:{}", file!(), line!());
-    // 生成されたARPパケットを送信
-    // &net_if を使える！
-    let payload = unsafe { core::slice::from_raw_parts(ptr, 28) };
+
     let dst_mac = arp.sender_mac();
 
     kprintln!("{}:{}", file!(), line!());
-    tx_arp_packet(nif, &dst_mac, payload)
+    let Ok(_len) = tx_eth_packet(nif, dst_mac, crate::ethernet::EthernetFrameType::Arp, pkt_ref) else {
+        return -1;
+    };
+    kprintln!("{}:{}", file!(), line!());
+
+    0
 }
 
 fn handle_arp_reply(nif: &mut net_if, arp: &Arp) -> i32 {
@@ -303,12 +300,30 @@ fn update_arp_table(nif: &mut net_if, ipv4_addr: ipv4_addr_t, mac_addr: mac_addr
     unimplemented!();
 }
 
-fn tx_arp_request(nif: &mut net_if, ipv4_addr: ipv4_addr_t) {
-    let ptr = generate_arp_request(nif, ipv4_addr);
+fn tx_arp_request(nif: &mut net_if, ipv4_addr: ipv4_addr_t) -> Result<(), ()> {
+    let Ok(pkt_ref) = alloc_packet_buf(nif, 28) else {
+        return Err(());
+    };
 
-    let payload = unsafe { core::slice::from_raw_parts(ptr, 28) };
+    let buf: &mut [u8] = unsafe { core::slice::from_raw_parts_mut(pkt_ref.buf, pkt_ref.buf_size) };
 
-    tx_arp_packet(nif, &[0xff, 0xff, 0xff, 0xff, 0xff, 0xff], payload);
+    let net_offset = pkt_ref.net_offset as usize;
+
+    ArpBuilder::new(&mut buf[net_offset..])
+        .operation(Operation::Request)
+        .sender_mac(&nif.mac_addr)
+        .sender_ip(nif.ipv4_addr)
+        .target_mac(&[0xff, 0xff, 0xff, 0xff, 0xff, 0xff])
+        .target_ip(ipv4_addr)
+        .build()?;
+
+    tx_eth_packet(
+        nif,
+        [0xff, 0xff, 0xff, 0xff, 0xff, 0xff],
+        crate::ethernet::EthernetFrameType::Arp,
+        pkt_ref,
+    )
+    .map_err(|e| kprintln!("{}", e))
 }
 
 pub fn resolve_mac(nif: &mut net_if, dst_ip: ipv4_addr_t) -> Option<mac_addr_t> {
@@ -318,8 +333,11 @@ pub fn resolve_mac(nif: &mut net_if, dst_ip: ipv4_addr_t) -> Option<mac_addr_t> 
         }
     }
 
-    tx_arp_request(nif, dst_ip);
-    kprintln!("sent arp request: {:x}", dst_ip);
+    if tx_arp_request(nif, dst_ip).is_ok() {
+        kprintln!("sent arp request: {:x}", dst_ip);
+    } else {
+        kprintln!("failed to send arp request: {:x}", dst_ip);
+    }
 
     None
 }
