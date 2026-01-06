@@ -16,6 +16,7 @@ srcs += files('packed_virtq.c')
 srcs += files('exception.c')
 srcs += files('utils.c')
 
+subdir('arch')
 subdir('mm')
 subdir('acpi')
 subdir('pci')

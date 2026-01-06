@@ -1,4 +1,5 @@
 #include <hm/acpi.h>
+#include <hm/arch.h>
 #include <hm/core.h>
 #include <hm/device.h>
 #include <hm/int.h>
@@ -27,6 +28,8 @@ void kernel_cmain(struct hvm_start_info *sinfo) {
   kprintf("hello world\n");
 
   move_start_inifo(sinfo);
+
+  arch_init();
 
   ret = int_init();
   if (ret < 0) {
