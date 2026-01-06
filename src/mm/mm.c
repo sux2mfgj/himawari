@@ -1,6 +1,7 @@
 #include <hm/linker.h>
 #include <hm/mm.h>
 #include <hm/print.h>
+#include <hm/utils.h>
 #include <stdbool.h>
 
 bool mm_initialized = false;
@@ -67,34 +68,91 @@ static struct mem_info *find_free_list_entry_containing(uint64_t base,
   return NULL;
 }
 
-void *mm_alloc(size_t size) {
+#define PAGE_FLAG_RAM (0x1 << 0)
 
-  struct mem_info *entry = free_head.next;
-  if (entry == &free_head) {
-    return NULL;
+struct page {
+  uint32_t npages;
+  uint32_t flags;
+};
+
+static struct page *pages = NULL;
+
+static struct page *ptr_to_page(void *ptr) {
+
+  uintptr_t addr = (uintptr_t)ptr;
+  int idx_4k = addr >> 12;
+
+  return &pages[idx_4k];
+}
+
+static int page_struct_init(uintptr_t highest_ram) {
+
+  if (pages)
+    return -1;
+
+  size_t npages = highest_ram / 0x1000;
+  pages = mm_alloc(npages * sizeof(struct page));
+  if (!pages)
+    return -1;
+
+  for (int i = 0; i < npages; i++) {
+    pages[i] = (struct page){
+        .npages = 1,
+    };
   }
+
+  return 0;
+}
+
+static void update_page_struct(void *ptr, int npages) {
+
+  struct page *page = ptr_to_page(ptr);
+
+  page->npages = npages;
+}
+
+void *mm_alloc(size_t size) {
 
   size_t npages = (size + (PAGE_SIZE - 1)) / PAGE_SIZE;
 
-  if (entry->npages >= npages) {
-    void *ptr = entry;
+  // Search through the free list for an entry large enough
+  struct mem_info *entry = free_head.next;
+  while (entry != &free_head) {
+    if (entry->npages >= npages) {
+      void *ptr = entry;
 
-    // Remove the current entry from free list
-    remove_free_list(entry);
+      // Remove the current entry from free list
+      remove_free_list(entry);
 
-    // If there are remaining pages, create a new free entry
-    if (entry->npages > npages) {
-      struct mem_info *next =
-          (struct mem_info *)((uint8_t *)entry + npages * PAGE_SIZE);
-      next->npages = entry->npages - npages;
+      // If there are remaining pages, create a new free entry
+      if (entry->npages > npages) {
+        struct mem_info *next =
+            (struct mem_info *)((uint8_t *)entry + npages * PAGE_SIZE);
+        next->npages = entry->npages - npages;
 
-      insert_free_list(&free_head, next);
+        insert_free_list(&free_head, next);
+      }
+
+      update_page_struct(ptr, npages);
+      return ptr;
     }
 
-    return ptr;
+    entry = entry->next;
   }
 
   return NULL;
+}
+
+void mm_free(void *ptr) {
+
+  struct mem_info *entry = (struct mem_info *)ptr;
+  struct page *page = ptr_to_page(ptr);
+
+  *entry = (struct mem_info){
+      .npages = page->npages,
+  };
+
+  insert_free_list(&free_head, entry);
 }
 
 static int exclude_kernel_space(void) {
@@ -214,6 +272,8 @@ int mm_init(struct hvm_memmap_table_entry *entries, size_t nentry) {
 
   // TODO: free the early heap.
 
+  uintptr_t highest_ram = 0;
+
   for (int i = 0; i < nentry; i++) {
     struct hvm_memmap_table_entry *entry = &entries[i];
 
@@ -228,6 +288,8 @@ int mm_init(struct hvm_memmap_table_entry *entries, size_t nentry) {
     free_entry->npages = entry->size / PAGE_SIZE;
 
     add_free_list(free_entry);
+
+    highest_ram = max(highest_ram, entry->addr + entry->size);
   }
 
   ret = exclude_null_page();
@@ -239,6 +301,10 @@ int mm_init(struct hvm_memmap_table_entry *entries, size_t nentry) {
     return ret;
 
   ret = exclude_ap_boot_space();
+  if (ret)
+    return ret;
+
+  ret = page_struct_init(highest_ram);
   if (ret)
     return ret;
 

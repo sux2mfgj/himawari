@@ -10,6 +10,7 @@ mm_bindings = rust.bindgen(
     '--use-core',
     '--ctypes-prefix', '::core::ffi',
     '--allowlist-function', 'mm_alloc',
+    '--allowlist-function', 'mm_free',
     '--allowlist-function', 'mm_early_init',
     '--allowlist-function', 'mm_init',
     '--allowlist-var', 'PAGE_SIZE',
